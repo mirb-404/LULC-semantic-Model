@@ -1,0 +1,41 @@
+Requirements
+— Collect data and train a deep learning model for Land Use and Land Cover (LULC) semantic 
+segmentation that uses Sentinel-1 data as its only input.
+— Build the prototype
+— Input: latitude/longitude of the location and a start month.
+— Processing: Run the trained model to produce 12 monthly LULC maps.
+— Calculation: for each month, give the percentage of the area covered by each class. Also give the month-
+to-month change and the total change from the first to the last month, both in percentage points.
+— Visualization:  LULC map of the selected location over 12 months
+— Submit
+— The dataset: a download link if too big
+— The notebook(s): ensuring it displays the execution results and visualizations of training performance
+— The prototype: source code, a README (setup, dependencies, required accounts or API keys) and a 
+requirements file.
+— The trained model weight.
+— A short screen recording of a full run for at least one urban area of your choice.
+
+
+Requirements
+The report must cover:
+— Dataset and preprocessing: Describe the data source, regions, time period, classes and class distribution. Describe all 
+preprocessing steps, such as: 
+— calibration, dB conversion, speckle filtering and terrain correction
+— normalization and patching
+— how labels were matched to the imagery
+— augmentation and data splits
+— Model: Give a clear explanation of the architecture and training setup, and the reasoning behind your design choices.
+— Experimental results. 
+— overall accuracy (OA), mean IoU (mIoU) and per-class IoU/F1 on the test set
+— training curves
+— a comparison of model variants, if you tested more than one
+— Prototype: Cover
+— the system architecture
+— data retrieval and monthly compositing
+— how class percentages and changes are calculated
+— a case study of your chosen location, with the results sanity-checked against an independent LULC map not used for training
+— Critical discussion: Cover limitations of the model and the prototype, including 
+— performance on regions unlike the training data
+— SAR-specific confusion between classes
+— seasonal effects that can look like real land-use change
+— how classification errors inflate the calculated change percentages
