@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+Dataset/*
+!Dataset/README.md
+
+.env
