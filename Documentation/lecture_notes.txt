@@ -1,0 +1,10 @@
+make sure to address data imbalance and accuracy is high across all predictions
+
+What is Sparse Categorical Crossentropy
+Last Updated :
+26 Jul, 2025
+Sparse Categorical Crossentropy is a loss function commonly used in multi-class classification problems in machine learning and deep learning and is particularly used when dealing with a large number of categories. It is very similar to Categorical Crossentropy but with one important difference i.e the true class labels are provided as integers (category indices), not as one-hot encoded vectors.
+
+It is specifically designed for situations where the target labels are provided as integer class indices (e.g., 0, 1, 2, …) rather than one-hot encoded vectors. The term "sparse" refers to this compact label representation which avoids the memory and computational overhead of converting the labels into lengthy one-hot encoded arrays.
+
+early stoping fucntions to avoid overfitting
