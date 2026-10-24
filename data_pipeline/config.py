@@ -147,6 +147,46 @@ RURAL_SITES = [
     dict(name="karakoram_baltoro",  lat=35.7500, lon=76.4000,   region="asia",      split="test",  focus="snow_ice"),
 ]
 
+EXTRA_RURAL_SITES = [
+    dict(name="sweden_taiga",         lat=64.0000, lon=17.0000,   region="europe",    split="train", focus="trees"),
+    dict(name="alaska_boreal",        lat=65.5000, lon=-148.5000, region="n_america", split="train", focus="trees"),
+    dict(name="quebec_boreal",        lat=49.5000, lon=-73.0000,  region="n_america", split="train", focus="trees"),
+    dict(name="appalachian_forest",   lat=38.6000, lon=-79.8000,  region="n_america", split="train", focus="trees"),
+    dict(name="olympic_rainforest",   lat=47.8000, lon=-123.8000, region="n_america", split="train", focus="trees"),
+    dict(name="sikhote_alin_forest",  lat=46.0000, lon=135.5000,  region="asia",      split="train", focus="trees"),
+    dict(name="gabon_forest",         lat=-0.5000, lon=11.5000,   region="africa",    split="train", focus="trees"),
+    dict(name="tasmania_forest",      lat=-42.5000, lon=146.5000, region="oceania",   split="train", focus="trees"),
+    dict(name="papua_forest",         lat=-5.0000, lon=142.0000,  region="oceania",   split="train", focus="trees"),
+    dict(name="mont_blanc_massif",    lat=45.8800, lon=6.9500,    region="europe",    split="train", focus="snow_ice"),
+    dict(name="jostedalsbreen",       lat=61.7000, lon=7.0000,    region="europe",    split="train", focus="snow_ice"),
+    dict(name="juneau_icefield",      lat=58.6000, lon=-134.3000, region="n_america", split="train", focus="snow_ice"),
+    dict(name="tien_shan_inylchek",   lat=42.2000, lon=79.9000,   region="asia",      split="train", focus="snow_ice"),
+    dict(name="khumbu_himalaya",      lat=27.9500, lon=86.8500,   region="asia",      split="train", focus="snow_ice"),
+    dict(name="tasman_glacier",       lat=-43.5000, lon=170.3000, region="oceania",   split="train", focus="snow_ice"),
+    dict(name="caucasus_elbrus",      lat=43.3500, lon=42.4500,   region="europe",    split="val",   focus="snow_ice"),
+    dict(name="nebraska_sandhills",   lat=42.0000, lon=-101.0000, region="n_america", split="train", focus="shrub_grass"),
+    dict(name="great_basin_sagebrush", lat=40.5000, lon=-117.0000, region="n_america", split="train", focus="shrub_grass"),
+    dict(name="patagonia_steppe",     lat=-45.5000, lon=-69.5000, region="s_america", split="train", focus="shrub_grass"),
+    dict(name="karoo_shrubland",      lat=-32.5000, lon=22.0000,  region="africa",    split="train", focus="shrub_grass"),
+    dict(name="tibet_grassland",      lat=31.5000, lon=92.0000,   region="asia",      split="train", focus="shrub_grass"),
+    dict(name="saskatchewan_wheat",   lat=51.0000, lon=-105.0000, region="n_america", split="train", focus="cropland"),
+    dict(name="central_valley_ca",    lat=36.6000, lon=-120.0000, region="n_america", split="train", focus="cropland"),
+    dict(name="punjab_pakistan",      lat=30.0000, lon=72.5000,   region="asia",      split="train", focus="cropland"),
+    dict(name="karawang_rice",        lat=-6.3000, lon=107.4000,  region="asia",      split="train", focus="cropland"),
+    dict(name="heilongjiang_maize",   lat=46.5000, lon=126.5000,  region="asia",      split="train", focus="cropland"),
+    dict(name="australia_wheatbelt",  lat=-31.5000, lon=117.5000, region="oceania",   split="train", focus="cropland"),
+    dict(name="hungarian_plain",      lat=46.5000, lon=20.5000,   region="europe",    split="train", focus="cropland"),
+    dict(name="hudson_bay_lowland",   lat=53.5000, lon=-84.0000,  region="n_america", split="train", focus="wetland"),
+    dict(name="danube_delta",         lat=45.1000, lon=29.4000,   region="europe",    split="train", focus="wetland"),
+    dict(name="louisiana_marsh",      lat=29.4000, lon=-90.6000,  region="n_america", split="train", focus="wetland"),
+    dict(name="niger_delta_mangrove", lat=4.6000,  lon=6.5000,    region="africa",    split="train", focus="wetland"),
+    dict(name="taklamakan_desert",    lat=38.5000, lon=83.0000,   region="asia",      split="train", focus="bare"),
+    dict(name="lake_balaton",         lat=46.8500, lon=17.7500,   region="europe",    split="train", focus="water"),
+    dict(name="finnish_lakeland",     lat=62.0000, lon=27.5000,   region="europe",    split="train", focus="water"),
+]
+
+RURAL_SITES = RURAL_SITES + EXTRA_RURAL_SITES
+
 SITES = [dict(s, focus="urban") for s in URBAN_SITES] + RURAL_SITES
 
 CLASSES = {

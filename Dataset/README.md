@@ -2,7 +2,7 @@
 
 This is a compact, global dataset for **land use / land cover (LULC) semantic segmentation from Sentinel-1 SAR only**. Each sample is a 10 m pixel grid with 12 monthly Sentinel-1 composites (VV and VH backscatter) and an 8-class label map. The labels are derived from the per-pixel consensus of two independent global land-cover products, ESA WorldCover 2021 and Google Dynamic World.
 
-All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 2.4 GB).
+All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 3.1 GB).
 
 ## 1. Quick facts
 
@@ -11,12 +11,12 @@ All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/
 | Input | Sentinel-1 GRD, IW mode, VV + VH, 12 monthly composites (Jan–Dec 2021) |
 | Labels | Consensus of ESA WorldCover v200 (2021) and Dynamic World V1 (2021 mode), 8 classes + ignore |
 | Pixel size / CRS | 10 m, local UTM zone per site |
-| Sites | 116 (77 urban, 39 rural), all continents except Antarctica |
+| Sites | 151 (77 urban, 74 rural), all continents except Antarctica |
 | Site size | 10.24 × 10.24 km (1024 × 1024 px) |
-| Patches | 256 × 256 px; 1214 train / 270 val / 296 test (1780 of 1856 possible) |
+| Patches | 256 × 256 px; 1670 train / 278 val / 296 test (2244 of 2416 possible) |
 | Split | by site (no site appears in two splits), every region and class focus in each split |
-| Sentinel-1 scenes used | 11,407 (median 61 per site for the year) |
-| Size on disk | 2.2 GB S1 tiles, 12 MB labels, 226 MB previews, < 1 MB index/statistics |
+| Sentinel-1 scenes used | 15,555 (median 61 per site for the year) |
+| Size on disk | 2.8 GB S1 tiles, 19 MB labels, 289 MB previews, < 1 MB index/statistics |
 | Independent check map | Esri 10 m LULC 2021, **not used** anywhere in this dataset (reserved for the prototype sanity check) |
 
 ## 2. Folder layout and file formats
@@ -124,6 +124,24 @@ A model trained only on such tiles would learn to predict "built-up" almost ever
 | Wetland & mangrove | Sundarbans, Pantanal, Sudd, Inner Niger Delta | Okavango delta | Everglades |
 | Snow & ice | Aletsch glacier, Columbia Icefield, Patagonian icefield, Vatnajökull | Svalbard glacier | Karakoram (Baltoro) |
 
+### Extra rural sites (35, second round)
+
+The first full training run (test mIoU 0.56) showed three weaknesses: trees were confused with cropland (the only test forest is boreal, but no boreal forest was in train), snow and shrub & grass had few training sites, and train mIoU (0.79) was far above val (0.47), so the model overfitted the training sites. 38 more rural sites were therefore added, chosen for **new biomes** rather than more of the same. All of them go to train, except one snow site for val (val had only 0.3% snow). The **test set is unchanged**, so scores before and after stay comparable.
+
+| Focus | Train | Val |
+|---|---|---|
+| Trees | Swedish taiga, Alaska boreal, Québec boreal, Appalachians, Olympic rainforest, Sikhote-Alin, Gabon, Tasmania, Papua | |
+| Snow & ice | Mont Blanc, Jostedalsbreen, Juneau Icefield, Tien Shan (Inylchek), Khumbu, Tasman glacier | Caucasus (Elbrus) |
+| Shrub & grass | Nebraska Sandhills, Great Basin sagebrush, Patagonian steppe, Karoo, Tibetan grassland | |
+| Cropland | Saskatchewan wheat, Central Valley (CA), Punjab (PK), Karawang rice, Heilongjiang maize, Australian wheatbelt, Hungarian plain | |
+| Wetland & mangrove | Hudson Bay lowland, Danube delta, Louisiana marsh, Niger delta mangrove | |
+| Bare / sparse | Taklamakan | |
+| Water | Lake Balaton, Finnish lakeland | |
+
+- **Replaced:** Vasyugan mire (57 N, 78 E) had a month without IW scenes and failed; it was replaced by the Danube delta.
+- **Dropped:** Finnish boreal forest, Australian spinifex and the Simpson desert kept 0 patches, because WorldCover and Dynamic World agree on only 3–22% of their pixels. They were removed.
+- Some sites came out differently from their focus: the Great Basin and Karoo are labelled mostly *bare*, not shrub. The label maps decide, and the focus is only the reason a site was chosen.
+
 ### Coverage check and replaced sites
 
 Before downloading, the number of Sentinel-1 IW scenes per month was checked for every site. Three planned sites were replaced:
@@ -143,8 +161,8 @@ Sites with thin coverage were kept, because every month still has at least one s
 
 | Split | Sites | Patches | Urban patches | Rural patches |
 |---|---|---|---|---|
-| train | 78 | 1214 | 826 | 388 |
-| val | 18 | 270 | 169 | 101 |
+| train | 112 | 1670 | 826 | 844 |
+| val | 19 | 278 | 169 | 109 |
 | test | 20 | 296 | 202 | 94 |
 
 ## 5. Sentinel-1 preprocessing
@@ -232,11 +250,11 @@ On average **79.8%** of the pixels per site are kept as labels (min 24.1% at Kan
 
 ## 7. Patching
 
-- Each 1024 × 1024 site tile is cut into a non-overlapping 4 × 4 grid of 256 × 256 patches, giving 16 candidates per site and 1856 in total.
+- Each 1024 × 1024 site tile is cut into a non-overlapping 4 × 4 grid of 256 × 256 patches, giving 16 candidates per site and 2416 in total.
 - A patch is **kept** when both of these hold:
   - at most **60%** of its pixels are *ignore*: ignored pixels do not contribute to the loss, but patches that are mostly unlabelled carry little signal;
   - in **every month**, at least **99%** of its pixels have valid VV and VH.
-- **1780 patches kept (95.9%).** Sites with few patches: Kano farmland 1, Mongolian steppe 5, Svalbard 8, Anchorage 10, Khulna 11 (low label agreement).
+- **2244 patches kept (92.9%).** Sites with few patches: Khumbu 1, Australian wheatbelt 1, Gabon 2, Great Basin 2, Swedish taiga 4, Kano farmland 1, Mongolian steppe 5, Svalbard 8, Anchorage 10, Khulna 11 (low label agreement).
 - 256 px = 2.56 km gives enough spatial context for urban texture and field patterns, and fits a U-Net-style encoder (divisible by 32) on a 4 GB GPU.
 - Each patch keeps **all 12 months**. Every month shares the same annual label, which lets the training loader:
   - sample a random month per patch: temporal augmentation that teaches the model to classify any single month, as the prototype requires;
@@ -249,19 +267,19 @@ Share of labelled pixels per split (from `patches/class_distribution.json`):
 
 | Class | Train | Val | Test |
 |---|---|---|---|
-| Built-up | 46.9% | 41.4% | 54.7% |
-| Cropland | 8.1% | 12.4% | 5.0% |
-| Trees | 13.3% | 12.1% | 10.8% |
-| Shrub & grass | 3.9% | 5.7% | 7.7% |
-| Bare / sparse | 7.4% | 8.2% | 8.4% |
-| Water | 9.6% | 15.3% | 4.8% |
-| Wetland & mangrove | 5.3% | 4.5% | 6.3% |
-| Snow & ice | 5.4% | 0.3% | 2.3% |
-| *Ignored pixels (share of all pixels)* | *17.9%* | *18.9%* | *17.4%* |
+| Built-up | 34.2% | 40.2% | 54.7% |
+| Cropland | 10.9% | 12.1% | 5.0% |
+| Trees | 17.8% | 11.8% | 10.8% |
+| Shrub & grass | 6.2% | 5.5% | 7.7% |
+| Bare / sparse | 8.2% | 8.4% | 8.4% |
+| Water | 9.0% | 14.8% | 4.8% |
+| Wetland & mangrove | 6.2% | 4.4% | 6.3% |
+| Snow & ice | 7.5% | 2.9% | 2.3% |
+| *Ignored pixels (share of all pixels)* | *17.5%* | *18.8%* | *17.4%* |
 
-Train pixel counts per class: built-up 30.6 M, cropland 5.3 M, trees 8.7 M, shrub & grass 2.5 M, bare 4.9 M, water 6.3 M, wetland 3.5 M, snow & ice 3.5 M.
+Train pixel counts per class: built-up 30.9 M, cropland 9.8 M, trees 16.1 M, shrub & grass 5.6 M, bare 7.4 M, water 8.1 M, wetland 5.6 M, snow & ice 6.7 M.
 
-Built-up is still the largest class, by design: the prototype targets urban areas. The imbalance is about 12:1 between the largest and smallest class, so training should use **class-weighted or focal loss** and report **per-class IoU/F1**, not only overall accuracy.
+Built-up is still the largest class, by design: the prototype targets urban areas. The imbalance is about 6:1 between the largest and smallest class (12:1 before the extra rural sites), so training should use **class-weighted or focal loss** and report **per-class IoU/F1**, not only overall accuracy.
 
 ## 9. Rebuilding the dataset
 
@@ -298,6 +316,7 @@ All settings are in `data_pipeline/config.py`: sites, splits, year, tile size, e
 | uint8 encoding, 10.24 km tiles, patch index | int16, 15 km tiles, copied patch arrays (~20 GB) | Keeps the dataset under 4 GB (2.4 GB) with no measurable loss: ±0.1 dB rounding vs ~0.5–1 dB speckle. |
 | Full 10 m resolution kept | coarser pixels, then sharpening | Detail lost by downsampling cannot be recovered by sharpening; sharpening SAR also amplifies speckle. |
 | Wetland exception in the consensus | strict agreement only | Dynamic World has no mangrove class, so strict agreement removed nearly all wetland pixels. |
+| 35 extra rural sites in new biomes, test set unchanged | more patches from existing sites | The first model overfitted the training sites and failed on an unseen biome (boreal forest). New places add variety; a fixed test set keeps before/after scores comparable. |
 | Patch ignore limit 60% | 50% | At 50%, Kano and Mongolia kept 0 patches and dropped out of the dataset. 60% keeps every site. |
 
 ## 11. Limitations
@@ -355,6 +374,8 @@ The steps below are in the order they were done, including the approaches that w
     - a preview PNG for every site.
 
     The previews were checked visually, for example Berlin, Sundarbans and Aletsch. The Aletsch preview shows the seasonal snow effect noted in the Limitations. This README documents the result.
+
+12. **Extra rural sites after the first training run.** The first full run (U-Net, ResNet-34, three-month input) reached test OA 0.84 and mIoU 0.56, but confused trees with cropland, did poorly on the boreal test forest and the snow test site, and overfitted (train mIoU 0.79 vs val 0.47). 38 rural sites in new biomes were added (see section 4); Vasyugan was replaced by the Danube delta, and three sites with 0 kept patches were removed. Result: **151 sites, 2244 patches, 3.1 GB**. The test split is unchanged.
 
 **Next steps (not part of the dataset):**
 - A training notebook: data loader with month sampling and augmentation, a class-weighted loss, a U-Net-style model, and OA / mIoU / per-class IoU and F1 on the test split.
@@ -485,3 +506,38 @@ The steps below are in the order they were done, including the approaches that w
 | vatnajokull | 64.40 | -16.80 | europe | snow_ice | train | 19–23 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 |
 | svalbard_glacier | 78.65 | 16.40 | europe | snow_ice | val | 3–6 | 50.0 | 8 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 91.8 | 0.0 | 8.2 |
 | karakoram_baltoro | 35.75 | 76.40 | asia | snow_ice | test | 4–6 | 64.2 | 13 | 0.0 | 0.0 | 0.0 | 0.9 | 36.1 | 0.2 | 0.0 | 62.8 |
+| sweden_taiga | 64.00 | 17.00 | europe | trees | train | 11–27 | 35.2 | 4 | 0.0 | 0.0 | 98.5 | 0.1 | 0.0 | 1.3 | 0.0 | 0.0 |
+| alaska_boreal | 65.50 | -148.50 | n_america | trees | train | 4–6 | 74.7 | 16 | 0.0 | 0.0 | 95.8 | 3.9 | 0.1 | 0.2 | 0.0 | 0.0 |
+| quebec_boreal | 49.50 | -73.00 | n_america | trees | train | 3–6 | 59.5 | 13 | 0.0 | 0.0 | 93.5 | 2.6 | 0.0 | 3.8 | 0.1 | 0.0 |
+| appalachian_forest | 38.60 | -79.80 | n_america | trees | train | 2–3 | 94.6 | 16 | 0.0 | 0.0 | 99.4 | 0.6 | 0.0 | 0.0 | 0.0 | 0.0 |
+| olympic_rainforest | 47.80 | -123.80 | n_america | trees | train | 7–11 | 78.1 | 16 | 0.0 | 0.0 | 93.8 | 0.8 | 0.3 | 0.1 | 0.0 | 5.0 |
+| sikhote_alin_forest | 46.00 | 135.50 | asia | trees | train | 2–6 | 85.7 | 15 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| gabon_forest | -0.50 | 11.50 | africa | trees | train | 2–3 | 93.2 | 2 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| tasmania_forest | -42.50 | 146.50 | oceania | trees | train | 3–9 | 97.0 | 16 | 0.0 | 0.0 | 98.0 | 1.9 | 0.0 | 0.0 | 0.0 | 0.0 |
+| papua_forest | -5.00 | 142.00 | oceania | trees | train | 2–6 | 98.8 | 16 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| mont_blanc_massif | 45.88 | 6.95 | europe | snow_ice | train | 16–22 | 68.4 | 13 | 0.0 | 0.0 | 9.0 | 6.0 | 8.3 | 0.1 | 0.0 | 76.6 |
+| jostedalsbreen | 61.70 | 7.00 | europe | snow_ice | train | 34–40 | 88.0 | 15 | 0.0 | 0.0 | 0.1 | 0.4 | 0.3 | 0.0 | 0.0 | 99.2 |
+| juneau_icefield | 58.60 | -134.30 | n_america | snow_ice | train | 3–6 | 99.7 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 |
+| tien_shan_inylchek | 42.20 | 79.90 | asia | snow_ice | train | 4–6 | 62.9 | 8 | 0.0 | 0.0 | 0.0 | 0.0 | 63.5 | 5.1 | 0.0 | 31.4 |
+| khumbu_himalaya | 27.95 | 86.85 | asia | snow_ice | train | 5–9 | 63.4 | 1 | 0.0 | 0.0 | 0.0 | 86.7 | 9.4 | 0.0 | 0.0 | 3.8 |
+| tasman_glacier | -43.50 | 170.30 | oceania | snow_ice | train | 10–14 | 73.6 | 15 | 0.0 | 0.0 | 0.0 | 0.0 | 1.0 | 0.7 | 0.0 | 98.3 |
+| caucasus_elbrus | 43.35 | 42.45 | europe | snow_ice | val | 13–16 | 87.2 | 8 | 0.0 | 0.0 | 0.0 | 0.3 | 11.9 | 0.0 | 0.0 | 87.8 |
+| nebraska_sandhills | 42.00 | -101.00 | n_america | shrub_grass | train | 2–3 | 95.8 | 16 | 0.6 | 1.7 | 0.2 | 97.5 | 0.1 | 0.0 | 0.0 | 0.0 |
+| great_basin_sagebrush | 40.50 | -117.00 | n_america | shrub_grass | train | 9–13 | 16.7 | 2 | 0.0 | 0.0 | 0.0 | 1.8 | 98.2 | 0.0 | 0.0 | 0.0 |
+| patagonia_steppe | -45.50 | -69.50 | s_america | shrub_grass | train | 7–17 | 74.2 | 16 | 0.0 | 0.0 | 0.0 | 77.6 | 22.4 | 0.0 | 0.0 | 0.0 |
+| karoo_shrubland | -32.50 | 22.00 | africa | shrub_grass | train | 3–6 | 86.6 | 16 | 0.0 | 0.0 | 0.1 | 1.2 | 98.7 | 0.0 | 0.0 | 0.0 |
+| tibet_grassland | 31.50 | 92.00 | asia | shrub_grass | train | 8–12 | 77.5 | 16 | 1.1 | 0.0 | 0.0 | 94.8 | 3.5 | 0.6 | 0.0 | 0.0 |
+| saskatchewan_wheat | 51.00 | -105.00 | n_america | cropland | train | 2–3 | 83.1 | 16 | 0.1 | 77.3 | 3.6 | 18.7 | 0.0 | 0.3 | 0.0 | 0.0 |
+| central_valley_ca | 36.60 | -120.00 | n_america | cropland | train | 15–18 | 55.7 | 15 | 1.0 | 84.8 | 7.6 | 2.4 | 4.2 | 0.0 | 0.0 | 0.0 |
+| punjab_pakistan | 30.00 | 72.50 | asia | cropland | train | 4–8 | 83.8 | 16 | 3.9 | 95.1 | 0.5 | 0.0 | 0.5 | 0.0 | 0.0 | 0.0 |
+| karawang_rice | -6.30 | 107.40 | asia | cropland | train | 4–11 | 81.0 | 16 | 15.3 | 82.3 | 2.3 | 0.0 | 0.0 | 0.1 | 0.0 | 0.0 |
+| heilongjiang_maize | 46.50 | 126.50 | asia | cropland | train | 3–5 | 90.6 | 16 | 3.6 | 95.4 | 0.4 | 0.0 | 0.0 | 0.0 | 0.6 | 0.0 |
+| australia_wheatbelt | -31.50 | 117.50 | oceania | cropland | train | 4–6 | 25.0 | 1 | 0.2 | 45.3 | 0.1 | 16.5 | 37.8 | 0.0 | 0.0 | 0.0 |
+| hungarian_plain | 46.50 | 20.50 | europe | cropland | train | 18–21 | 92.4 | 16 | 0.9 | 91.5 | 0.8 | 6.7 | 0.0 | 0.0 | 0.0 | 0.0 |
+| hudson_bay_lowland | 53.50 | -84.00 | n_america | wetland | train | 2–6 | 67.3 | 16 | 0.0 | 0.0 | 34.6 | 24.2 | 0.0 | 7.1 | 34.1 | 0.0 |
+| danube_delta | 45.10 | 29.40 | europe | wetland | train | 19–24 | 94.0 | 16 | 0.2 | 0.0 | 1.7 | 8.9 | 0.6 | 13.5 | 75.1 | 0.0 |
+| louisiana_marsh | 29.40 | -90.60 | n_america | wetland | train | 4–6 | 93.7 | 16 | 0.9 | 0.0 | 4.6 | 1.0 | 0.0 | 68.2 | 25.4 | 0.0 |
+| niger_delta_mangrove | 4.60 | 6.50 | africa | wetland | train | 4–6 | 98.8 | 16 | 0.0 | 0.0 | 11.2 | 0.0 | 0.0 | 3.8 | 84.9 | 0.0 |
+| taklamakan_desert | 38.50 | 83.00 | asia | bare | train | 4–6 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
+| lake_balaton | 46.85 | 17.75 | europe | water | train | 21–27 | 92.7 | 16 | 1.7 | 1.7 | 8.0 | 3.3 | 0.0 | 84.3 | 1.0 | 0.0 |
+| finnish_lakeland | 62.00 | 27.50 | europe | water | train | 5–36 | 65.7 | 16 | 0.1 | 1.5 | 89.4 | 0.7 | 0.0 | 8.0 | 0.2 | 0.0 |
