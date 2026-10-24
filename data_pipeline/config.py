@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "Dataset"
 S1_DIR = DATA_DIR / "s1"
 LABEL_DIR = DATA_DIR / "labels"
+TERRAIN_DIR = DATA_DIR / "terrain"
 PATCH_DIR = DATA_DIR / "patches"
 PREVIEW_DIR = DATA_DIR / "previews"
 
@@ -236,6 +237,7 @@ DYNAMICWORLD_TO_CLASS = {0: 6, 1: 3, 2: 4, 3: 7, 4: 2, 5: 4, 6: 1, 7: 5, 8: 8}
 MONTHS = list(range(1, 13))
 BAND_NAMES = [f"{pol}_{m:02d}" for m in MONTHS for pol in ("VV", "VH")]
 LABEL_BANDS = ["consensus", "worldcover", "dynamicworld", "dynamicworld_snowfree"]
+TERRAIN_BANDS = ["elevation_m", "slope_decideg", "hand_dm"]
 
 WETLAND = 7
 WETLAND_COMPATIBLE_DW = (3, 4, 6, 7)

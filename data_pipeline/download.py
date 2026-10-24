@@ -17,6 +17,11 @@ consensus band (training label) is computed locally by config.consensus_labels.
 Output: Dataset/labels/<site>.tif, 4 uint8 bands (consensus, worldcover, dynamicworld,
 dynamicworld_snowfree).
 
+Terrain (optional auxiliary input): Copernicus GLO-30 DEM elevation in m, slope in 0.1 deg
+(from the 30 m DEM) and MERIT Hydro height above nearest drainage (HAND) in 0.1 m, bilinear
+onto the S1 grid. No data (open sea) is 0.
+Output: Dataset/terrain/<site>.tif, 3 int16 bands (elevation_m, slope_decideg, hand_dm).
+
 Usage: python data_pipeline/download.py [--project <gee-project-id>] [--sites berlin lagos] [--relabel]
 """
 import argparse
@@ -91,6 +96,15 @@ def label_image(region):
     dw_snowfree = dw_year.map(lambda img: img.updateMask(img.neq(8))).mode().remap(*to_class)
     placeholder = ee.Image(0)
     return ee.Image.cat([placeholder, wc, dw, dw_snowfree]).rename(config.LABEL_BANDS).unmask(0).toUint8()
+
+
+def terrain_image(region):
+    dems = ee.ImageCollection("COPERNICUS/DEM/GLO30_2024_1").filterBounds(region).select("DEM")
+    dem = dems.mosaic().setDefaultProjection(dems.first().projection())
+    slope = ee.Terrain.slope(dem).multiply(10)
+    hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd").multiply(10)
+    stack = ee.Image.cat([dem, slope, hand]).resample("bilinear")
+    return stack.round().clamp(-32767, 32767).rename(config.TERRAIN_BANDS).unmask(0).toInt16()
 
 
 def write_consensus(name):
@@ -179,6 +193,11 @@ def download_site(site):
         download_raster(label_image(region), config.LABEL_BANDS, "uint8", 0,
                         label_path, epsg, x0, y_top, n)
         write_consensus(name)
+
+    terrain_path = config.TERRAIN_DIR / f"{name}.tif"
+    if not terrain_path.exists():
+        download_raster(terrain_image(region), config.TERRAIN_BANDS, "int16", 0,
+                        terrain_path, epsg, x0, y_top, n)
     print(f"{name}: done")
 
 
@@ -220,6 +239,7 @@ def main():
             time.sleep(10)
     config.S1_DIR.mkdir(parents=True, exist_ok=True)
     config.LABEL_DIR.mkdir(parents=True, exist_ok=True)
+    config.TERRAIN_DIR.mkdir(parents=True, exist_ok=True)
     failed = []
     for site in config.SITES:
         if not args.sites or site["name"] in args.sites:

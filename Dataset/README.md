@@ -2,13 +2,14 @@
 
 This is a compact, global dataset for **land use / land cover (LULC) semantic segmentation from Sentinel-1 SAR only**. Each sample is a 10 m pixel grid with 12 monthly Sentinel-1 composites (VV and VH backscatter) and an 8-class label map. The labels are derived from the per-pixel consensus of two independent global land-cover products, ESA WorldCover 2021 and Google Dynamic World.
 
-All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 3.6 GB).
+All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 4.3 GB).
 
 ## 1. Quick facts
 
 | Item | Value |
 |---|---|
 | Input | Sentinel-1 GRD, IW mode, VV + VH, 12 monthly composites (Jan–Dec 2021) |
+| Auxiliary (optional) | Terrain: Copernicus GLO-30 elevation and slope, MERIT Hydro height above nearest drainage (HAND) |
 | Labels | Consensus of ESA WorldCover v200 (2021) and Dynamic World V1 (2021 mode, snow-free mode for seasonal snow), 8 classes + ignore |
 | Pixel size / CRS | 10 m, local UTM zone per site |
 | Sites | 176 (79 urban, 97 rural), all continents except Antarctica, every major biome |
@@ -16,7 +17,7 @@ All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/
 | Patches | 256 × 256 px; 1958 train / 327 val / 302 test (2587 of 2816 possible) |
 | Split | by site (no site appears in two splits), every region and class focus in each split |
 | Sentinel-1 scenes used | 18,260 (median 72 per site for the year) |
-| Size on disk | 3.2 GB S1 tiles, 34 MB labels, 337 MB previews, < 1 MB index/statistics |
+| Size on disk | 3.4 GB S1 tiles, 0.5 GB terrain, 35 MB labels, 353 MB previews, < 1 MB index/statistics |
 | Independent check map | Esri 10 m LULC 2021, **not used** anywhere in this dataset (reserved for the prototype sanity check) |
 
 ## 2. Folder layout and file formats
@@ -35,6 +36,12 @@ Dataset/
                                    band 4 "dynamicworld_snowfree" Dynamic World 2021 mode over snow-free scenes
     <site>_stats.json            kept_pct (share of labelled pixels kept by the consensus) and
                                  pixel counts per class for each band
+  terrain/
+    <site>.tif                   3 bands int16 on the same grid as s1/<site>.tif (optional auxiliary input)
+                                   band 1 "elevation_m"   Copernicus GLO-30 elevation, metres
+                                   band 2 "slope_decideg" slope from the 30 m DEM, 0.1 degree
+                                   band 3 "hand_dm"       MERIT Hydro height above nearest drainage, 0.1 metre
+                                 open sea (no DEM) = 0
   patches/
     train_patches.csv            index, site, region, focus, row, col  (row/col = top-left pixel in the site tile)
     val_patches.csv
@@ -88,11 +95,14 @@ Patches are stored as an **index** (site, row, col) into the tiles, not as copie
 | Sentinel-1 GRD (ESA Copernicus) | `COPERNICUS/S1_GRD` | model input | Copernicus free, full and open data policy |
 | ESA WorldCover 10 m v200 (2021) | `ESA/WorldCover/v200` | label source 1 | CC BY 4.0 |
 | Google Dynamic World V1 | `GOOGLE/DYNAMICWORLD/V1` | label source 2 | CC BY 4.0 |
+| Copernicus DEM GLO-30 (2024 release) | `COPERNICUS/DEM/GLO30_2024_1` | optional terrain input (elevation, slope) | Copernicus DEM licence (free use with attribution) |
+| MERIT Hydro v1.0.1 | `MERIT/Hydro/v1_0_1` (band `hnd`) | optional terrain input (HAND, ~90 m) | CC BY-NC 4.0 / ODbL 1.0 |
 | Esri 10 m Land Use/Land Cover | `projects/sat-io/open-datasets/landcover/ESRI_Global-LULC_10m_TS` | independent check (not in dataset) | CC BY 4.0 |
 
 References:
 - Zanaga, D. et al. (2022). *ESA WorldCover 10 m 2021 v200*.
 - Brown, C. F. et al. (2022). *Dynamic World, Near real-time global 10 m land use land cover mapping*. Scientific Data 9, 251.
+- Yamazaki, D. et al. (2019). *MERIT Hydro: a high-resolution global hydrography map based on latest topography dataset*. Water Resources Research 55, 5053-5073.
 
 ### Why the year 2021
 
@@ -319,7 +329,7 @@ Requirements:
 Steps, from the repository root:
 
 1. `.venv\Scripts\python data_pipeline\download.py`
-   - Downloads S1 tiles and raw labels for all sites, then computes the consensus labels.
+   - Downloads S1 tiles, raw labels and terrain layers for all sites, then computes the consensus labels.
    - Existing files are skipped, so rerunning after an interruption only fetches what is missing. Failed sites are listed at the end.
    - Takes about 45 minutes on a normal connection.
 2. `.venv\Scripts\python data_pipeline\make_patches.py`: patch index, normalisation and class statistics.
@@ -344,6 +354,7 @@ All settings are in `data_pipeline/config.py`: sites, splits, year, tile size, e
 | 35 extra rural sites in new biomes, test set unchanged | more patches from existing sites | The first model overfitted the training sites and failed on an unseen biome (boreal forest). New places add variety; a fixed test set keeps before/after scores comparable. |
 | Biome gap sites (tundra, savanna, Mediterranean, smallholder, informal city, steep terrain, dry forest) | stopping at the class-focused sites | The prototype must work anywhere. A biome that never appears in training is a guaranteed failure case. |
 | Snow-free Dynamic World mode for seasonally snowy pixels | annual mode only | The annual mode labels tundra, boreal forest and northern cities as snow; WorldCover does not, so these pixels were lost. |
+| Optional terrain layers (elevation, slope, HAND) in a separate folder | none; or merging them into the S1 files | The first models confused wetland with water and missed snow. Wetland lies low, flat and near rivers; snow lies high. Terrain is static context, not a second sensor, so it stays separate and is used only in a clearly labelled ablation; the S1-only model stays the main result. |
 | Patch ignore limit 60% | 50% | At 50%, Kano and Mongolia kept 0 patches and dropped out of the dataset. 60% keeps every site. |
 
 ## 11. Limitations
@@ -405,6 +416,8 @@ The steps below are in the order they were done, including the approaches that w
 12. **Extra rural sites after the first training run.** The first full run (U-Net, ResNet-34, three-month input) reached test OA 0.84 and mIoU 0.56, but confused trees with cropland, did poorly on the boreal test forest and the snow test site, and overfitted (train mIoU 0.79 vs val 0.47). 38 rural sites in new biomes were added (see section 4); Vasyugan was replaced by the Danube delta, and three sites with 0 kept patches were removed. Result: **151 sites, 2244 patches, 3.1 GB**. The test split is unchanged.
 
 13. **Biome gap sites and seasonal snow fix.** 25 sites were added for tundra, savanna, Mediterranean, smallholder farming, dense informal cities, steep terrain and dry forest (section 4). Tundra kept almost no labels because the Dynamic World annual mode is *snow* there. A snow-free Dynamic World band and a consensus rule for it were added (section 6), and the labels of all sites were downloaded again; the Sentinel-1 tiles were not touched. Result: **176 sites, 2587 patches, 3.6 GB**. The test sites are unchanged; the fix added 6 test patches (Anchorage) and some labels in seasonally snowy test areas, so test scores are close to, but not exactly comparable with, runs on the earlier labels.
+
+14. **Optional terrain layers.** After the first run on this dataset (test mIoU 0.54; wetland IoU 0.22, often confused with water), a literature review (`reports/Sentinel 1 LULC segmentation improvements.md`) suggested terrain as cheap static context for wetland, water and snow. `download.py` now also writes `terrain/<site>.tif` (elevation and slope from Copernicus GLO-30, HAND from MERIT Hydro), bilinear onto the S1 grid. The S1 tiles, labels and patches were not touched. Result: **176 sites, 4.3 GB**. Note: GLO-30 is a surface model, so buildings and forest canopy add a few metres of elevation and some slope in cities.
 
 **Next steps (not part of the dataset):**
 - A training notebook: data loader with month sampling and augmentation, a class-weighted loss, a U-Net-style model, and OA / mIoU / per-class IoU and F1 on the test split.

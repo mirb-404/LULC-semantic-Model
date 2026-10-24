@@ -154,3 +154,68 @@ Kaggle run status:
 - **User must re-upload** `Dataset/` as a new version of Kaggle dataset `optimalbhandari/sentinel-1`.
 - **Notebook rewritten** (38 cells, friendlier markdown): `DEV` switch (3 months val, 15 epochs, 2 variants), wrap-around month window, random crop jitter ±128 px from full train tiles, dB shift/noise augmentation, PCA section (36-dim yearly vector → 6 PCs) and `three_month_pca` variant, fixed `SAMPLES_PER_EPOCH = 2500`, `NUM_WORKERS = 4`, model card with PCA weights. Not yet run on Kaggle.
 - **Dataset v3 (same day):** 25 biome-gap sites (`config.BIOME_GAP_SITES`: tundra, savanna, Mediterranean, smallholder, Kampala, Port-au-Prince, steep terrain, dry forest). Seasonal snow label fix: 4th label band `dynamicworld_snowfree`, rule in `config.consensus_labels`; all labels re-downloaded (old labels backed up in the session scratchpad only). Now 176 sites, 1958 / 327 / 302 patches, 3.6 GB. README updated incl. full per-site table. Test sites unchanged, +6 test patches from the snow fix.
+
+## 8. Improvement round (2026-10-24, after the first DEV run on dataset v3)
+
+### 8.1 What the DEV run showed (15 epochs, val on 3 months)
+
+| Variant | best val mIoU | test OA | test mIoU |
+|---|---|---|---|
+| baseline `three_month` (old data, 60 epochs) | ~0.47 | 0.843 | 0.559 |
+| `three_month` (new data) | 0.546 | 0.814 | 0.535 |
+| `three_month_pca` (new data) | **0.656** | **0.834** | 0.544 |
+
+- **Overfitting is mostly fixed:** the train-val mIoU gap fell from 0.31 to 0.05 (`three_month`) and 0.12 (`three_month_pca`). The new sites and the augmentation work.
+- **PCA helps:** trees IoU 0.45 → 0.60, shrub 0.26 → 0.34, water 0.49 → 0.54. **Wetland got worse:** 0.42 → 0.22, probably because seasonally flooded land now looks like water to the model.
+- **Test is not better than the baseline yet.** It was a 15-epoch DEV run, and val mIoU jumps about ±7 points between epochs (0.656 → 0.583). Differences of 1–2 points between runs are therefore noise. Fixing this is step 1 below.
+- **PCA was 5x slower** (165 s vs 33 s per epoch), because the 6 components were recomputed for every sample. **Fixed:** the PCA maps are now computed once per tile and stored (float16).
+
+### 8.2 Research (4 parallel literature searches)
+
+Full report: `reports/Sentinel 1 LULC segmentation improvements.md`; raw notes with sources: `research_notes/Sentinel 1 LULC segmentation improvements/`.
+
+Key points to remember for the exam report:
+- **Label ceiling.** The labels themselves are imperfect. ESA WorldCover is 76.7% correct overall, but only ~47-49% for shrubland and 30-45% for herbaceous wetland. Dynamic World agrees with experts on 73.8% of pixels. Our weakest classes (wetland, shrub) are also the weakest in the label products. Realistic target on our agreement test set: mIoU ~0.58-0.62.
+- **Our numbers are not comparable to published S1-only scores** (e.g. SpecSAR-Former, S1-only on Dynamic World classes: mIoU 0.24), because our test set only contains pixels where two label maps agree (the easy pixels; ~18% ignored). Say this openly in the report.
+- **Temporal information is the biggest lever for SAR** (U-TAE on PASTIS: 63.1 mIoU vs 28.3 for a single date). This is why the 3-month window and the PCA annual summary helped.
+- **A plain U-Net is a strong baseline**; big foundation models give little for S1 only and are too heavy for a T4.
+
+### 8.3 What we are changing now (and why)
+
+| # | Change | Where | Why | Expected effect |
+|---|---|---|---|---|
+| 1 | **EMA weights** (a running average of the model weights, decay 0.998), used for validation, saving and testing | notebook | Averages out the epoch-to-epoch jumps, so the curves and model choice become reliable | +0.5 to +1.5 mIoU, smoother val curve |
+| 2 | **Warmup + cosine learning-rate schedule** instead of ReduceLROnPlateau | notebook | A fixed schedule gives every variant the same training, so variants are fairly comparable; LR decays smoothly to 0 | part of the +0.5 to +1.5 above |
+| 3 | **Lovász-softmax loss instead of Dice** (CE + 0.5 Lovász) | notebook | Lovász directly optimises IoU, the metric we report | +0.3 to +1.5 mIoU |
+| 4 | **Seasonal statistics channels** from the 12 months we already have: VV min, VV max, VH std, VH spread (p90-p10), share of months that look like water (VV < -18 dB) | notebook | Cropland changes a lot over the year, trees do not; seasonally flooded wetland is water only in some months, a lake in all of them | targets cropland and wetland |
+| 5 | **Terrain channels** (optional ablation): elevation and slope (Copernicus GLO-30 DEM), height above nearest drainage (HAND, MERIT Hydro) | new `Dataset/terrain/`, `data_pipeline/download.py`, notebook | Wetland and water lie low, flat and close to rivers; snow lies high. Terrain is static context, not a second sensor, so it is reported as "S1 + terrain" next to the pure S1 result | uncertain; mainly wetland, water, snow |
+
+New variants: `three_month_pca_stats` (still Sentinel-1 only) and `three_month_pca_stats_terrain` (S1 + terrain). The comparison between them is the ablation for the report.
+
+Not done (and why): large foundation models (too heavy, little gain on S1), GLCM texture (no evidence it helps a CNN), polarimetric entropy/alpha and InSAR coherence (need SLC data, not in GEE), focal loss (hard pixels here are often wrong labels). Later options: U-TAE over all 12 months, self-training on the ignored pixels, sliding-window inference with overlap in the prototype.
+
+### 8.4 Status of this round (end of 2026-10-24)
+
+Done:
+- **Terrain layers downloaded** for all 176 sites: `Dataset/terrain/<site>.tif`, 3 int16 bands (`elevation_m`, `slope_decideg`, `hand_dm`), same grid as the S1 tiles, 0.50 GB. Dataset now **4.28 GB**. Code: `terrain_image()` in `data_pipeline/download.py` (Copernicus `COPERNICUS/DEM/GLO30_2024_1` + `MERIT/Hydro/v1_0_1` band `hnd`), `config.TERRAIN_DIR` / `TERRAIN_BANDS`. Rerunning `download.py` only fetches missing files. GLO-30 is a surface model: buildings and canopy add some height/slope in cities.
+- **`Prototype.ipynb`** (41 cells, syntax-checked, not run yet):
+  - new section **5b**: seasonal statistics + terrain channels, all static channels (6 PCA + 5 stats + 3 terrain = 14) precomputed once per tile as float16 (`STATIC_TILE`, `STATIC_X`, ~5 GB RAM); each variant picks its channels with `static_index(variant)`;
+  - variants: `single_month`, `three_month`, `three_month_pca`, **`three_month_pca_stats`** (S1 only), **`three_month_pca_stats_terrain`** (S1 + terrain); DEV runs the last three; terrain variants are skipped automatically if the dataset has no `terrain/` folder;
+  - loss = weighted CE + 0.5 x **Lovász-softmax** (Dice removed);
+  - **EMA** model (`EMA_DECAY = 0.998`) used for val, checkpoint and test; **1 warmup epoch + cosine** LR schedule per step; `PATIENCE = 15`;
+  - `model_card.json` now also stores the static channel list and the stats/terrain definitions and normalisation (the prototype must reproduce them).
+- `Dataset/README.md` updated (quick facts, folder layout, sources, design log, work log entry 14).
+
+Next for the user:
+1. Upload `Dataset/` (incl. the new `terrain/` folder) as a new version of the Kaggle dataset.
+2. Run `Prototype.ipynb` with `DEV = True` (~30-40 min for 3 variants).
+3. Compare: does `three_month_pca_stats` beat `three_month_pca` (seasonal stats help)? Does `..._terrain` beat `..._stats` (terrain helps, mainly wetland/water/snow IoU)? Is the val curve smoother (EMA)?
+4. If good: `DEV = False` for the final run (5 variants x 60 epochs, roughly 3-4 h on a T4).
+
+Study questions to be able to answer in the exam:
+- Why does EMA make validation more stable, and why is it not the same as a lower learning rate?
+- Why is a fixed cosine schedule fairer for comparing variants than ReduceLROnPlateau?
+- What does Lovász-softmax optimise, and why does that match mIoU better than cross-entropy?
+- Why would "water months" separate a lake from a seasonally flooded wetland?
+- Why is terrain reported as an ablation, and what does HAND measure?
+- Why are our mIoU numbers not comparable to published S1-only benchmarks (agreement-filtered labels)?
