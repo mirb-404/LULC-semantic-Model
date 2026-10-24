@@ -9,11 +9,13 @@ orbit file, GRD border noise removal, thermal noise removal, radiometric calibra
   4. convert back to dB and apply a 3x3 focal median (spatial speckle filter).
 Output: Dataset/s1/<site>.tif, 24 uint8 bands (VV_01, VH_01, ..., VH_12), see config.decode_db.
 
-Labels: ESA WorldCover 2021 and the 2021 per-pixel mode of Dynamic World are both mapped
+Labels: ESA WorldCover 2021, the 2021 per-pixel mode of Dynamic World and its mode over
+snow-free observations are mapped
 to the target classes and sampled with nearest neighbour onto the exact S1 grid. The
 consensus band (training label) is computed locally by config.consensus_labels.
 `--relabel` recomputes the consensus band and stats from existing label files, offline.
-Output: Dataset/labels/<site>.tif, 3 uint8 bands (consensus, worldcover, dynamicworld).
+Output: Dataset/labels/<site>.tif, 4 uint8 bands (consensus, worldcover, dynamicworld,
+dynamicworld_snowfree).
 
 Usage: python data_pipeline/download.py [--project <gee-project-id>] [--sites berlin lagos] [--relabel]
 """
@@ -80,22 +82,23 @@ def s1_image(region):
 def label_image(region):
     wc = ee.ImageCollection("ESA/WorldCover/v200").first().select("Map")
     wc = wc.remap(list(config.WORLDCOVER_TO_CLASS), list(config.WORLDCOVER_TO_CLASS.values()), 0)
-    dw = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
-          .filterBounds(region)
-          .filterDate(f"{config.YEAR}-01-01", f"{config.YEAR + 1}-01-01")
-          .select("label")
-          .mode())
-    dw = dw.remap(list(config.DYNAMICWORLD_TO_CLASS), list(config.DYNAMICWORLD_TO_CLASS.values()), 0)
+    dw_year = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
+               .filterBounds(region)
+               .filterDate(f"{config.YEAR}-01-01", f"{config.YEAR + 1}-01-01")
+               .select("label"))
+    to_class = (list(config.DYNAMICWORLD_TO_CLASS), list(config.DYNAMICWORLD_TO_CLASS.values()), 0)
+    dw = dw_year.mode().remap(*to_class)
+    dw_snowfree = dw_year.map(lambda img: img.updateMask(img.neq(8))).mode().remap(*to_class)
     placeholder = ee.Image(0)
-    return ee.Image.cat([placeholder, wc, dw]).rename(config.LABEL_BANDS).unmask(0).toUint8()
+    return ee.Image.cat([placeholder, wc, dw, dw_snowfree]).rename(config.LABEL_BANDS).unmask(0).toUint8()
 
 
 def write_consensus(name):
-    """Fill band 1 (consensus) of a label file from its worldcover/dynamicworld bands, save stats."""
+    """Fill band 1 (consensus) of a label file from its WorldCover/Dynamic World bands, save stats."""
     label_path = config.LABEL_DIR / f"{name}.tif"
     with rasterio.open(label_path, "r+") as dst:
         labels = dst.read()
-        labels[0] = config.consensus_labels(labels[1], labels[2])
+        labels[0] = config.consensus_labels(labels[1], labels[2], labels[3] if len(labels) > 3 else None)
         dst.write(labels[0], 1)
     both = (labels[1] > 0) & (labels[2] > 0)
     kept = (labels[0] > 0).sum() / max(both.sum(), 1) * 100

@@ -2,21 +2,21 @@
 
 This is a compact, global dataset for **land use / land cover (LULC) semantic segmentation from Sentinel-1 SAR only**. Each sample is a 10 m pixel grid with 12 monthly Sentinel-1 composites (VV and VH backscatter) and an 8-class label map. The labels are derived from the per-pixel consensus of two independent global land-cover products, ESA WorldCover 2021 and Google Dynamic World.
 
-All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 3.1 GB).
+All data is retrieved from Google Earth Engine by the scripts in `data_pipeline/`. Only this README is tracked in git; the data files are produced locally (about 3.6 GB).
 
 ## 1. Quick facts
 
 | Item | Value |
 |---|---|
 | Input | Sentinel-1 GRD, IW mode, VV + VH, 12 monthly composites (Jan–Dec 2021) |
-| Labels | Consensus of ESA WorldCover v200 (2021) and Dynamic World V1 (2021 mode), 8 classes + ignore |
+| Labels | Consensus of ESA WorldCover v200 (2021) and Dynamic World V1 (2021 mode, snow-free mode for seasonal snow), 8 classes + ignore |
 | Pixel size / CRS | 10 m, local UTM zone per site |
-| Sites | 151 (77 urban, 74 rural), all continents except Antarctica |
+| Sites | 176 (79 urban, 97 rural), all continents except Antarctica, every major biome |
 | Site size | 10.24 × 10.24 km (1024 × 1024 px) |
-| Patches | 256 × 256 px; 1670 train / 278 val / 296 test (2244 of 2416 possible) |
+| Patches | 256 × 256 px; 1958 train / 327 val / 302 test (2587 of 2816 possible) |
 | Split | by site (no site appears in two splits), every region and class focus in each split |
-| Sentinel-1 scenes used | 15,555 (median 61 per site for the year) |
-| Size on disk | 2.8 GB S1 tiles, 19 MB labels, 289 MB previews, < 1 MB index/statistics |
+| Sentinel-1 scenes used | 18,260 (median 72 per site for the year) |
+| Size on disk | 3.2 GB S1 tiles, 34 MB labels, 337 MB previews, < 1 MB index/statistics |
 | Independent check map | Esri 10 m LULC 2021, **not used** anywhere in this dataset (reserved for the prototype sanity check) |
 
 ## 2. Folder layout and file formats
@@ -28,10 +28,11 @@ Dataset/
                                  band order: VV_01, VH_01, VV_02, VH_02, ..., VV_12, VH_12
     <site>_scene_counts.json     number of S1 scenes averaged into each month's composite
   labels/
-    <site>.tif                   3 bands uint8 on exactly the same grid as s1/<site>.tif
+    <site>.tif                   4 bands uint8 on exactly the same grid as s1/<site>.tif
                                    band 1 "consensus"    training label (0 = ignore)
                                    band 2 "worldcover"   WorldCover mapped to the 8 classes
                                    band 3 "dynamicworld" Dynamic World 2021 mode mapped to the 8 classes
+                                   band 4 "dynamicworld_snowfree" Dynamic World 2021 mode over snow-free scenes
     <site>_stats.json            kept_pct (share of labelled pixels kept by the consensus) and
                                  pixel counts per class for each band
   patches/
@@ -142,6 +143,22 @@ The first full training run (test mIoU 0.56) showed three weaknesses: trees were
 - **Dropped:** Finnish boreal forest, Australian spinifex and the Simpson desert kept 0 patches, because WorldCover and Dynamic World agree on only 3–22% of their pixels. They were removed.
 - Some sites came out differently from their focus: the Great Basin and Karoo are labelled mostly *bare*, not shrub. The label maps decide, and the focus is only the reason a site was chosen.
 
+### Biome gap sites (25, third round)
+
+A review of the site list against the world's major biomes found gaps: no tundra, savanna only in test, no rural Mediterranean landscape, almost no smallholder farming, few dense informal settlements, little steep terrain and no tropical dry forest. 25 sites were added. A few go to val so that model selection also sees these biomes; the test sites stay the same.
+
+| Biome | Train | Val |
+|---|---|---|
+| Tundra | Finnmark, Alaska North Slope, Icelandic highland | Kola peninsula |
+| Savanna | Kruger, Cerrado (Goiás), Llanos (Venezuela), Miombo (Zambia), Sahel (Niger) | Top End (Australia) |
+| Mediterranean | Dehesa (Spain), California chaparral, Chilean matorral, Cape fynbos | Crete maquis |
+| Smallholder farming | Ethiopian highlands, Malawi, Rwanda, western Kenya | |
+| Dense informal city | Kampala, Port-au-Prince | |
+| Steep terrain | Nepal midhills, Andes (Sacred Valley) | |
+| Tropical dry forest | Gran Chaco, Kanha (India) | |
+
+The first download of these sites showed that tundra kept almost no labels (0–18%), which led to the seasonal snow fix in section 6. The smallholder sites in Malawi, Rwanda and western Kenya still keep only 1–3 patches: their fields are smaller than the label maps can resolve, so WorldCover and Dynamic World disagree on most pixels.
+
 ### Coverage check and replaced sites
 
 Before downloading, the number of Sentinel-1 IW scenes per month was checked for every site. Three planned sites were replaced:
@@ -161,9 +178,9 @@ Sites with thin coverage were kept, because every month still has at least one s
 
 | Split | Sites | Patches | Urban patches | Rural patches |
 |---|---|---|---|---|
-| train | 112 | 1670 | 826 | 844 |
-| val | 19 | 278 | 169 | 109 |
-| test | 20 | 296 | 202 | 94 |
+| train | 134 | 1958 | 858 | 1100 |
+| val | 22 | 327 | 169 | 158 |
+| test | 20 | 302 | 208 | 94 |
 
 ## 5. Sentinel-1 preprocessing
 
@@ -236,6 +253,14 @@ label = 0 (ignore)            everywhere else
 
 With the exception, wetland rose from 0.1% to 5.3% of the training labels. In wetland areas, WorldCover is therefore trusted whenever Dynamic World gives a compatible (vegetated or wet) class. All other classes use strict agreement.
 
+**Seasonal snow fix.** The Dynamic World annual mode says *snow & ice* wherever the ground is snow-covered for most of the year, even if it is tundra, forest or a city underneath. WorldCover describes the land cover under the snow, so the two maps disagreed and these pixels were ignored. At the tundra sites only 0–18% of the pixels were kept. The label files therefore have a fourth band: the Dynamic World mode over its **snow-free** scenes only. Where WorldCover is not snow but the annual Dynamic World mode is snow, the snow-free mode is compared instead:
+
+```
+dynamicworld = dynamicworld_snowfree   where dynamicworld == snow and worldcover != snow
+```
+
+Glaciers and ice fields are unchanged, because both maps already agree on snow there. Already labelled pixels never change; the fix only adds labels where the old rule ignored them. Effect: Kola tundra 2.8% to 53.1% kept, Icelandic highland 18.3% to 76.4%, Swedish taiga 35.2% to 85.7%, Svalbard 50.0% to 79.8%, Anchorage 50.7% to 73.0%.
+
 **Dynamic World annual mode.** Dynamic World provides one label per Sentinel-2 scene. The per-pixel **mode** over all 2021 scenes gives one annual label, which can be compared with the annual WorldCover map. The mode suppresses cloud and shadow errors from single scenes.
 
 ### Matching labels to the imagery
@@ -246,15 +271,15 @@ With the exception, wetland rose from 0.1% to 5.3% of the training labels. In we
 - Both label sources are already 10 m products, so no resolution change is involved.
 - The raw mapped WorldCover and Dynamic World bands are kept in every label file. This allows the consensus rule to be changed offline later with `download.py --relabel`, without re-downloading.
 
-On average **79.8%** of the pixels per site are kept as labels (min 24.1% at Kano farmland, max 100% at Sundarbans). Low values mark transitional landscapes where the two maps disagree, for example savanna versus cropland or sparse grass versus bare ground.
+On average **78.2%** of the pixels per site are kept as labels (min 16.7% at the Great Basin, max 100% at the Taklamakan). Low values mark transitional landscapes where the two maps disagree, for example savanna versus cropland or sparse grass versus bare ground.
 
 ## 7. Patching
 
-- Each 1024 × 1024 site tile is cut into a non-overlapping 4 × 4 grid of 256 × 256 patches, giving 16 candidates per site and 2416 in total.
+- Each 1024 × 1024 site tile is cut into a non-overlapping 4 × 4 grid of 256 × 256 patches, giving 16 candidates per site and 2816 in total.
 - A patch is **kept** when both of these hold:
   - at most **60%** of its pixels are *ignore*: ignored pixels do not contribute to the loss, but patches that are mostly unlabelled carry little signal;
   - in **every month**, at least **99%** of its pixels have valid VV and VH.
-- **2244 patches kept (92.9%).** Sites with few patches: Khumbu 1, Australian wheatbelt 1, Gabon 2, Great Basin 2, Swedish taiga 4, Kano farmland 1, Mongolian steppe 5, Svalbard 8, Anchorage 10, Khulna 11 (low label agreement).
+- **2587 patches kept (91.9%).** Sites with fewer than 8 patches: australia_wheatbelt 1, kano_farmland 1, khumbu_himalaya 1, malawi_farms 1, north_slope_alaska 1, western_kenya_farms 1, gabon_forest 2, great_basin_sagebrush 2, rwanda_hills 3, finnmark_tundra 5, mongolia_steppe 5 (low label agreement).
 - 256 px = 2.56 km gives enough spatial context for urban texture and field patterns, and fits a U-Net-style encoder (divisible by 32) on a 4 GB GPU.
 - Each patch keeps **all 12 months**. Every month shares the same annual label, which lets the training loader:
   - sample a random month per patch: temporal augmentation that teaches the model to classify any single month, as the prototype requires;
@@ -267,19 +292,19 @@ Share of labelled pixels per split (from `patches/class_distribution.json`):
 
 | Class | Train | Val | Test |
 |---|---|---|---|
-| Built-up | 34.2% | 40.2% | 54.7% |
-| Cropland | 10.9% | 12.1% | 5.0% |
-| Trees | 17.8% | 11.8% | 10.8% |
-| Shrub & grass | 6.2% | 5.5% | 7.7% |
-| Bare / sparse | 8.2% | 8.4% | 8.4% |
-| Water | 9.0% | 14.8% | 4.8% |
-| Wetland & mangrove | 6.2% | 4.4% | 6.3% |
-| Snow & ice | 7.5% | 2.9% | 2.3% |
-| *Ignored pixels (share of all pixels)* | *17.5%* | *18.8%* | *17.4%* |
+| Built-up | 30.8% | 34.9% | 54.2% |
+| Cropland | 11.3% | 10.5% | 4.9% |
+| Trees | 20.3% | 12.8% | 11.6% |
+| Shrub & grass | 9.5% | 11.1% | 7.7% |
+| Bare / sparse | 8.1% | 9.6% | 8.2% |
+| Water | 8.0% | 13.7% | 5.0% |
+| Wetland & mangrove | 5.4% | 4.7% | 6.2% |
+| Snow & ice | 6.5% | 2.6% | 2.3% |
+| *Ignored pixels (share of all pixels)* | *18.2%* | *20.4%* | *16.9%* |
 
-Train pixel counts per class: built-up 30.9 M, cropland 9.8 M, trees 16.1 M, shrub & grass 5.6 M, bare 7.4 M, water 8.1 M, wetland 5.6 M, snow & ice 6.7 M.
+Train pixel counts per class: built-up 32.3 M, cropland 11.9 M, trees 21.3 M, shrub & grass 10.0 M, bare / sparse 8.5 M, water 8.4 M, wetland & mangrove 5.7 M, snow & ice 6.9 M.
 
-Built-up is still the largest class, by design: the prototype targets urban areas. The imbalance is about 6:1 between the largest and smallest class (12:1 before the extra rural sites), so training should use **class-weighted or focal loss** and report **per-class IoU/F1**, not only overall accuracy.
+Built-up is still the largest class, by design: the prototype targets urban areas. The imbalance is about 6:1 between the largest and smallest class (12:1 in the first version), so training should use **class-weighted or focal loss** and report **per-class IoU/F1**, not only overall accuracy.
 
 ## 9. Rebuilding the dataset
 
@@ -317,6 +342,8 @@ All settings are in `data_pipeline/config.py`: sites, splits, year, tile size, e
 | Full 10 m resolution kept | coarser pixels, then sharpening | Detail lost by downsampling cannot be recovered by sharpening; sharpening SAR also amplifies speckle. |
 | Wetland exception in the consensus | strict agreement only | Dynamic World has no mangrove class, so strict agreement removed nearly all wetland pixels. |
 | 35 extra rural sites in new biomes, test set unchanged | more patches from existing sites | The first model overfitted the training sites and failed on an unseen biome (boreal forest). New places add variety; a fixed test set keeps before/after scores comparable. |
+| Biome gap sites (tundra, savanna, Mediterranean, smallholder, informal city, steep terrain, dry forest) | stopping at the class-focused sites | The prototype must work anywhere. A biome that never appears in training is a guaranteed failure case. |
+| Snow-free Dynamic World mode for seasonally snowy pixels | annual mode only | The annual mode labels tundra, boreal forest and northern cities as snow; WorldCover does not, so these pixels were lost. |
 | Patch ignore limit 60% | 50% | At 50%, Kano and Mongolia kept 0 patches and dropped out of the dataset. 60% keeps every site. |
 
 ## 11. Limitations
@@ -377,6 +404,8 @@ The steps below are in the order they were done, including the approaches that w
 
 12. **Extra rural sites after the first training run.** The first full run (U-Net, ResNet-34, three-month input) reached test OA 0.84 and mIoU 0.56, but confused trees with cropland, did poorly on the boreal test forest and the snow test site, and overfitted (train mIoU 0.79 vs val 0.47). 38 rural sites in new biomes were added (see section 4); Vasyugan was replaced by the Danube delta, and three sites with 0 kept patches were removed. Result: **151 sites, 2244 patches, 3.1 GB**. The test split is unchanged.
 
+13. **Biome gap sites and seasonal snow fix.** 25 sites were added for tundra, savanna, Mediterranean, smallholder farming, dense informal cities, steep terrain and dry forest (section 4). Tundra kept almost no labels because the Dynamic World annual mode is *snow* there. A snow-free Dynamic World band and a consensus rule for it were added (section 6), and the labels of all sites were downloaded again; the Sentinel-1 tiles were not touched. Result: **176 sites, 2587 patches, 3.6 GB**. The test sites are unchanged; the fix added 6 test patches (Anchorage) and some labels in seasonally snowy test areas, so test scores are close to, but not exactly comparable with, runs on the earlier labels.
+
 **Next steps (not part of the dataset):**
 - A training notebook: data loader with month sampling and augmentation, a class-weighted loss, a U-Net-style model, and OA / mIoU / per-class IoU and F1 on the test split.
 - The prototype, reusing `download.py`'s compositing for any lat/lon and start month.
@@ -390,49 +419,49 @@ The steps below are in the order they were done, including the approaches that w
 
 | Site | Lat | Lon | Region | Focus | Split | Scenes/month (min–max) | Labels kept % | Patches | Built | Crop | Trees | Shrub/grass | Bare | Water | Wetland | Snow |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| london | 51.51 | -0.13 | europe | urban | train | 17–24 | 76.7 | 16 | 90.2 | 0.0 | 4.6 | 1.1 | 0.0 | 4.1 | 0.0 | 0.0 |
+| london | 51.51 | -0.13 | europe | urban | train | 17–24 | 76.9 | 16 | 90.2 | 0.0 | 4.6 | 1.1 | 0.0 | 4.1 | 0.0 | 0.0 |
 | paris | 48.86 | 2.35 | europe | urban | train | 12–16 | 87.1 | 16 | 96.4 | 0.0 | 1.8 | 0.1 | 0.0 | 1.7 | 0.0 | 0.0 |
 | berlin | 52.52 | 13.40 | europe | urban | train | 22–29 | 70.9 | 16 | 85.3 | 0.0 | 11.2 | 1.5 | 0.1 | 2.0 | 0.0 | 0.0 |
 | madrid | 40.42 | -3.70 | europe | urban | train | 11–17 | 76.7 | 16 | 85.8 | 0.0 | 9.3 | 4.6 | 0.0 | 0.2 | 0.0 | 0.0 |
 | rome | 41.90 | 12.50 | europe | urban | train | 15–23 | 72.2 | 16 | 83.4 | 0.6 | 12.0 | 2.4 | 0.0 | 1.6 | 0.0 | 0.0 |
 | warsaw | 52.23 | 21.01 | europe | urban | train | 18–21 | 69.1 | 16 | 74.2 | 0.1 | 20.6 | 0.8 | 0.0 | 4.2 | 0.1 | 0.0 |
-| stockholm | 59.33 | 18.07 | europe | urban | train | 9–22 | 70.5 | 16 | 49.9 | 0.0 | 23.0 | 2.0 | 0.0 | 25.0 | 0.2 | 0.0 |
-| amsterdam | 52.37 | 4.90 | europe | urban | train | 17–21 | 71.8 | 15 | 66.7 | 0.2 | 15.3 | 1.4 | 0.1 | 16.1 | 0.1 | 0.0 |
+| stockholm | 59.33 | 18.07 | europe | urban | train | 9–22 | 70.7 | 16 | 50.0 | 0.0 | 22.9 | 2.0 | 0.0 | 24.9 | 0.2 | 0.0 |
+| amsterdam | 52.37 | 4.90 | europe | urban | train | 17–21 | 72.0 | 15 | 66.8 | 0.2 | 15.3 | 1.4 | 0.1 | 16.0 | 0.1 | 0.0 |
 | lisbon | 38.72 | -9.14 | europe | urban | train | 13–17 | 84.9 | 16 | 44.3 | 0.2 | 7.2 | 0.9 | 0.1 | 47.4 | 0.0 | 0.0 |
 | kyiv | 50.45 | 30.52 | europe | urban | train | 18–24 | 73.6 | 16 | 61.6 | 0.0 | 20.7 | 0.6 | 0.1 | 16.6 | 0.4 | 0.0 |
-| innsbruck | 47.27 | 11.40 | europe | urban | train | 11–20 | 74.5 | 15 | 24.0 | 6.2 | 60.9 | 7.4 | 0.0 | 1.4 | 0.0 | 0.0 |
-| reykjavik | 64.15 | -21.94 | europe | urban | train | 14–15 | 85.2 | 16 | 17.2 | 0.0 | 1.2 | 7.2 | 0.1 | 73.3 | 1.0 | 0.0 |
+| innsbruck | 47.27 | 11.40 | europe | urban | train | 11–20 | 78.5 | 16 | 22.1 | 5.7 | 57.6 | 11.3 | 1.8 | 1.3 | 0.0 | 0.2 |
+| reykjavik | 64.15 | -21.94 | europe | urban | train | 14–15 | 85.3 | 16 | 17.3 | 0.0 | 1.2 | 7.2 | 0.1 | 73.3 | 1.0 | 0.0 |
 | budapest | 47.50 | 19.04 | europe | urban | val | 8–11 | 64.1 | 15 | 75.2 | 0.2 | 15.8 | 1.5 | 0.1 | 7.2 | 0.0 | 0.0 |
-| helsinki | 60.17 | 24.94 | europe | urban | val | 9–25 | 85.2 | 16 | 25.5 | 0.1 | 11.8 | 0.7 | 0.1 | 60.3 | 1.5 | 0.0 |
+| helsinki | 60.17 | 24.94 | europe | urban | val | 9–25 | 85.3 | 16 | 25.5 | 0.1 | 11.8 | 0.7 | 0.1 | 60.3 | 1.5 | 0.0 |
 | frankfurt | 50.11 | 8.68 | europe | urban | test | 17–20 | 69.4 | 16 | 57.2 | 1.5 | 37.2 | 1.4 | 0.0 | 2.8 | 0.0 | 0.0 |
 | athens | 37.98 | 23.73 | europe | urban | test | 15–20 | 87.8 | 16 | 93.2 | 0.0 | 4.4 | 2.0 | 0.1 | 0.3 | 0.0 | 0.0 |
-| new_york | 40.71 | -74.01 | n_america | urban | train | 1–3 | 88.5 | 16 | 62.5 | 0.0 | 1.8 | 0.6 | 0.0 | 34.9 | 0.1 | 0.0 |
+| new_york | 40.71 | -74.01 | n_america | urban | train | 1–3 | 89.5 | 16 | 62.8 | 0.0 | 1.8 | 0.6 | 0.0 | 34.5 | 0.1 | 0.0 |
 | los_angeles | 34.05 | -118.24 | n_america | urban | train | 12–22 | 86.5 | 16 | 96.9 | 0.0 | 1.2 | 1.4 | 0.1 | 0.4 | 0.0 | 0.0 |
-| houston | 29.76 | -95.37 | n_america | urban | train | 5–8 | 66.9 | 16 | 94.3 | 0.0 | 2.8 | 1.9 | 0.4 | 0.6 | 0.0 | 0.0 |
+| houston | 29.76 | -95.37 | n_america | urban | train | 5–8 | 67.0 | 16 | 94.3 | 0.0 | 2.8 | 1.9 | 0.4 | 0.6 | 0.0 | 0.0 |
 | toronto | 43.65 | -79.38 | n_america | urban | train | 3–6 | 79.0 | 16 | 57.7 | 0.0 | 6.4 | 0.9 | 0.2 | 34.7 | 0.1 | 0.0 |
 | mexico_city | 19.43 | -99.13 | n_america | urban | train | 17–21 | 87.2 | 16 | 99.2 | 0.0 | 0.6 | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
 | denver | 39.74 | -104.99 | n_america | urban | train | 8–12 | 71.5 | 16 | 96.4 | 0.1 | 0.2 | 1.4 | 0.4 | 1.5 | 0.0 | 0.0 |
 | miami | 25.76 | -80.19 | n_america | urban | train | 2–3 | 88.8 | 16 | 41.2 | 0.0 | 1.4 | 0.4 | 0.0 | 54.3 | 2.7 | 0.0 |
 | minneapolis | 44.98 | -93.27 | n_america | urban | train | 2–3 | 57.6 | 14 | 82.2 | 0.0 | 7.5 | 1.9 | 0.0 | 8.2 | 0.1 | 0.0 |
 | new_orleans | 29.95 | -90.07 | n_america | urban | train | 2–3 | 73.7 | 16 | 80.5 | 0.0 | 2.3 | 3.4 | 0.3 | 13.4 | 0.1 | 0.0 |
-| atlanta | 33.75 | -84.39 | n_america | urban | val | 1–3 | 56.3 | 15 | 71.9 | 0.0 | 25.2 | 2.1 | 0.1 | 0.7 | 0.0 | 0.0 |
-| vancouver | 49.28 | -123.12 | n_america | urban | val | 6–11 | 72.8 | 14 | 47.5 | 0.0 | 6.2 | 0.6 | 0.2 | 45.6 | 0.0 | 0.0 |
-| chicago | 41.88 | -87.63 | n_america | urban | test | 1–4 | 90.9 | 16 | 56.9 | 0.0 | 0.3 | 0.3 | 0.2 | 42.3 | 0.0 | 0.0 |
+| atlanta | 33.75 | -84.39 | n_america | urban | val | 1–3 | 56.5 | 15 | 72.0 | 0.0 | 25.1 | 2.1 | 0.1 | 0.7 | 0.0 | 0.0 |
+| vancouver | 49.28 | -123.12 | n_america | urban | val | 6–11 | 72.8 | 14 | 47.5 | 0.0 | 6.2 | 0.6 | 0.3 | 45.5 | 0.0 | 0.0 |
+| chicago | 41.88 | -87.63 | n_america | urban | test | 1–4 | 91.0 | 16 | 56.9 | 0.0 | 0.3 | 0.3 | 0.2 | 42.2 | 0.0 | 0.0 |
 | phoenix | 33.45 | -112.07 | n_america | urban | test | 8–12 | 74.9 | 16 | 90.0 | 0.2 | 0.4 | 1.2 | 8.0 | 0.3 | 0.0 | 0.0 |
-| anchorage | 61.22 | -149.90 | n_america | urban | test | 3–6 | 50.7 | 10 | 25.6 | 0.0 | 9.8 | 0.3 | 0.1 | 64.2 | 0.0 | 0.0 |
+| anchorage | 61.22 | -149.90 | n_america | urban | test | 3–6 | 73.0 | 16 | 32.6 | 0.0 | 20.8 | 4.9 | 0.4 | 41.3 | 0.1 | 0.0 |
 | sao_paulo | -23.55 | -46.63 | s_america | urban | train | 3–5 | 89.2 | 16 | 96.9 | 0.0 | 2.2 | 0.4 | 0.0 | 0.5 | 0.0 | 0.0 |
 | buenos_aires | -34.60 | -58.38 | s_america | urban | train | 7–11 | 89.8 | 16 | 62.7 | 0.0 | 3.1 | 0.8 | 0.1 | 31.7 | 1.6 | 0.0 |
 | santiago | -33.45 | -70.67 | s_america | urban | train | 8–13 | 87.0 | 16 | 96.6 | 0.1 | 1.3 | 1.1 | 0.8 | 0.1 | 0.0 | 0.0 |
 | manaus | -3.12 | -60.02 | s_america | urban | train | 2–3 | 88.5 | 16 | 58.7 | 0.0 | 10.5 | 0.2 | 0.1 | 29.7 | 0.8 | 0.0 |
 | brasilia | -15.79 | -47.88 | s_america | urban | train | 2–3 | 65.9 | 16 | 43.6 | 0.1 | 4.5 | 27.2 | 0.3 | 24.2 | 0.0 | 0.0 |
-| quito | -0.18 | -78.47 | s_america | urban | train | 9–20 | 77.2 | 16 | 68.0 | 0.3 | 29.2 | 2.3 | 0.0 | 0.2 | 0.0 | 0.0 |
+| quito | -0.18 | -78.47 | s_america | urban | train | 9–20 | 77.3 | 16 | 67.9 | 0.3 | 29.2 | 2.3 | 0.0 | 0.2 | 0.0 | 0.0 |
 | corumba | -19.01 | -57.65 | s_america | urban | train | 6–9 | 87.1 | 16 | 15.5 | 0.0 | 34.3 | 2.8 | 0.0 | 5.1 | 42.2 | 0.0 |
 | lima | -12.05 | -77.04 | s_america | urban | val | 5–9 | 86.0 | 16 | 91.8 | 0.0 | 0.1 | 0.1 | 8.0 | 0.1 | 0.0 | 0.0 |
 | bogota | 4.71 | -74.07 | s_america | urban | test | 3–5 | 85.7 | 16 | 88.7 | 0.0 | 7.7 | 2.9 | 0.0 | 0.6 | 0.0 | 0.0 |
 | curitiba | -25.43 | -49.27 | s_america | urban | test | 3–6 | 81.9 | 16 | 88.1 | 0.0 | 10.4 | 1.1 | 0.0 | 0.4 | 0.0 | 0.0 |
 | cairo | 30.04 | 31.24 | africa | urban | train | 6–8 | 76.8 | 15 | 85.2 | 0.9 | 0.1 | 0.1 | 7.5 | 6.1 | 0.0 | 0.0 |
 | lagos | 6.52 | 3.38 | africa | urban | train | 4–6 | 90.0 | 16 | 69.0 | 0.0 | 0.8 | 0.0 | 0.1 | 27.0 | 3.2 | 0.0 |
-| johannesburg | -26.20 | 28.05 | africa | urban | train | 6–8 | 71.2 | 15 | 82.7 | 0.2 | 5.9 | 6.9 | 3.8 | 0.6 | 0.0 | 0.0 |
+| johannesburg | -26.20 | 28.05 | africa | urban | train | 6–8 | 71.3 | 15 | 82.7 | 0.2 | 5.8 | 6.9 | 3.8 | 0.6 | 0.0 | 0.0 |
 | addis_ababa | 9.03 | 38.74 | africa | urban | train | 4–6 | 77.3 | 16 | 91.1 | 0.8 | 6.7 | 1.3 | 0.1 | 0.0 | 0.0 | 0.0 |
 | kinshasa | -4.44 | 15.27 | africa | urban | train | 4–6 | 59.3 | 14 | 69.4 | 0.1 | 19.9 | 10.5 | 0.0 | 0.0 | 0.0 | 0.0 |
 | dakar | 14.72 | -17.47 | africa | urban | train | 1–3 | 66.7 | 13 | 49.6 | 0.0 | 0.5 | 1.1 | 0.9 | 47.9 | 0.1 | 0.0 |
@@ -447,23 +476,23 @@ The steps below are in the order they were done, including the approaches that w
 | dhaka | 23.81 | 90.41 | asia | urban | train | 4–6 | 63.1 | 13 | 83.1 | 2.2 | 4.4 | 2.6 | 2.1 | 5.0 | 0.6 | 0.0 |
 | beijing | 39.90 | 116.41 | asia | urban | train | 4–8 | 81.2 | 16 | 96.0 | 0.0 | 2.0 | 0.0 | 0.0 | 1.9 | 0.0 | 0.0 |
 | shanghai | 31.23 | 121.47 | asia | urban | train | 4–6 | 84.6 | 16 | 91.7 | 0.0 | 1.1 | 0.0 | 0.1 | 7.1 | 0.0 | 0.0 |
-| tokyo | 35.68 | 139.65 | asia | urban | train | 4–8 | 91.4 | 16 | 98.4 | 0.0 | 1.5 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| tokyo | 35.68 | 139.65 | asia | urban | train | 4–8 | 91.9 | 16 | 98.4 | 0.0 | 1.5 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | jakarta | -6.21 | 106.85 | asia | urban | train | 2–5 | 88.9 | 16 | 97.4 | 0.0 | 2.0 | 0.3 | 0.0 | 0.4 | 0.0 | 0.0 |
 | manila | 14.60 | 120.98 | asia | urban | train | 3–7 | 92.8 | 16 | 68.5 | 0.0 | 0.4 | 0.2 | 0.0 | 30.9 | 0.0 | 0.0 |
-| ho_chi_minh | 10.82 | 106.63 | asia | urban | train | 7–8 | 83.3 | 16 | 96.3 | 0.4 | 0.5 | 2.1 | 0.1 | 0.6 | 0.0 | 0.0 |
+| ho_chi_minh | 10.82 | 106.63 | asia | urban | train | 7–8 | 83.4 | 16 | 96.3 | 0.4 | 0.5 | 2.1 | 0.1 | 0.6 | 0.0 | 0.0 |
 | riyadh | 24.71 | 46.68 | asia | urban | train | 2–3 | 58.7 | 14 | 82.7 | 0.0 | 0.0 | 0.0 | 17.2 | 0.0 | 0.0 | 0.0 |
-| dubai | 25.20 | 55.27 | asia | urban | train | 4–8 | 72.5 | 16 | 48.1 | 0.1 | 0.0 | 0.6 | 22.3 | 28.6 | 0.2 | 0.0 |
+| dubai | 25.20 | 55.27 | asia | urban | train | 4–8 | 72.6 | 16 | 48.1 | 0.1 | 0.0 | 0.6 | 22.3 | 28.6 | 0.2 | 0.0 |
 | almaty | 43.24 | 76.94 | asia | urban | train | 7–8 | 61.6 | 16 | 73.6 | 0.1 | 24.0 | 2.3 | 0.0 | 0.0 | 0.0 | 0.0 |
-| ulaanbaatar | 47.89 | 106.91 | asia | urban | train | 2–6 | 76.2 | 16 | 53.2 | 0.0 | 24.8 | 20.8 | 0.3 | 0.8 | 0.0 | 0.0 |
+| ulaanbaatar | 47.89 | 106.91 | asia | urban | train | 2–6 | 78.8 | 16 | 51.5 | 0.0 | 24.4 | 23.0 | 0.3 | 0.8 | 0.0 | 0.0 |
 | khulna | 22.85 | 89.54 | asia | urban | train | 6–9 | 52.4 | 11 | 41.9 | 17.7 | 27.4 | 0.1 | 0.6 | 12.3 | 0.0 | 0.0 |
-| seoul | 37.57 | 126.98 | asia | urban | val | 3–8 | 79.5 | 16 | 73.7 | 0.0 | 18.5 | 0.1 | 0.0 | 7.6 | 0.0 | 0.0 |
+| seoul | 37.57 | 126.98 | asia | urban | val | 3–8 | 80.3 | 16 | 74.0 | 0.0 | 18.4 | 0.1 | 0.0 | 7.5 | 0.0 | 0.0 |
 | karachi | 24.86 | 67.00 | asia | urban | val | 3–6 | 61.1 | 13 | 56.1 | 0.7 | 0.8 | 1.1 | 10.2 | 26.0 | 5.0 | 0.0 |
 | kolkata | 22.57 | 88.36 | asia | urban | val | 4–6 | 81.2 | 16 | 86.5 | 0.6 | 3.4 | 0.2 | 0.0 | 9.1 | 0.1 | 0.0 |
 | bangkok | 13.76 | 100.50 | asia | urban | test | 5–9 | 83.4 | 16 | 94.4 | 0.0 | 1.6 | 0.3 | 0.0 | 3.8 | 0.0 | 0.0 |
 | tehran | 35.69 | 51.39 | asia | urban | test | 3–6 | 92.6 | 16 | 99.3 | 0.1 | 0.2 | 0.1 | 0.3 | 0.1 | 0.0 | 0.0 |
-| chengdu | 30.57 | 104.07 | asia | urban | test | 7–10 | 59.5 | 16 | 80.7 | 6.7 | 7.4 | 0.7 | 1.0 | 3.5 | 0.0 | 0.0 |
-| sydney | -33.87 | 151.21 | oceania | urban | train | 6–9 | 75.8 | 16 | 61.8 | 0.0 | 6.0 | 2.5 | 0.0 | 29.6 | 0.1 | 0.0 |
-| melbourne | -37.81 | 144.96 | oceania | urban | train | 3–6 | 78.8 | 16 | 77.3 | 0.0 | 6.1 | 3.2 | 0.2 | 12.9 | 0.3 | 0.0 |
+| chengdu | 30.57 | 104.07 | asia | urban | test | 7–10 | 59.6 | 16 | 80.7 | 6.7 | 7.3 | 0.7 | 1.0 | 3.5 | 0.0 | 0.0 |
+| sydney | -33.87 | 151.21 | oceania | urban | train | 6–9 | 76.2 | 16 | 61.9 | 0.0 | 6.0 | 2.5 | 0.0 | 29.5 | 0.1 | 0.0 |
+| melbourne | -37.81 | 144.96 | oceania | urban | train | 3–6 | 79.0 | 16 | 77.3 | 0.0 | 6.1 | 3.2 | 0.2 | 12.9 | 0.3 | 0.0 |
 | auckland | -36.85 | 174.76 | oceania | urban | train | 9–11 | 76.3 | 16 | 46.8 | 0.0 | 6.0 | 3.1 | 0.0 | 42.7 | 1.4 | 0.0 |
 | perth | -31.95 | 115.86 | oceania | urban | val | 3–5 | 82.8 | 16 | 70.5 | 0.0 | 5.8 | 4.8 | 0.1 | 18.8 | 0.1 | 0.0 |
 | adelaide | -34.93 | 138.60 | oceania | urban | test | 4–6 | 74.9 | 16 | 91.4 | 0.1 | 4.7 | 3.7 | 0.0 | 0.1 | 0.0 | 0.0 |
@@ -481,18 +510,18 @@ The steps below are in the order they were done, including the approaches that w
 | amazon_forest | -5.00 | -63.00 | s_america | trees | train | 4–6 | 95.9 | 16 | 0.0 | 0.0 | 94.0 | 0.0 | 0.0 | 5.7 | 0.3 | 0.0 |
 | congo_forest | 1.00 | 23.50 | africa | trees | train | 2–3 | 99.9 | 16 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | black_forest | 48.20 | 8.20 | europe | trees | train | 17–23 | 91.6 | 16 | 1.2 | 0.1 | 91.0 | 7.8 | 0.0 | 0.0 | 0.0 | 0.0 |
-| borneo_forest | 0.90 | 114.00 | asia | trees | train | 1–3 | 98.1 | 15 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| ontario_boreal | 50.00 | -85.00 | n_america | trees | val | 1–5 | 90.7 | 16 | 0.0 | 0.0 | 98.8 | 0.5 | 0.0 | 0.1 | 0.5 | 0.0 |
-| siberia_taiga | 60.00 | 100.00 | asia | trees | test | 2–3 | 91.3 | 16 | 0.0 | 0.0 | 99.9 | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
+| borneo_forest | 0.90 | 114.00 | asia | trees | train | 1–3 | 98.2 | 15 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| ontario_boreal | 50.00 | -85.00 | n_america | trees | val | 1–5 | 90.9 | 16 | 0.0 | 0.0 | 98.7 | 0.6 | 0.0 | 0.1 | 0.6 | 0.0 |
+| siberia_taiga | 60.00 | 100.00 | asia | trees | test | 2–3 | 97.0 | 16 | 0.0 | 0.0 | 99.6 | 0.4 | 0.0 | 0.0 | 0.0 | 0.0 |
 | sahara_algeria | 26.00 | 4.00 | africa | bare | train | 4–6 | 99.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
 | western_desert | 27.00 | 29.00 | africa | bare | train | 3–6 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
 | badain_jaran | 40.00 | 102.00 | asia | bare | train | 5–8 | 99.6 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 99.9 | 0.1 | 0.0 | 0.0 |
 | namib_desert | -24.75 | 15.30 | africa | bare | train | 1–3 | 94.7 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
 | atacama_desert | -24.50 | -69.80 | s_america | bare | val | 14–15 | 98.8 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
 | rub_al_khali | 20.50 | 50.50 | asia | bare | test | 2–3 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
-| mongolia_steppe | 47.00 | 103.00 | asia | shrub_grass | train | 1–3 | 28.0 | 5 | 0.0 | 54.8 | 0.0 | 44.8 | 0.0 | 0.0 | 0.4 | 0.0 |
+| mongolia_steppe | 47.00 | 103.00 | asia | shrub_grass | train | 1–3 | 28.1 | 5 | 0.0 | 54.8 | 0.0 | 44.8 | 0.0 | 0.0 | 0.4 | 0.0 |
 | texas_shrubland | 30.50 | -101.50 | n_america | shrub_grass | train | 8–12 | 86.9 | 16 | 0.0 | 0.0 | 9.4 | 90.0 | 0.6 | 0.0 | 0.0 | 0.0 |
-| kazakh_steppe | 50.50 | 70.00 | asia | shrub_grass | val | 3–5 | 62.6 | 13 | 0.0 | 0.6 | 0.1 | 31.1 | 0.5 | 51.6 | 16.2 | 0.0 |
+| kazakh_steppe | 50.50 | 70.00 | asia | shrub_grass | val | 3–5 | 64.0 | 13 | 0.0 | 0.6 | 0.1 | 31.6 | 0.5 | 50.7 | 16.5 | 0.0 |
 | serengeti | -2.33 | 34.83 | africa | shrub_grass | test | 2–6 | 95.2 | 16 | 0.0 | 0.0 | 0.7 | 99.3 | 0.0 | 0.0 | 0.0 | 0.0 |
 | sundarbans | 21.95 | 89.18 | asia | wetland | train | 4–6 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 28.9 | 71.1 | 0.0 |
 | pantanal | -17.50 | -56.80 | s_america | wetland | train | 2–3 | 91.2 | 16 | 0.0 | 0.0 | 72.6 | 0.4 | 0.0 | 0.9 | 26.1 | 0.0 |
@@ -500,44 +529,69 @@ The steps below are in the order they were done, including the approaches that w
 | inner_niger_delta | 15.00 | -4.50 | africa | wetland | train | 2–3 | 92.2 | 16 | 0.0 | 0.5 | 0.0 | 3.0 | 0.0 | 0.1 | 96.4 | 0.0 |
 | okavango_delta | -19.30 | 22.90 | africa | wetland | val | 2–3 | 93.5 | 16 | 0.0 | 0.0 | 8.5 | 39.8 | 0.0 | 0.0 | 51.7 | 0.0 |
 | everglades | 25.80 | -80.80 | n_america | wetland | test | 2–3 | 98.8 | 16 | 0.4 | 0.0 | 1.9 | 0.0 | 0.0 | 0.0 | 97.6 | 0.0 |
-| aletsch_glacier | 46.50 | 8.03 | europe | snow_ice | train | 19–24 | 81.4 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 1.2 | 0.0 | 0.0 | 98.8 |
-| columbia_icefield | 52.20 | -117.30 | n_america | snow_ice | train | 10–16 | 77.8 | 16 | 0.0 | 0.0 | 4.2 | 0.7 | 20.8 | 1.0 | 0.0 | 73.3 |
-| patagonia_icefield | -49.30 | -73.20 | s_america | snow_ice | train | 4–8 | 98.5 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.4 | 0.0 | 0.0 | 99.6 |
+| aletsch_glacier | 46.50 | 8.03 | europe | snow_ice | train | 19–24 | 89.1 | 16 | 0.0 | 0.0 | 0.0 | 0.6 | 9.2 | 0.0 | 0.0 | 90.2 |
+| columbia_icefield | 52.20 | -117.30 | n_america | snow_ice | train | 10–16 | 86.3 | 16 | 0.0 | 0.0 | 3.8 | 0.7 | 28.1 | 1.2 | 0.0 | 66.1 |
+| patagonia_icefield | -49.30 | -73.20 | s_america | snow_ice | train | 4–8 | 98.6 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.5 | 0.0 | 0.0 | 99.5 |
 | vatnajokull | 64.40 | -16.80 | europe | snow_ice | train | 19–23 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 |
-| svalbard_glacier | 78.65 | 16.40 | europe | snow_ice | val | 3–6 | 50.0 | 8 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 91.8 | 0.0 | 8.2 |
-| karakoram_baltoro | 35.75 | 76.40 | asia | snow_ice | test | 4–6 | 64.2 | 13 | 0.0 | 0.0 | 0.0 | 0.9 | 36.1 | 0.2 | 0.0 | 62.8 |
-| sweden_taiga | 64.00 | 17.00 | europe | trees | train | 11–27 | 35.2 | 4 | 0.0 | 0.0 | 98.5 | 0.1 | 0.0 | 1.3 | 0.0 | 0.0 |
-| alaska_boreal | 65.50 | -148.50 | n_america | trees | train | 4–6 | 74.7 | 16 | 0.0 | 0.0 | 95.8 | 3.9 | 0.1 | 0.2 | 0.0 | 0.0 |
-| quebec_boreal | 49.50 | -73.00 | n_america | trees | train | 3–6 | 59.5 | 13 | 0.0 | 0.0 | 93.5 | 2.6 | 0.0 | 3.8 | 0.1 | 0.0 |
+| svalbard_glacier | 78.65 | 16.40 | europe | snow_ice | val | 3–6 | 79.8 | 15 | 0.1 | 0.0 | 0.0 | 0.1 | 30.2 | 62.2 | 0.2 | 7.2 |
+| karakoram_baltoro | 35.75 | 76.40 | asia | snow_ice | test | 4–6 | 64.7 | 13 | 0.0 | 0.0 | 0.0 | 0.8 | 36.6 | 0.2 | 0.0 | 62.3 |
+| sweden_taiga | 64.00 | 17.00 | europe | trees | train | 11–27 | 85.7 | 16 | 0.0 | 0.0 | 92.5 | 4.2 | 0.0 | 3.0 | 0.3 | 0.0 |
+| alaska_boreal | 65.50 | -148.50 | n_america | trees | train | 4–6 | 78.1 | 16 | 0.0 | 0.0 | 93.6 | 6.1 | 0.1 | 0.2 | 0.0 | 0.0 |
+| quebec_boreal | 49.50 | -73.00 | n_america | trees | train | 3–6 | 70.8 | 15 | 0.0 | 0.0 | 86.7 | 7.4 | 0.0 | 5.8 | 0.1 | 0.0 |
 | appalachian_forest | 38.60 | -79.80 | n_america | trees | train | 2–3 | 94.6 | 16 | 0.0 | 0.0 | 99.4 | 0.6 | 0.0 | 0.0 | 0.0 | 0.0 |
-| olympic_rainforest | 47.80 | -123.80 | n_america | trees | train | 7–11 | 78.1 | 16 | 0.0 | 0.0 | 93.8 | 0.8 | 0.3 | 0.1 | 0.0 | 5.0 |
-| sikhote_alin_forest | 46.00 | 135.50 | asia | trees | train | 2–6 | 85.7 | 15 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| olympic_rainforest | 47.80 | -123.80 | n_america | trees | train | 7–11 | 87.7 | 16 | 0.0 | 0.0 | 89.8 | 3.1 | 2.5 | 0.2 | 0.0 | 4.5 |
+| sikhote_alin_forest | 46.00 | 135.50 | asia | trees | train | 2–6 | 99.9 | 16 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | gabon_forest | -0.50 | 11.50 | africa | trees | train | 2–3 | 93.2 | 2 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | tasmania_forest | -42.50 | 146.50 | oceania | trees | train | 3–9 | 97.0 | 16 | 0.0 | 0.0 | 98.0 | 1.9 | 0.0 | 0.0 | 0.0 | 0.0 |
-| papua_forest | -5.00 | 142.00 | oceania | trees | train | 2–6 | 98.8 | 16 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| mont_blanc_massif | 45.88 | 6.95 | europe | snow_ice | train | 16–22 | 68.4 | 13 | 0.0 | 0.0 | 9.0 | 6.0 | 8.3 | 0.1 | 0.0 | 76.6 |
-| jostedalsbreen | 61.70 | 7.00 | europe | snow_ice | train | 34–40 | 88.0 | 15 | 0.0 | 0.0 | 0.1 | 0.4 | 0.3 | 0.0 | 0.0 | 99.2 |
+| papua_forest | -5.00 | 142.00 | oceania | trees | train | 2–6 | 99.0 | 16 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| mont_blanc_massif | 45.88 | 6.95 | europe | snow_ice | train | 16–22 | 78.4 | 13 | 0.0 | 0.0 | 7.9 | 6.8 | 18.5 | 0.2 | 0.0 | 66.6 |
+| jostedalsbreen | 61.70 | 7.00 | europe | snow_ice | train | 34–40 | 91.7 | 16 | 0.0 | 0.0 | 0.6 | 1.4 | 3.2 | 0.3 | 0.0 | 94.4 |
 | juneau_icefield | 58.60 | -134.30 | n_america | snow_ice | train | 3–6 | 99.7 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 |
-| tien_shan_inylchek | 42.20 | 79.90 | asia | snow_ice | train | 4–6 | 62.9 | 8 | 0.0 | 0.0 | 0.0 | 0.0 | 63.5 | 5.1 | 0.0 | 31.4 |
-| khumbu_himalaya | 27.95 | 86.85 | asia | snow_ice | train | 5–9 | 63.4 | 1 | 0.0 | 0.0 | 0.0 | 86.7 | 9.4 | 0.0 | 0.0 | 3.8 |
-| tasman_glacier | -43.50 | 170.30 | oceania | snow_ice | train | 10–14 | 73.6 | 15 | 0.0 | 0.0 | 0.0 | 0.0 | 1.0 | 0.7 | 0.0 | 98.3 |
-| caucasus_elbrus | 43.35 | 42.45 | europe | snow_ice | val | 13–16 | 87.2 | 8 | 0.0 | 0.0 | 0.0 | 0.3 | 11.9 | 0.0 | 0.0 | 87.8 |
+| tien_shan_inylchek | 42.20 | 79.90 | asia | snow_ice | train | 4–6 | 65.6 | 8 | 0.0 | 0.0 | 0.0 | 0.0 | 63.5 | 6.4 | 0.0 | 30.1 |
+| khumbu_himalaya | 27.95 | 86.85 | asia | snow_ice | train | 5–9 | 63.5 | 1 | 0.0 | 0.0 | 0.0 | 86.7 | 9.4 | 0.0 | 0.0 | 3.8 |
+| tasman_glacier | -43.50 | 170.30 | oceania | snow_ice | train | 10–14 | 78.3 | 16 | 0.0 | 0.0 | 0.0 | 0.7 | 6.4 | 1.3 | 0.0 | 91.6 |
+| caucasus_elbrus | 43.35 | 42.45 | europe | snow_ice | val | 13–16 | 95.6 | 8 | 0.0 | 0.0 | 0.0 | 0.3 | 20.1 | 0.0 | 0.0 | 79.6 |
 | nebraska_sandhills | 42.00 | -101.00 | n_america | shrub_grass | train | 2–3 | 95.8 | 16 | 0.6 | 1.7 | 0.2 | 97.5 | 0.1 | 0.0 | 0.0 | 0.0 |
 | great_basin_sagebrush | 40.50 | -117.00 | n_america | shrub_grass | train | 9–13 | 16.7 | 2 | 0.0 | 0.0 | 0.0 | 1.8 | 98.2 | 0.0 | 0.0 | 0.0 |
 | patagonia_steppe | -45.50 | -69.50 | s_america | shrub_grass | train | 7–17 | 74.2 | 16 | 0.0 | 0.0 | 0.0 | 77.6 | 22.4 | 0.0 | 0.0 | 0.0 |
 | karoo_shrubland | -32.50 | 22.00 | africa | shrub_grass | train | 3–6 | 86.6 | 16 | 0.0 | 0.0 | 0.1 | 1.2 | 98.7 | 0.0 | 0.0 | 0.0 |
 | tibet_grassland | 31.50 | 92.00 | asia | shrub_grass | train | 8–12 | 77.5 | 16 | 1.1 | 0.0 | 0.0 | 94.8 | 3.5 | 0.6 | 0.0 | 0.0 |
-| saskatchewan_wheat | 51.00 | -105.00 | n_america | cropland | train | 2–3 | 83.1 | 16 | 0.1 | 77.3 | 3.6 | 18.7 | 0.0 | 0.3 | 0.0 | 0.0 |
+| saskatchewan_wheat | 51.00 | -105.00 | n_america | cropland | train | 2–3 | 83.2 | 16 | 0.1 | 77.3 | 3.6 | 18.8 | 0.0 | 0.3 | 0.0 | 0.0 |
 | central_valley_ca | 36.60 | -120.00 | n_america | cropland | train | 15–18 | 55.7 | 15 | 1.0 | 84.8 | 7.6 | 2.4 | 4.2 | 0.0 | 0.0 | 0.0 |
 | punjab_pakistan | 30.00 | 72.50 | asia | cropland | train | 4–8 | 83.8 | 16 | 3.9 | 95.1 | 0.5 | 0.0 | 0.5 | 0.0 | 0.0 | 0.0 |
 | karawang_rice | -6.30 | 107.40 | asia | cropland | train | 4–11 | 81.0 | 16 | 15.3 | 82.3 | 2.3 | 0.0 | 0.0 | 0.1 | 0.0 | 0.0 |
-| heilongjiang_maize | 46.50 | 126.50 | asia | cropland | train | 3–5 | 90.6 | 16 | 3.6 | 95.4 | 0.4 | 0.0 | 0.0 | 0.0 | 0.6 | 0.0 |
+| heilongjiang_maize | 46.50 | 126.50 | asia | cropland | train | 3–5 | 91.2 | 16 | 3.6 | 95.2 | 0.5 | 0.0 | 0.0 | 0.0 | 0.7 | 0.0 |
 | australia_wheatbelt | -31.50 | 117.50 | oceania | cropland | train | 4–6 | 25.0 | 1 | 0.2 | 45.3 | 0.1 | 16.5 | 37.8 | 0.0 | 0.0 | 0.0 |
 | hungarian_plain | 46.50 | 20.50 | europe | cropland | train | 18–21 | 92.4 | 16 | 0.9 | 91.5 | 0.8 | 6.7 | 0.0 | 0.0 | 0.0 | 0.0 |
-| hudson_bay_lowland | 53.50 | -84.00 | n_america | wetland | train | 2–6 | 67.3 | 16 | 0.0 | 0.0 | 34.6 | 24.2 | 0.0 | 7.1 | 34.1 | 0.0 |
+| hudson_bay_lowland | 53.50 | -84.00 | n_america | wetland | train | 2–6 | 71.0 | 16 | 0.0 | 0.0 | 32.8 | 25.3 | 0.0 | 6.8 | 35.1 | 0.0 |
 | danube_delta | 45.10 | 29.40 | europe | wetland | train | 19–24 | 94.0 | 16 | 0.2 | 0.0 | 1.7 | 8.9 | 0.6 | 13.5 | 75.1 | 0.0 |
 | louisiana_marsh | 29.40 | -90.60 | n_america | wetland | train | 4–6 | 93.7 | 16 | 0.9 | 0.0 | 4.6 | 1.0 | 0.0 | 68.2 | 25.4 | 0.0 |
 | niger_delta_mangrove | 4.60 | 6.50 | africa | wetland | train | 4–6 | 98.8 | 16 | 0.0 | 0.0 | 11.2 | 0.0 | 0.0 | 3.8 | 84.9 | 0.0 |
 | taklamakan_desert | 38.50 | 83.00 | asia | bare | train | 4–6 | 100.0 | 16 | 0.0 | 0.0 | 0.0 | 0.0 | 100.0 | 0.0 | 0.0 | 0.0 |
 | lake_balaton | 46.85 | 17.75 | europe | water | train | 21–27 | 92.7 | 16 | 1.7 | 1.7 | 8.0 | 3.3 | 0.0 | 84.3 | 1.0 | 0.0 |
-| finnish_lakeland | 62.00 | 27.50 | europe | water | train | 5–36 | 65.7 | 16 | 0.1 | 1.5 | 89.4 | 0.7 | 0.0 | 8.0 | 0.2 | 0.0 |
+| finnish_lakeland | 62.00 | 27.50 | europe | water | train | 5–36 | 88.7 | 16 | 0.1 | 2.5 | 86.2 | 2.6 | 0.1 | 7.9 | 0.7 | 0.0 |
+| finnmark_tundra | 70.00 | 25.50 | europe | tundra | train | 35–42 | 32.2 | 5 | 0.0 | 0.0 | 0.1 | 85.6 | 0.7 | 9.6 | 3.3 | 0.6 |
+| north_slope_alaska | 70.00 | -150.00 | n_america | tundra | train | 6–8 | 23.7 | 1 | 0.0 | 0.0 | 0.0 | 81.7 | 2.8 | 1.0 | 14.5 | 0.0 |
+| iceland_highland | 64.80 | -18.00 | europe | tundra | train | 19–23 | 76.4 | 15 | 0.0 | 0.0 | 0.0 | 3.2 | 85.8 | 0.9 | 0.0 | 10.1 |
+| kola_tundra | 68.50 | 36.00 | europe | tundra | val | 7–11 | 53.1 | 12 | 0.0 | 0.0 | 2.3 | 55.0 | 0.0 | 12.1 | 30.6 | 0.0 |
+| kruger_savanna | -24.00 | 31.60 | africa | savanna | train | 7–8 | 40.8 | 9 | 0.0 | 0.0 | 11.2 | 85.0 | 0.4 | 3.4 | 0.0 | 0.0 |
+| cerrado_goias | -13.50 | -46.50 | s_america | savanna | train | 3–6 | 54.4 | 13 | 0.0 | 0.3 | 42.4 | 57.3 | 0.0 | 0.0 | 0.0 | 0.0 |
+| llanos_venezuela | 7.50 | -67.50 | s_america | savanna | train | 3–9 | 88.8 | 16 | 0.0 | 0.0 | 2.8 | 92.7 | 0.0 | 3.0 | 1.5 | 0.0 |
+| miombo_zambia | -12.50 | 30.50 | africa | savanna | train | 4–9 | 88.8 | 16 | 0.0 | 0.5 | 79.7 | 16.9 | 0.0 | 0.0 | 2.9 | 0.0 |
+| sahel_niger | 12.50 | 3.50 | africa | savanna | train | 2–3 | 51.2 | 16 | 0.4 | 44.5 | 0.3 | 54.8 | 0.1 | 0.0 | 0.0 | 0.0 |
+| top_end_savanna | -14.50 | 132.50 | oceania | savanna | val | 2–3 | 55.6 | 14 | 0.0 | 0.0 | 63.3 | 36.7 | 0.0 | 0.0 | 0.0 | 0.0 |
+| dehesa_spain | 39.00 | -6.00 | europe | mediterranean | train | 14–18 | 76.2 | 16 | 2.5 | 84.7 | 4.3 | 7.5 | 0.0 | 1.0 | 0.0 | 0.0 |
+| california_chaparral | 34.30 | -117.40 | n_america | mediterranean | train | 9–15 | 81.1 | 16 | 0.6 | 0.0 | 40.4 | 58.4 | 0.6 | 0.0 | 0.0 | 0.0 |
+| chile_matorral | -32.80 | -71.00 | s_america | mediterranean | train | 4–8 | 61.5 | 15 | 6.9 | 26.0 | 20.9 | 42.1 | 3.7 | 0.3 | 0.0 | 0.0 |
+| cape_fynbos | -34.20 | 19.20 | africa | mediterranean | train | 2–3 | 69.1 | 16 | 1.8 | 22.2 | 9.5 | 66.3 | 0.1 | 0.2 | 0.0 | 0.0 |
+| crete_maquis | 35.20 | 24.90 | europe | mediterranean | val | 14–19 | 78.4 | 16 | 0.0 | 0.1 | 12.3 | 74.5 | 13.1 | 0.0 | 0.0 | 0.0 |
+| ethiopia_highland_farms | 11.00 | 37.60 | africa | smallholder | train | 2–3 | 65.1 | 16 | 0.1 | 89.1 | 2.6 | 7.1 | 1.2 | 0.0 | 0.0 | 0.0 |
+| malawi_farms | -13.60 | 33.80 | africa | smallholder | train | 6–8 | 27.9 | 1 | 0.8 | 3.1 | 1.6 | 94.5 | 0.0 | 0.0 | 0.0 | 0.0 |
+| rwanda_hills | -2.20 | 29.70 | africa | smallholder | train | 7–10 | 34.2 | 3 | 0.4 | 4.9 | 21.5 | 73.2 | 0.0 | 0.0 | 0.0 | 0.0 |
+| western_kenya_farms | 0.60 | 34.60 | africa | smallholder | train | 4–6 | 31.5 | 1 | 79.5 | 3.2 | 9.6 | 7.6 | 0.0 | 0.0 | 0.0 | 0.0 |
+| kampala | 0.35 | 32.58 | africa | urban | train | 5–10 | 73.2 | 16 | 96.8 | 0.0 | 1.8 | 1.2 | 0.0 | 0.0 | 0.1 | 0.0 |
+| port_au_prince | 18.59 | -72.31 | n_america | urban | train | 8–12 | 70.2 | 15 | 73.2 | 2.3 | 4.0 | 2.9 | 1.0 | 14.8 | 1.8 | 0.0 |
+| nepal_midhills | 27.80 | 85.60 | asia | steep_terrain | train | 7–8 | 76.0 | 16 | 1.7 | 1.4 | 86.9 | 8.0 | 1.4 | 0.6 | 0.0 | 0.0 |
+| andes_sacred_valley | -13.30 | -72.10 | s_america | steep_terrain | train | 2–6 | 64.6 | 16 | 7.2 | 17.5 | 12.5 | 61.4 | 0.7 | 0.7 | 0.1 | 0.0 |
+| gran_chaco | -22.50 | -62.00 | s_america | dry_forest | train | 4–6 | 69.8 | 16 | 0.0 | 3.5 | 84.0 | 12.5 | 0.0 | 0.0 | 0.0 | 0.0 |
+| kanha_deciduous | 22.30 | 80.60 | asia | dry_forest | train | 4–6 | 97.4 | 16 | 0.0 | 0.1 | 92.7 | 7.1 | 0.0 | 0.0 | 0.0 | 0.0 |

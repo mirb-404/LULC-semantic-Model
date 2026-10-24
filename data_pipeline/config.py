@@ -185,7 +185,35 @@ EXTRA_RURAL_SITES = [
     dict(name="finnish_lakeland",     lat=62.0000, lon=27.5000,   region="europe",    split="train", focus="water"),
 ]
 
-RURAL_SITES = RURAL_SITES + EXTRA_RURAL_SITES
+BIOME_GAP_SITES = [
+    dict(name="finnmark_tundra",        lat=70.0000, lon=25.5000,   region="europe",    split="train", focus="tundra"),
+    dict(name="north_slope_alaska",     lat=70.0000, lon=-150.0000, region="n_america", split="train", focus="tundra"),
+    dict(name="iceland_highland",       lat=64.8000, lon=-18.0000,  region="europe",    split="train", focus="tundra"),
+    dict(name="kola_tundra",            lat=68.5000, lon=36.0000,   region="europe",    split="val",   focus="tundra"),
+    dict(name="kruger_savanna",         lat=-24.0000, lon=31.6000,  region="africa",    split="train", focus="savanna"),
+    dict(name="cerrado_goias",          lat=-13.5000, lon=-46.5000, region="s_america", split="train", focus="savanna"),
+    dict(name="llanos_venezuela",       lat=7.5000,  lon=-67.5000,  region="s_america", split="train", focus="savanna"),
+    dict(name="miombo_zambia",          lat=-12.5000, lon=30.5000,  region="africa",    split="train", focus="savanna"),
+    dict(name="sahel_niger",            lat=12.5000, lon=3.5000,    region="africa",    split="train", focus="savanna"),
+    dict(name="top_end_savanna",        lat=-14.5000, lon=132.5000, region="oceania",   split="val",   focus="savanna"),
+    dict(name="dehesa_spain",           lat=39.0000, lon=-6.0000,   region="europe",    split="train", focus="mediterranean"),
+    dict(name="california_chaparral",   lat=34.3000, lon=-117.4000, region="n_america", split="train", focus="mediterranean"),
+    dict(name="chile_matorral",         lat=-32.8000, lon=-71.0000, region="s_america", split="train", focus="mediterranean"),
+    dict(name="cape_fynbos",            lat=-34.2000, lon=19.2000,  region="africa",    split="train", focus="mediterranean"),
+    dict(name="crete_maquis",           lat=35.2000, lon=24.9000,   region="europe",    split="val",   focus="mediterranean"),
+    dict(name="ethiopia_highland_farms", lat=11.0000, lon=37.6000,  region="africa",    split="train", focus="smallholder"),
+    dict(name="malawi_farms",           lat=-13.6000, lon=33.8000,  region="africa",    split="train", focus="smallholder"),
+    dict(name="rwanda_hills",           lat=-2.2000, lon=29.7000,   region="africa",    split="train", focus="smallholder"),
+    dict(name="western_kenya_farms",    lat=0.6000,  lon=34.6000,   region="africa",    split="train", focus="smallholder"),
+    dict(name="kampala",                lat=0.3476,  lon=32.5825,   region="africa",    split="train", focus="urban"),
+    dict(name="port_au_prince",         lat=18.5944, lon=-72.3074,  region="n_america", split="train", focus="urban"),
+    dict(name="nepal_midhills",         lat=27.8000, lon=85.6000,   region="asia",      split="train", focus="steep_terrain"),
+    dict(name="andes_sacred_valley",    lat=-13.3000, lon=-72.1000, region="s_america", split="train", focus="steep_terrain"),
+    dict(name="gran_chaco",             lat=-22.5000, lon=-62.0000, region="s_america", split="train", focus="dry_forest"),
+    dict(name="kanha_deciduous",        lat=22.3000, lon=80.6000,   region="asia",      split="train", focus="dry_forest"),
+]
+
+RURAL_SITES = RURAL_SITES + EXTRA_RURAL_SITES + BIOME_GAP_SITES
 
 SITES = [dict(s, focus="urban") for s in URBAN_SITES] + RURAL_SITES
 
@@ -207,17 +235,24 @@ DYNAMICWORLD_TO_CLASS = {0: 6, 1: 3, 2: 4, 3: 7, 4: 2, 5: 4, 6: 1, 7: 5, 8: 8}
 
 MONTHS = list(range(1, 13))
 BAND_NAMES = [f"{pol}_{m:02d}" for m in MONTHS for pol in ("VV", "VH")]
-LABEL_BANDS = ["consensus", "worldcover", "dynamicworld"]
+LABEL_BANDS = ["consensus", "worldcover", "dynamicworld", "dynamicworld_snowfree"]
 
 WETLAND = 7
 WETLAND_COMPATIBLE_DW = (3, 4, 6, 7)
 
 
-def consensus_labels(wc, dw):
+SNOW = 8
+
+
+def consensus_labels(wc, dw, dw_snowfree=None):
     """Training label from class-mapped WorldCover and Dynamic World arrays (0 = ignore).
 
     Strict agreement for every class, except wetland (see WETLAND_COMPATIBLE_DW).
+    Seasonal snow: where WorldCover is not snow but the yearly Dynamic World mode is snow,
+    the mode over Dynamic World's snow-free observations (dw_snowfree) is used instead.
     """
+    if dw_snowfree is not None:
+        dw = np.where((dw == SNOW) & (wc != SNOW) & (dw_snowfree > 0), dw_snowfree, dw)
     label = np.where(wc == dw, wc, 0)
     label[(wc == WETLAND) & np.isin(dw, WETLAND_COMPATIBLE_DW)] = WETLAND
     return label.astype(np.uint8)
