@@ -249,8 +249,13 @@ Reading:
 - `BEST` is chosen by **test** mIoU ("best variant on test"). That is test-set leakage. It must be chosen by val mIoU.
 - Weak classes are unchanged: test mIoU on the focus sites is shrub_grass 0.03, snow_ice 0.15, trees 0.18, wetland 0.22.
 
-### 9.3 Notebook changes this session (on the 38-cell notebook that Kaggle runs)
+### 9.3 Notebook changes this session
 
+`Prototype.ipynb` is again the improved notebook from `865480f` (now 43 cells, syntax-checked, not run). The old 38-cell version with the run-1/run-2 outputs stays in git at `d714799`. Changes on top of `865480f`:
+
+- `find_data_root()` lists every attached dataset and prefers the one with `terrain/`.
+- Validation uses all 12 months in DEV too (`VAL_MONTHS = list(range(12))`). It was 3 months, which made val too noisy.
+- `BEST` is chosen by **best val mIoU**; test is only reported.
 - Output folder is now `Weights/<RUN_NAME>/`, set by `RUN_NAME = "Test_3"` in cell 2. If that folder already has files, the run goes to `Weights/<RUN_NAME>_<timestamp>/`, so nothing is overwritten. On Kaggle the path is `/kaggle/working/Weights/Test_3/`.
 - `<variant>_best.pt` is saved at every val improvement, not only at the end, so a crash keeps the best weights.
 - New section 12 "Save the run" at the end: saves all final weights and histories again and zips the folder (`Weights/Test_3.zip`) for one download.
@@ -261,6 +266,6 @@ Reading:
 
 ### 9.4 Next steps
 
-1. Bring back the 41-cell notebook (`git show 865480f:Prototype.ipynb`), re-apply the 9.3 save changes to it, and choose `BEST` by val mIoU. **Pull it into Kaggle before running**, or Kaggle syncs the old copy back again.
+1. Commit and push `Prototype.ipynb`, then **pull it into Kaggle before running**, or Kaggle syncs the old copy back again.
 2. DEV run of that notebook on the dataset version with `terrain/`. Check that cell 3 prints the right path and that cell 7 does not print "terrain variants skipped".
 3. Final run: 2-3 seeds per final variant, or at least report the noise level from 9.2 next to each comparison.
