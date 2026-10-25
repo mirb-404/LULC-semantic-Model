@@ -261,6 +261,9 @@ Reading:
   - Lovász runs on a random 25 % of pixels (`LOVASZ_SAMPLE`). The loss returns `(total, ce)`; logged train and val loss are both CE only, so they are comparable. Val loss no longer computes Lovász.
   - DEV validates every 2nd epoch (`VAL_EVERY`), plus the last epoch; patience counts epochs. Curves plot val only on validated epochs.
   - `cudnn.benchmark = True`, model and inputs in channels-last layout.
+  - Val and test arrays live on the GPU (`EVAL_GPU`, about 2 GB); `eval_batches(split, variant, months, ids)` yields model-ready batches, `evaluate(model, batches)` consumes them. `EvalDataset` is gone. Reason: on the RTX A6000 (Datalab, batch 64) train epochs took 10 s but CPU-side validation 70-150 s with GPU at 0 %.
+  - `/dev/shm` < 1 GB (Docker default 64 MB) sets `NUM_WORKERS = 0` (fixes "Bus error" in workers).
+  - Timing: `RUN_START` in the imports cell, minutes per variant in the training cell, `timing.json` in the run folder.
 - New glossary cell after the title, and a "How to read the training log" part in section 9 (loss values as probabilities, loss vs mIoU, typical patterns).
 - Output folder is now `Weights/<RUN_NAME>/`, set by `RUN_NAME = "Test_3"` in cell 2. If that folder already has files, the run goes to `Weights/<RUN_NAME>_<timestamp>/`, so nothing is overwritten. On Kaggle the path is `/kaggle/working/Weights/Test_3/`.
 - `<variant>_best.pt` is saved at every val improvement, not only at the end, so a crash keeps the best weights.
