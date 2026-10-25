@@ -219,3 +219,48 @@ Study questions to be able to answer in the exam:
 - Why would "water months" separate a lake from a seasonally flooded wetland?
 - Why is terrain reported as an ablation, and what does HAND measure?
 - Why are our mIoU numbers not comparable to published S1-only benchmarks (agreement-filtered labels)?
+
+## 9. Update 2026-10-25: two DEV runs, notebook mix-up, run folders
+
+Details: `research_notes/run_log.md` (all runs) and `reports/DEV runs 2026-10-25.md` (write-up).
+
+### 9.1 What happened
+
+- Commits `5da7e0f` ("Used the wrong dataset") and `d714799` ("Test on adding new biomes") are Kaggle syncs. Both hold the **old 38-cell notebook**: variants `three_month` and `three_month_pca`, ReduceLROnPlateau, CE + Dice, no EMA, no stats, no terrain. The improved 41-cell notebook from section 8 (commit `865480f`) **has never run on Kaggle**, because Kaggle synced its older copy over it.
+- The dataset was not the problem. Both runs loaded 1958 / 327 / 302 patches from 134 / 22 / 20 sites, the same as local `Dataset/patches/`:
+  - run 1 (`5da7e0f`): `../input/datasets/optimalbhandari/sentine-1-all/Dataset`;
+  - run 2 (`d714799`): `../input/datasets/optimalbhandari/sentinel-1-2-0/Dataset`.
+  The old notebook never reads `terrain/`, so it does not matter whether that folder was in the Kaggle dataset.
+- Code, data and seed were the same in both runs. **The difference between them is run-to-run noise.** This is the first direct noise measurement.
+
+### 9.2 Results (DEV: 15 epochs, val on months 0/4/8, test on all 12 months)
+
+| Run | Variant | best val mIoU | test OA | test mIoU |
+|---|---|---|---|---|
+| 1 (`5da7e0f`) | three_month | 0.541 | 0.817 | 0.559 |
+| 1 | three_month_pca | 0.644 | 0.835 | 0.546 |
+| 2 (`d714799`, `Weights/Test_2`) | three_month | 0.530 | 0.823 | 0.538 |
+| 2 | three_month_pca | 0.634 | 0.813 | 0.485 |
+
+Reading:
+- Same code, same data: test mIoU moved by 0.021 (three_month) and 0.061 (three_month_pca). Single-class IoU moved by up to 0.24 (Water three_month 0.679 → 0.443). **Single-run differences below about 0.05 test mIoU are noise.** Rare-class test IoU comes from 1-2 sites each (≈16 patches).
+- PCA is consistent in two ways across both runs: **val mIoU +0.10**, and **test IoU for Trees +0.13 to +0.14 and Shrub & grass +0.10 to +0.12**. Its test mIoU is lower in both runs (−0.013, −0.053), mainly through Cropland and Wetland. Train-val gap at the best epoch is 0.127 with PCA vs 0.054 without, which points to site-specific overfitting of the yearly PCA vector.
+- The best epoch was 14 of 15 in every case. DEV runs are too short to rank variants.
+- `BEST` is chosen by **test** mIoU ("best variant on test"). That is test-set leakage. It must be chosen by val mIoU.
+- Weak classes are unchanged: test mIoU on the focus sites is shrub_grass 0.03, snow_ice 0.15, trees 0.18, wetland 0.22.
+
+### 9.3 Notebook changes this session (on the 38-cell notebook that Kaggle runs)
+
+- Output folder is now `Weights/<RUN_NAME>/`, set by `RUN_NAME = "Test_3"` in cell 2. If that folder already has files, the run goes to `Weights/<RUN_NAME>_<timestamp>/`, so nothing is overwritten. On Kaggle the path is `/kaggle/working/Weights/Test_3/`.
+- `<variant>_best.pt` is saved at every val improvement, not only at the end, so a crash keeps the best weights.
+- New section 12 "Save the run" at the end: saves all final weights and histories again and zips the folder (`Weights/Test_3.zip`) for one download.
+- Files per run folder match the user's local `Weights/Test_2/`: `<variant>_best.pt`, `<variant>_history.csv`, `model_card.json`, `test_metrics.json`, and the plots.
+- Local `Weights/Test_2/three_month_best.pt` is dated 12:02, but the other files are dated 14:11. It is probably the **run 1** weights. Re-download it from the run-2 Kaggle output if it matters.
+- `Weights/` is not in `.gitignore`. Each `.pt` is about 98 MB, close to GitHub's 100 MB file limit.
+- Also new: `pyproject.toml` + `uv.lock` (Python 3.13, torch 2.11 cu128, same as Kaggle), for `uv sync` in other repos.
+
+### 9.4 Next steps
+
+1. Bring back the 41-cell notebook (`git show 865480f:Prototype.ipynb`), re-apply the 9.3 save changes to it, and choose `BEST` by val mIoU. **Pull it into Kaggle before running**, or Kaggle syncs the old copy back again.
+2. DEV run of that notebook on the dataset version with `terrain/`. Check that cell 3 prints the right path and that cell 7 does not print "terrain variants skipped".
+3. Final run: 2-3 seeds per final variant, or at least report the noise level from 9.2 next to each comparison.
