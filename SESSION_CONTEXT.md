@@ -251,11 +251,17 @@ Reading:
 
 ### 9.3 Notebook changes this session
 
-`Prototype.ipynb` is again the improved notebook from `865480f` (now 43 cells, syntax-checked, not run). The old 38-cell version with the run-1/run-2 outputs stays in git at `d714799`. Changes on top of `865480f`:
+`Prototype.ipynb` is again the improved notebook from `865480f` (now 44 cells, syntax-checked, not run). The old 38-cell version with the run-1/run-2 outputs stays in git at `d714799`. Changes on top of `865480f`:
 
 - `find_data_root()` lists every attached dataset and prefers the one with `terrain/`.
 - Validation uses all 12 months in DEV too (`VAL_MONTHS = list(range(12))`). It was 3 months, which made val too noisy.
 - `BEST` is chosen by **best val mIoU**; test is only reported.
+- Speed: the previous run was CPU-bound (32 s/epoch without PCA, 158 s with PCA built on the CPU, 4 Kaggle vCPUs).
+  - Datasets now return raw uint8 codes, float16 static channels and labels. `gpu_input()` does the dB lookup, brightness shift + noise, VV-VH and standardisation for the whole batch on the GPU; `gpu_augment()` does flips and rotations. `model_input()` is gone; `month_features()` remains only for fitting the PCA.
+  - Lovász runs on a random 25 % of pixels (`LOVASZ_SAMPLE`). The loss returns `(total, ce)`; logged train and val loss are both CE only, so they are comparable. Val loss no longer computes Lovász.
+  - DEV validates every 2nd epoch (`VAL_EVERY`), plus the last epoch; patience counts epochs. Curves plot val only on validated epochs.
+  - `cudnn.benchmark = True`, model and inputs in channels-last layout.
+- New glossary cell after the title, and a "How to read the training log" part in section 9 (loss values as probabilities, loss vs mIoU, typical patterns).
 - Output folder is now `Weights/<RUN_NAME>/`, set by `RUN_NAME = "Test_3"` in cell 2. If that folder already has files, the run goes to `Weights/<RUN_NAME>_<timestamp>/`, so nothing is overwritten. On Kaggle the path is `/kaggle/working/Weights/Test_3/`.
 - `<variant>_best.pt` is saved at every val improvement, not only at the end, so a crash keeps the best weights.
 - New section 12 "Save the run" at the end: saves all final weights and histories again and zips the folder (`Weights/Test_3.zip`) for one download.
