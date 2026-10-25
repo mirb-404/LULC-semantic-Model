@@ -2,5 +2,5 @@
 __pycache__/
 Dataset/*
 !Dataset/README.md
-
+Dataset.zip
 .env

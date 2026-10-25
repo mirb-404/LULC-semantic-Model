@@ -1,0 +1,32 @@
+[project]
+name = "deep-learning-exam"
+version = "0.1.0"
+description = "Sentinel-1 LULC segmentation: dataset pipeline, training notebook, prototype"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    # dataset pipeline (data_pipeline/)
+    "earthengine-api>=1.7",
+    "rasterio>=1.5",
+    "pyproj>=3.8",
+    "numpy>=2.5",
+    "tqdm>=4.70",
+    "matplotlib>=3.11",
+    # training notebook and prototype (Prototype.ipynb)
+    "pandas>=3.0",
+    "torch>=2.11",
+    "torchvision>=0.26",
+    "ipykernel",
+]
+
+[tool.uv]
+package = false
+
+# CUDA 12.8 wheels, same build as the Kaggle T4 image (torch 2.11+cu128)
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
