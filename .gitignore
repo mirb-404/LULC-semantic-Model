@@ -6,3 +6,4 @@ Dataset.zip
 .env
 Weights/
 .ipynb_checkpoints/
+Documentation/*.pdf
