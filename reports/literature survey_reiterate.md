@@ -96,3 +96,17 @@ Apply 1 and 2 only after Test_5_full is pushed and pulled, to avoid merge confli
 - TU Wien Sentinel-1 harmonic parameters: https://researchdata.tuwien.at/records/x8p2j-1tj74
 - Harmonic regression vs monthly composites (Landsat): https://research.fs.usda.gov/treesearch/55701
 - Our runs: `research_notes/run_log.md`; earlier survey: `reports/Sentinel 1 LULC segmentation improvements.md`
+
+## Update after Test_6 (2026-10-26)
+
+Test_6 trained the missing ablation `three_month_stats`, with statistics and without PCA. Full results: `reports/Test run 6 results.md`.
+
+| Variant | best val mIoU | test mIoU |
+|---|---|---|
+| three_month_stats | 0.657 | **0.742** |
+| three_month_pca | 0.666 | 0.667 |
+| three_month_pca_stats | 0.671 | 0.617 |
+
+- **On unseen test sites, the prediction of section 2 holds.** The order-independent statistics alone beat both PCA variants by 0.075-0.125 test mIoU, above the 0.05 noise level. They are best in Cropland, Trees, Shrub, Bare and Wetland.
+- **On validation, the three are within 0.014, which is noise.** The val rule picked `three_month_pca_stats`.
+- Consequence: settle the choice with more seeds on val. If they still tie, deliver `three_month_stats`, using the prior arguments of this survey: WorldCover-style features, order independence, fewer channels. The report must state that the test scores were seen.

@@ -336,3 +336,44 @@ Overfitting and ablation (uncommitted, for Test_6):
 1. Commit and push, then on Datalab `git fetch && git reset --hard origin/main` before running.
 2. Run Test_6. Check: train-val gap clearly below 0.2, val loss not rising late, `three_month` val mIoU ≥ 0.599, and whether `three_month_stats` matches or beats `three_month_pca_stats` (if so, drop PCA).
 3. Then: prototype (section 6 item 4), report, dataset link, `requirements.txt`.
+
+## 12. Update 2026-10-26: Test run 6 (first complete FINAL run)
+
+Details: `reports/Test run 6 results.md` (full write-up), `research_notes/run_log.md` ("Run 6"). The method is in `reports/Notebook method and pipeline.md`, the strategy and PCA background in `reports/literature survey_reiterate.md` (now with an "Update after Test_6" section).
+
+### 12.1 Setup
+
+- Notebook commits `b4b5175` (GPU speed) + `5414256` (overfitting, the user's commit). FINAL, 40 epochs, 5 three-month variants.
+- Datalab RTX A6000, bf16, batch 64, all data on the GPU, no workers.
+- **196 epochs in 27 min (about 8 s per epoch, Test_5: 13-30 s).** The GPU-resident data fixed the `/dev/shm` problem.
+
+### 12.2 Results (best val mIoU / test OA / test mIoU)
+
+| Variant | val | test OA | test mIoU |
+|---|---|---|---|
+| three_month | 0.570 | 0.843 | 0.585 |
+| three_month_stats | 0.657 | **0.914** | **0.742** |
+| three_month_pca | 0.666 | 0.874 | 0.667 |
+| three_month_pca_stats (BEST by val) | 0.671 | 0.865 | 0.617 |
+| three_month_pca_stats_terrain (ablation) | 0.694 | 0.890 | 0.701 |
+
+All beat the baseline (test mIoU 0.559).
+
+### 12.3 Findings
+
+- **Overfitting improved, not solved.**
+  - Val loss now reaches its minimum at epoch 34-36 of 40 and stays flat (Test_5: rising after epoch 27).
+  - Gap 0.18-0.21 (was 0.21-0.23).
+  - pca_stats still overfits (best epoch 26, early stop 36).
+- **PCA ablation:** `three_month_stats` (no PCA) is best on test by 0.075-0.125 mIoU, best in Cropland 0.86, Trees 0.76, Shrub 0.65, Bare 0.83 and Wetland 0.70. This matches the survey's prediction (calendar-bound PCA vs order-independent statistics).
+- **But val cannot separate stats / pca / pca_stats** (0.657 / 0.666 / 0.671, within noise). The val rule picked pca_stats, the weakest of the three on test. The test scores have now been seen; the report must say so.
+- Every yearly-feature variant beats plain three_month by 0.09-0.12 val mIoU: yearly context is the biggest lever.
+- Terrain: best val, Water IoU 0.868 (HAND), excluded (S1-only brief).
+- three_month val 0.570 < Test_5's 0.599: possibly mild underfitting from the regularisation, or noise.
+- Weak spots of the selected model: N. America mIoU 0.378, shrub_grass sites 0.138, wetland sites OA 0.372. Test is 54 % built-up (Built-up IoU 0.94-0.96), which inflates OA.
+
+### 12.4 Next steps
+
+1. Seed run: `three_month_stats` and `three_month_pca_stats`, 3 seeds each (about 35 min). Choose by mean val mIoU. If they tie, deliver `three_month_stats` (WorldCover-style, order-independent, 14 channels, no PCA weights in the prototype). Not set up in the notebook yet.
+2. `VAL_EVERY = 1` (validation now about 3-4 s).
+3. Log the chosen model in `model_card.json`, then build the prototype, write the report, add the dataset link and complete `requirements.txt`.

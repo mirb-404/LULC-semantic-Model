@@ -90,3 +90,39 @@ Reading:
 - 13-30 s per epoch.
 
 Next: Test_6 with regularisation (weight decay 0.05, label smoothing 0.1, dropout 0.2, month dropout 0.15, 40 epochs) and the new `three_month_stats` variant. See `reports/Notebook method and pipeline.md`, section 9.
+
+## Run 6: 2026-10-26 (`Weights/Test_6`, notebook commits `b4b5175` + `5414256`)
+
+- FINAL, 40 epochs, PATIENCE 10, VAL_EVERY 2. Datalab RTX A6000, bf16, batch 64, all data on the GPU (train 7.6 GB, val + test 2.2 GB), no workers.
+- New regularisation: weight decay 0.05, label smoothing 0.1, dropout 0.2, month dropout 0.15, VV/VH shift separate. New variant `three_month_stats`.
+- 196 epochs in 27 min (about 8 s per epoch; Test_5 had 13-30 s).
+
+| Variant | best val mIoU (epoch) | test OA | test mIoU | gap |
+|---|---|---|---|---|
+| three_month | 0.570 (34) | 0.843 | 0.585 | 0.184 |
+| three_month_stats | 0.657 (36) | 0.914 | 0.742 | 0.208 |
+| three_month_pca | 0.666 (34) | 0.874 | 0.667 | 0.207 |
+| three_month_pca_stats | 0.671 (26, early stop 36) | 0.865 | 0.617 | 0.212 |
+| three_month_pca_stats_terrain | 0.694 (34) | 0.890 | 0.701 | 0.208 |
+
+Test IoU (three_month / stats / pca / pca_stats / terrain):
+- Built-up 0.943 / 0.951 / 0.948 / 0.950 / 0.958
+- Cropland 0.612 / 0.862 / 0.521 / 0.649 / 0.500
+- Trees 0.352 / 0.755 / 0.630 / 0.652 / 0.659
+- Shrub 0.490 / 0.648 / 0.408 / 0.473 / 0.417
+- Bare 0.748 / 0.829 / 0.728 / 0.660 / 0.817
+- Water 0.514 / 0.657 / 0.634 / 0.558 / 0.868
+- Wetland 0.516 / 0.702 / 0.651 / 0.352 / 0.651
+- Snow 0.503 / 0.529 / 0.813 / 0.643 / 0.740
+
+`BEST` (S1-only, by val) = three_month_pca_stats. Its scores:
+- Per region (mIoU): Africa 0.420, Asia 0.629, Europe 0.501, N. America 0.378, Oceania 0.473, S. America 0.384.
+- Per site type (OA / mIoU): bare 1.000/1.000, cropland 0.840/0.430, shrub_grass 0.672/0.138, snow_ice 0.829/0.353, trees 0.905/0.250, urban 0.917/0.432, wetland 0.372/0.117.
+
+Reading:
+- Val loss minimum now at epoch 34-36 of 40 and flat at the end (Test_5: minimum at epoch 27, then rising). Exception: pca_stats (minimum at 26, rising). Gap only slightly smaller (0.18-0.21 vs 0.21-0.23).
+- three_month_stats is best on test by 0.075-0.125 over the PCA variants (above the 0.05 noise), but on val stats / pca / pca_stats are within 0.014 (noise). Val and test disagree.
+- three_month val 0.570 vs 0.599 in Test_5: possibly mild underfitting from the stronger regularisation, or noise.
+- Terrain: best val, Water IoU 0.868 (HAND). Excluded as deliverable (S1-only brief).
+
+Next: 3 seeds each of three_month_stats and three_month_pca_stats, choose by mean val; tie → three_month_stats (prior arguments). `VAL_EVERY = 1`.

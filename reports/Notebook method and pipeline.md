@@ -131,6 +131,12 @@ What to check in Test_6:
 - val loss no longer rising in the second half;
 - val mIoU at least as high as in Test_5 (0.599 for `three_month`).
 
+**Outcome (Test_6):**
+- Val loss now reaches its minimum at epoch 34-36 of 40 and stays flat. Only `three_month_pca_stats` still rises after epoch 26.
+- The gap shrank only to 0.18-0.21.
+- `three_month` val mIoU was 0.570, slightly below Test_5. That may be mild underfitting, or noise.
+- See `reports/Test run 6 results.md`.
+
 ## 10. Evaluation and outputs (sections 10-12)
 
 **Test (20 unseen sites, all 12 months):**
@@ -160,4 +166,4 @@ What to check in Test_6:
 | runs 1-2 | old notebook, DEV | identical code differs by up to 0.06 test mIoU, so that is the noise level; PCA val +0.10 |
 | Test_4 | improved notebook, DEV, A6000 | val: pca_stats 0.679 > terrain 0.654 > pca 0.613; test order reversed (noise) |
 | Test_5_Full | 60 epochs, 5 variants | Datalab closed during `three_month_pca`; finished: single_month 0.548, three_month 0.599 val mIoU; gap 0.21-0.23 |
-| Test_6 | overfitting measures + `three_month_stats` | to run |
+| Test_6 | overfitting measures + `three_month_stats`, 40 epochs, all data on the GPU | 27 min total (~8 s per epoch). Val: terrain 0.694 > pca_stats 0.671 > pca 0.666 > stats 0.657 > three_month 0.570. Test mIoU: **stats 0.742** > terrain 0.701 > pca 0.667 > pca_stats 0.617 > three_month 0.585. Val loss no longer rises late; gap 0.18-0.21. Details: `reports/Test run 6 results.md` |
