@@ -278,3 +278,19 @@ Reading:
 1. Commit and push `Prototype.ipynb`, then **pull it into Kaggle before running**, or Kaggle syncs the old copy back again.
 2. DEV run of that notebook on the dataset version with `terrain/`. Check that cell 3 prints the right path and that cell 7 does not print "terrain variants skipped".
 3. Final run: 2-3 seeds per final variant, or at least report the noise level from 9.2 next to each comparison.
+
+## 10. Update 2026-10-26: Test run 4 logged
+
+Details: `research_notes/run_log.md`, section "Run 4".
+
+- First run of the improved notebook (commit `5a6d075`, `Weights/Test_4/`), DEV, on the Datalab RTX A6000 with `terrain/` loaded.
+- Results (best val mIoU / test OA / test mIoU): three_month_pca 0.613 / 0.878 / 0.664; three_month_pca_stats 0.679 / 0.839 / 0.566; three_month_pca_stats_terrain 0.654 / 0.832 / 0.558. `BEST` by val = three_month_pca_stats.
+- Val and test rankings disagree. The test gaps come from Wetland (IoU 0.10-0.78) and Bare (0.36-0.73), each from about 16 patches of one site. Treat them as noise.
+- Best epoch 15/15 for every variant, so 15 epochs is too short. Train-val gap 0.17-0.22.
+- `EMA_DECAY` is 0.99 in the notebook, not the 0.998 planned in section 8.
+- `/dev/shm` was small, so `NUM_WORKERS = 0`. Epoch times varied 9-164 s.
+
+### 10.1 Next steps
+
+1. The user sets `DEV = False` and runs the final 60-epoch run.
+2. Not possible for now (user's call): more seeds, the `/dev/shm` fix. Report the noise level from runs 1-2 and 4 next to each comparison instead.

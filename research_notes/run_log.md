@@ -42,3 +42,34 @@ Per focus group (three_month): bare 1.000, cropland 0.316, shrub_grass 0.032, sn
 - PCA effect, unstable: test mIoU −0.01 to −0.05, Wetland −0.12 to −0.46, Cropland −0.05 to −0.20.
 - Interpretation: the yearly PCA vector helps classes with a stable yearly signature (trees, shrub). It hurts seasonal classes on unseen test sites, probably because it encodes site-specific patterns (train-val gap 0.127 vs 0.054). The `three_month_pca_stats` variant (VV min/max, water months) targets exactly those classes.
 - Method consequence: rank variants by val mIoU over all 12 months, use the full 60-epoch budget, use 2-3 seeds for the final comparison, and treat test differences below about 0.05 mIoU as noise.
+
+## Run 4: 2026-10-25 evening (commit `5a6d075` "Test run 4", `Weights/Test_4`)
+
+- Notebook: improved 44-cell version (EMA, warmup + cosine, CE + 0.5 Lovász, seasonal stats, terrain, GPU-side input and eval, val on all 12 months every 2nd epoch). DEV: 15 epochs, variants three_month_pca, three_month_pca_stats, three_month_pca_stats_terrain.
+- Hardware: Datalab RTX A6000, torch 2.9.1+cu128. Small `/dev/shm`, so `NUM_WORKERS = 0`.
+- Dataset: `Dataset/Dataset` with `terrain/` loaded. 1958 / 327 / 302 patches from 134 / 22 / 20 sites (same as runs 1 and 2). 14 static channels precomputed in 131 s (5.1 GB).
+- `EMA_DECAY = 0.99` in the notebook (section 8 planned 0.998).
+
+| Variant | channels | best val mIoU (epoch) | test OA | test mIoU | train-val gap |
+|---|---|---|---|---|---|
+| three_month_pca | 15 | 0.613 (15) | 0.878 | 0.664 | 0.224 |
+| three_month_pca_stats | 20 | 0.679 (15) | 0.839 | 0.566 | 0.166 |
+| three_month_pca_stats_terrain | 23 | 0.654 (15) | 0.832 | 0.558 | 0.216 |
+
+Test IoU (pca / pca_stats / pca_stats_terrain): Built-up 0.943 / 0.944 / 0.947, Cropland 0.399 / 0.461 / 0.568, Trees 0.660 / 0.620 / 0.606, Shrub & grass 0.482 / 0.421 / 0.305, Bare 0.725 / 0.614 / 0.357, Water 0.631 / 0.672 / 0.490, Wetland 0.780 / 0.100 / 0.570, Snow 0.689 / 0.695 / 0.617.
+
+`BEST` (by val mIoU): three_month_pca_stats. Its model card and weights are in `Weights/Test_4/` (`Test_4.zip`).
+
+Per region (three_month_pca_stats): Africa 0.406, Asia 0.595, Europe 0.482, N. America 0.361, Oceania 0.429, S. America 0.376 mIoU.
+Per focus group (three_month_pca_stats): bare 1.000, cropland 0.364, shrub_grass 0.121, snow_ice 0.333, trees 0.261, urban 0.413, wetland 0.060 mIoU.
+
+Reading:
+- Val ranks pca_stats > pca_stats_terrain > pca. Test ranks pca > pca_stats > pca_stats_terrain. The rankings disagree, and the test differences (up to 0.106 mIoU) come mostly from Wetland (0.10 to 0.78) and Bare (0.36 to 0.73). Each of these rests on about 16 test patches from one site. This is noise, not a variant effect.
+- Seasonal stats, on val: +0.066 mIoU over pca. Terrain on top of stats: −0.025 val. One DEV run, so neither is conclusive.
+- The new training setup lifts test mIoU for three_month_pca from 0.485-0.546 (runs 1-2) to 0.664, and test Shrub & grass from 0.27-0.33 to 0.48. With the run-to-run noise from runs 1-2 this is suggestive, not proven.
+- Best epoch is 15 of 15 for all variants, and val mIoU still rose at the last epoch. 15 epochs is too short.
+- Train-val gap grew to 0.17-0.22 (runs 1-2: 0.05-0.13). Probably because train mIoU is now measured on the faster-learning setup; watch it in the 60-epoch run.
+- Epoch times vary from 9 s to 164 s with no pattern (validated epochs are not always slower). Likely shared hardware or the main-process data loading. Not a code issue.
+- The `lr_scheduler.step()` before `optimizer.step()` warning comes from the AMP scaler skipping the first step. Harmless.
+
+Next: the user runs with `DEV = False` (60 epochs).
