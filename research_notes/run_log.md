@@ -73,3 +73,20 @@ Reading:
 - The `lr_scheduler.step()` before `optimizer.step()` warning comes from the AMP scaler skipping the first step. Harmless.
 
 Next: the user runs with `DEV = False` (60 epochs).
+
+## Run 5: 2026-10-26 (commit `f170b8d` "Test run 5 full", `Weights/Test_5_Full`, incomplete)
+
+- Notebook: improved version before the speed changes. FINAL: 60 epochs, all 5 variants, VAL_EVERY 1. Datalab RTX A6000, `NUM_WORKERS = 0`.
+- Datalab closed during `three_month_pca` (epoch 3). No test results.
+
+| Variant | best val mIoU (epoch) | train mIoU at best | gap |
+|---|---|---|---|
+| single_month | 0.548 (45) | 0.760 | 0.21 |
+| three_month | 0.599 (50) | 0.825 | 0.23 |
+
+Reading:
+- three_month beats single_month by 0.05 val mIoU: the month window helps.
+- Overfitting: `three_month` val loss lowest at epoch 27 (0.598) and rising to 0.648 by epoch 60 while train loss fell; val mIoU flat after about epoch 30. 60 epochs is more than needed.
+- 13-30 s per epoch.
+
+Next: Test_6 with regularisation (weight decay 0.05, label smoothing 0.1, dropout 0.2, month dropout 0.15, 40 epochs) and the new `three_month_stats` variant. See `reports/Notebook method and pipeline.md`, section 9.

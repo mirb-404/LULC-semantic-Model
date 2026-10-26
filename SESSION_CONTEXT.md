@@ -294,3 +294,45 @@ Details: `research_notes/run_log.md`, section "Run 4".
 
 1. The user sets `DEV = False` and runs the final 60-epoch run.
 2. Not possible for now (user's call): more seeds, the `/dev/shm` fix. Report the noise level from runs 1-2 and 4 next to each comparison instead.
+
+## 11. Update 2026-10-26: Test_5_Full, git cleanup, speed and overfitting changes
+
+Full description of the notebook: `reports/Notebook method and pipeline.md`. Strategy check and PCA question: `reports/literature survey_reiterate.md`.
+
+### 11.1 Git
+
+- `.env` (GCP project ID) removed from all history; `.gitignore` fixed (`.env`, `Weights/`, `Documentation/*.pdf`). Force-pushed.
+- The user wants **no "Co-Authored-By: Claude" lines** in commits or PRs.
+- Lecture PDFs are no longer tracked (`01 - Introduction and Organization.pdf` is still in old history, commit `e05461e`).
+- After every force push, the Datalab clone needs `git fetch && git reset --hard origin/main` (not pull/merge). Suggested there: `git config pull.ff only`.
+
+### 11.2 Test_5_Full (60 epochs, all 5 variants, old data loading, A6000)
+
+- Datalab closed during `three_month_pca` epoch 3; the run is dead. Finished: `single_month` best val mIoU 0.548 (epoch 45, early stop at 60), `three_month` 0.599 (epoch 50).
+- **Overfitting:** train mIoU at the best epoch 0.76 / 0.825, gap 0.21-0.23. `three_month` val loss lowest at epoch 27 (0.598), then rising to 0.648 while train loss kept falling; val mIoU flat after about epoch 30.
+- 13-30 s per epoch (about 20 min per variant).
+
+### 11.3 Strategy check (lectures + literature)
+
+- The training algorithm matches lectures 01-07: U-Net, ResNet-34, transfer learning, Adam(W), L2, dropout, batchnorm, early stopping, augmentation, sparse CE with class weights. Lovász, EMA, PCA and the statistics are extras that need a justification in the report.
+- **The brief requires Sentinel-1 as the only input:** terrain is an ablation only.
+- **PCA:** valid in dB, but its loadings are tied to calendar months (hemisphere phase shift → site-specific). The seasonal statistics are order-independent and follow ESA WorldCover (S1 percentiles); they are the better-founded feature.
+
+### 11.4 Notebook changes (all marked `CHANGED (2026-10-26...)` in code, *(changed 2026-10-26...)* in markdown)
+
+Speed (commit `b4b5175`):
+- New hardware-check cell: bf16 on Ampere / fp16 + GradScaler on T4, TF32, `BATCH` 64 (≥ 24 GB) or 32, `NUM_WORKERS` from `/dev/shm`.
+- Data kept on the GPU when it fits (`gpu_train_batches`, `eval_batches`); DataLoader only as fallback.
+
+Overfitting and ablation (uncommitted, for Test_6):
+- `WEIGHT_DECAY` 1e-4 → 0.05 (not on biases / BatchNorm); `LABEL_SMOOTHING` 0.1 in the optimised CE (logged CE stays plain); `DROPOUT` 0.1 → 0.2; `MONTH_DROP` 0.15; VV/VH brightness shift drawn separately; `MAX_EPOCHS` 60 → 40 (final); `PATIENCE` 15 → 10.
+- New variant `three_month_stats`. `RUN` = three_month, three_month_stats, three_month_pca, three_month_pca_stats, three_month_pca_stats_terrain.
+- `BEST` chosen by val mIoU among Sentinel-1-only variants.
+- `RUN_NAME = "Test_6"`; `DEV` is still `False` in cell 3.
+- Not run, only syntax- and name-checked.
+
+### 11.5 Next steps
+
+1. Commit and push, then on Datalab `git fetch && git reset --hard origin/main` before running.
+2. Run Test_6. Check: train-val gap clearly below 0.2, val loss not rising late, `three_month` val mIoU ≥ 0.599, and whether `three_month_stats` matches or beats `three_month_pca_stats` (if so, drop PCA).
+3. Then: prototype (section 6 item 4), report, dataset link, `requirements.txt`.
