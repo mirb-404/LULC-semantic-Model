@@ -1,0 +1,9 @@
+streamlit>=1.38
+torch>=2.2
+torchvision>=0.17
+numpy>=1.26
+pandas>=2.1
+matplotlib>=3.8
+earthengine-api>=1.0
+pyproj>=3.6
+rasterio>=1.3

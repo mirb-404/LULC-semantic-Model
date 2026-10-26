@@ -1,0 +1,3 @@
+[server]
+# model checkpoints are about 98 MB
+maxUploadSize = 500
