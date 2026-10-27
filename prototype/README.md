@@ -36,7 +36,7 @@ The CPU also works. A 5 x 5 km area takes about 1-2 minutes for all 12 months.
    ```bash
    earthengine authenticate
    ```
-3. Enter the project ID in the sidebar. The field is pre-filled from the environment variable `EE_PROJECT` or from `Project_ID = ...` in the repository's `.env` file (git-ignored).
+3. Enter the project ID in the sidebar, or leave it blank to use the environment variable `EE_PROJECT` or `Project_ID = ...` in the repository's `.env` file (git-ignored).
 
 No other accounts or API keys are needed.
 
@@ -48,6 +48,25 @@ streamlit run app.py
 ```
 
 Streamlit opens http://localhost:8501. Run it from the `prototype/` folder so that `.streamlit/config.toml` applies; it raises the upload limit to 500 MB, because checkpoints are about 98 MB.
+
+### Run on Datalab or another remote machine
+
+The app runs on the server; `launch.py` makes it reachable from your browser:
+
+```bash
+cd prototype
+pip install -r requirements.txt
+earthengine authenticate --auth_mode=notebook   # headless login: open the printed link, paste the code back
+python launch.py
+```
+
+- `--tunnel auto` (default): a link through JupyterHub's `jupyter-server-proxy` if it is installed (protected by the hub login), otherwise a Cloudflare quick tunnel.
+- `--tunnel cloudflare`: public `https://<random>.trycloudflare.com` link. No account is needed; `cloudflared` is downloaded once to `~/.cache/cloudflared`. The printed link contains a random access key (`?key=...`); the app refuses requests without it. Anyone with the full link can use the app and your Earth Engine quota, so do not share it.
+- `--tunnel jupyter`, `--tunnel none`, `--port 8501` are also available.
+
+From a notebook cell: `!cd prototype && python launch.py`. Interrupting the cell stops the app.
+
+The Earth Engine project ID is never sent to the browser: leave the field blank to use `EE_PROJECT` or `Project_ID` from `.env` on the server.
 
 ## How to use
 
@@ -109,6 +128,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 | `gee.py` | Earth Engine: grid, monthly Sentinel-1 composites, terrain, Esri reference, chunked download |
 | `pipeline.py` | model loading and variant detection, input features, sliding-window inference, percentages and changes |
 | `model.py` | the U-Net / ResNet-34 architecture (identical to the notebook) |
+| `launch.py` | starts the app on a remote machine, with a JupyterHub proxy link or a Cloudflare tunnel |
 | `requirements.txt` | Python dependencies |
 | `.streamlit/config.toml` | upload limit |
 

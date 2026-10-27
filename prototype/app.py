@@ -3,6 +3,7 @@
 Run from this folder:  streamlit run app.py
 """
 import hashlib
+import hmac
 import io
 import json
 import os
@@ -25,6 +26,12 @@ SIZES = {"2.56 km (256 px)": 256, "5.12 km (512 px)": 512, "10.24 km (1024 px, t
 OVERLAPS = {"none (fastest)": 256, "25 %": 192, "50 % (smoothest)": 128}
 
 st.set_page_config(page_title="Sentinel-1 LULC", layout="wide")
+
+# launch.py sets an access key when the app is exposed through a public tunnel
+ACCESS_KEY = os.environ.get("APP_ACCESS_KEY")
+if ACCESS_KEY and not hmac.compare_digest(st.query_params.get("key", ""), ACCESS_KEY):
+    st.error("Access key missing or wrong. Open the full link printed by launch.py.")
+    st.stop()
 
 
 # ---------------------------------------------------------------- helpers
@@ -156,9 +163,11 @@ if weight_bytes:
 st.sidebar.header("2. Location and time")
 source = st.sidebar.radio("Data", ["Google Earth Engine", "Local dataset tile (offline test)"])
 if source == "Google Earth Engine":
-    project = st.sidebar.text_input("Earth Engine project ID", value=default_project(), type="password",
+    # the default stays on the server: a prefilled value would be sent to the browser
+    project = st.sidebar.text_input("Earth Engine project ID", type="password",
+                                    placeholder="blank = server default" if default_project() else "",
                                     help="Google Cloud project registered for Earth Engine. "
-                                         "Default: EE_PROJECT or Project_ID in the repo's .env")
+                                         "Blank: EE_PROJECT or Project_ID in the repo's .env") or default_project()
     c1, c2 = st.sidebar.columns(2)
     lat = c1.number_input("Latitude", -60.0, 72.0, 52.5200, step=0.01, format="%.4f")
     lon = c2.number_input("Longitude", -180.0, 180.0, 13.4050, step=0.01, format="%.4f")
