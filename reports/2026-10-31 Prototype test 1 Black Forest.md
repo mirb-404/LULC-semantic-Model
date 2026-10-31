@@ -1,6 +1,6 @@
 # 2026-10-31 Prototype test 1: Black Forest
 
-Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), section 8 the status before the build, and section 9 the dataset build on Datalab with the questions answered about the data (sources and exam compliance, previews, patches, roads, manual labels).
+Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), section 8 the status before the build, and section 9 the dataset build on Datalab with the questions answered about the data (sources and exam compliance, previews, patches, roads, manual labels). Section 10 records the first 2nd-iteration training run (`Iter2_Test_1`) and its results.
 
 Previous reports in this story: `reports/Test run 6 results.md` (the 1st-iteration model), `reports/2026-10-27 Prototype 1.md` (first prototype tests in Berlin and Potsdam).
 
@@ -346,3 +346,100 @@ The prototype could not use 2nd-iteration weights: it built 1st-iteration sigma0
 
 - `Dataset_2nd_iteration/` built (177 sites, 3.7 GB), `make_patches.py` and `preview.py` done.
 - Next: print the class distribution, check the previews of steep tiles (`nepal_midhills`, `andes_sacred_valley`) and `black_forest_villages`, then run `Notebooks/2nd_iteration.ipynb` with `DEV = True`.
+
+## 10. First 2nd-iteration training: `Iter2_Test_1` (DEV run, 2026-10-31)
+
+`Notebooks/2nd_iteration.ipynb` with `DEV = True`: all three variants, 15 epochs each, on Datalab (RTX A6000, bfloat16, batch 64, all data on the GPU). Outputs in `Weights/Iter2_Test_1/` (`final_model.pt`, `model_card.json`, `test_metrics.json`, plots, `variants/`). The notebook ran end to end without errors.
+
+### 10.1 Data as trained
+
+| Split | Patches | Sites (rural) |
+|---|---|---|
+| train | 2218 | 139 (114) |
+| val | 335 | 21 (18) |
+| test | 265 | 17 (13) |
+
+| Class | train % | val % | test % | train agreement % | loss weight |
+|---|---|---|---|---|---|
+| Man-made | 9.1 | 7.8 | 15.2 | 95.0 | 0.99 |
+| Crop fields | 16.0 | 13.3 | 16.5 | 71.9 | 0.75 |
+| Trees | 33.9 | 28.6 | 28.1 | 78.0 | 0.51 |
+| Grassland | 25.5 | 31.4 | 28.4 | 55.1 | 0.59 |
+| Bare ground | 7.4 | 10.2 | 7.5 | 70.7 | 1.10 |
+| Water | 5.4 | 4.9 | 2.1 | 96.0 | 1.28 |
+| Snow & ice | 2.8 | 3.8 | 2.3 | 93.2 | 1.78 |
+
+- Built-up / Man-made fell from 30.8 % of the 1st-iteration training pixels to 9.1 %; trees and grassland are now the largest classes, as in real rural land.
+- 73.6 % of the labelled training pixels are agreement pixels (WorldCover and Dynamic World agree). Grassland has the lowest agreement (55 %): the two maps disagree most on what is grass, shrub or crop.
+- Radar channel mean / std (VV, VH, VV-VH): -9.72 / 4.52, -16.93 / 4.86, 7.21 / 2.55 dB. The 9 seasonal statistics took 78 s to precompute; data loading 30 s.
+
+### 10.2 Training
+
+| Variant | Inputs | Best val mIoU | Best epoch | Train-val gap | Minutes |
+|---|---|---|---|---|---|
+| `year_stats` | 9 | 0.714 | 15 | 0.147 | 2.4 |
+| `month_year` | 12 | **0.741** | 12 | 0.106 | 2.0 |
+| `three_month_year` | 18 | 0.714 | 14 | 0.141 | 2.2 |
+
+- The train-val gap is 0.11-0.15, against 0.18-0.21 in the 1st iteration: the model generalises better with whole-year input, terrain flattening and the rural sites.
+- Validation runs every 2nd epoch (the `nan` in the odd-epoch log lines is not an error). The low val score at epoch 2 (0.005-0.07) comes from the EMA weights, which are not yet warmed up.
+- `month_year` stopped improving at epochs 12-15 because the cosine schedule reaches learning rate 0 at epoch 15. The 40-epoch final run should add a little (estimate 0.01-0.02).
+
+### 10.3 Test results
+
+| Variant | OA | mIoU (all test) | Rural mIoU | Rural mIoU smoothed | Rural mIoU, all pixels | Flicker % | Flicker smoothed % |
+|---|---|---|---|---|---|---|---|
+| `year_stats` | 0.850 | 0.729 | **0.646** | 0.646 | 0.565 | 0.0 | 0.0 |
+| `month_year` | 0.861 | 0.714 | 0.639 | 0.641 | 0.534 | 3.0 | 1.2 |
+| `three_month_year` | 0.846 | 0.722 | 0.639 | 0.640 | 0.559 | 2.5 | 1.5 |
+
+Rural mIoU = agreement pixels of the 13 rural test sites (the main score, section 6.8); "all pixels" includes the disagreement pixels scored against WorldCover. Flicker = share of pixels whose class changes from one month to the next.
+
+Per class, rural test sites, `month_year` (IoU / precision / recall):
+
+| Class | IoU | Precision | Recall | Main confusion |
+|---|---|---|---|---|
+| Man-made | 0.72 | 0.83 | 0.85 | 6 % to crop fields |
+| Crop fields | 0.66 | 0.81 | 0.78 | 20 % to grassland |
+| Trees | 0.82 | 0.89 | 0.92 | 8 % to grassland |
+| Grassland | 0.65 | 0.80 | 0.78 | 10 % to trees, 8 % to crop fields |
+| Bare ground | 0.83 | 0.89 | 0.93 | 3 % to snow |
+| Water | 0.47 | 0.56 | 0.75 | 15 % to grassland; 22 % of predicted water is trees |
+| Snow & ice | 0.32 | 0.61 | 0.41 | 48 % to bare ground |
+
+`year_stats` is better on snow (IoU 0.52) and bare ground (0.88); `month_year` is better on man-made, crop fields and grassland.
+
+By region (`month_year`): rural and urban patches together, mIoU 0.46 (Oceania) to 0.62 (Asia); North America has the highest flicker (6.4 %, 2.4 % smoothed). By site type, wetland sites flicker most (13.9 %, 5.1 % smoothed) and snow sites score lowest (mIoU 0.16). Single-type sites score low mIoU because few classes are present; `bare` (mIoU 1.00) is trivial.
+
+### 10.4 Black Forest: the failure of section 1 is gone
+
+The notebook shows 12 monthly maps for four test mosaics (`months_*.png`). For `black_forest_villages`, the test site at the Black Forest location of section 1:
+
+- every month matches WorldCover closely: forest, the grassland clearings along the valleys and the red village in the centre;
+- no winter water, wetland or crop fields, no scattered red spots, no blob shapes; the maps barely change from January to December, which is correct for a forest-meadow landscape with no real change;
+- the raw and smoothed rows are almost identical; smoothing only removes single-month flips.
+
+This is the most important result of the iteration, because the Black Forest test is the failure that started it. The before (section 1) / after images should be the main evidence in the report, not the mIoU.
+
+### 10.5 Interpretation
+
+- **Do not compare 0.714 with the 1st-iteration 0.742.** The 1st-iteration test had 8 classes and 54 % built-up pixels, scored at IoU 0.94-0.96, which lifted its mIoU. The test set, classes and labels all changed. The score that matches the product goal is the rural mIoU (0.639), which the 1st iteration did not measure.
+- **Choice of `month_year` is correct**, although `year_stats` is 0.007 higher on rural test. `year_stats` has no monthly input, so it produces the same map in all 12 months (flicker 0 by construction) and cannot show monthly change, which the prototype must show. The final model is chosen on val, and test is only reported (section 6.9); `month_year` had the best val mIoU.
+- **Temporal smoothing:** flicker 3.0 % → 1.2 % at no cost in mIoU (0.639 → 0.641). Kept on for the prototype (`temporal_smoothing` in the model card).
+
+### 10.6 Remaining weaknesses
+
+| Weakness | Evidence | Likely cause |
+|---|---|---|
+| Snow vs bare ground | Snow IoU 0.32, 48 % of snow predicted as bare | Dry snow and rock both scatter weakly; snow is 2.3 % of test pixels |
+| Water precision | 0.56; 22 % of predicted water is trees | Dark radar shadow behind slopes or wet forest; water is only 2.1 % of test pixels, so a few false patches cost a lot of IoU |
+| Crop fields vs grassland | 20 % of crop fields predicted as grassland | Similar radar response outside the growing season; labels agree on only 55 % of grassland |
+| Wetland sites | Flicker 13.9 % | Real seasonal flooding, now mapped as water or grassland month by month |
+
+These are physical limits of C-band radar and of the labels, not pipeline errors; they go into the critical discussion.
+
+### 10.7 Next steps
+
+1. Final run: `DEV = False`, `FINAL_VARIANT = "month_year"`, `RUN_NAME = "Iter2_Final"` (up to 40 epochs).
+2. Prototype: load `Weights/Iter2_Final/final_model.pt` with its model card; repeat the Black Forest test (section 1) away from the training tile, with the Esri sanity check, and on 3-4 other rural mosaics.
+3. Use the Black Forest before/after images and the tables of 10.3 in the report.
