@@ -66,6 +66,7 @@ Other useful options:
 | File | Content |
 |---|---|
 | `config.py` | sites (`URBAN_SITES` filtered by `URBAN_KEPT`, `CITY_EDGE_SITES`, `RURAL_SITES` minus `DROPPED_SITES`, `MOSAIC_SITES`), 7 classes, uint8 encoding, consensus rule, mosaic rule, `TRAIN_LABEL_BAND` |
-| `download.py` | Earth Engine download: terrain flattening, monthly composites, labels, mosaic check, parallel sites, resume |
+| `sentinel1.py` | Sentinel-1 processing (flattening, masks, monthly composite), shared with the prototype |
+| `download.py` | Earth Engine download: monthly composites via `sentinel1.py`, labels, mosaic check, parallel sites, progress bar, resume |
 | `make_patches.py` | patch index per split, normalisation stats, class distribution, per-site summary |
 | `preview.py` | quick-look PNGs |

@@ -1,5 +1,6 @@
 """Download Sentinel-1 monthly composites and labels per site from Google Earth Engine (2nd iteration).
 
+The Sentinel-1 processing lives in sentinel1.py, shared with the prototype.
 Sentinel-1 (COPERNICUS/S1_GRD) is already processed by Earth Engine with the S1 Toolbox:
 orbit file, GRD border noise removal, thermal noise removal, radiometric calibration
 (sigma0), geometric terrain correction (SRTM 30 m / ASTER DEM) and dB conversion. On top of that:
@@ -38,7 +39,6 @@ Datalab / remote machines: see data_pipeline/README.md.
 """
 import argparse
 import json
-import math
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -51,9 +51,9 @@ from rasterio.transform import from_origin
 from tqdm import tqdm
 
 import config
+import sentinel1
 
 CHUNK = 512
-DEG = math.pi / 180
 AUTH_HINT = ("Earth Engine credentials missing or invalid. On a headless machine run\n"
              "  earthengine authenticate --auth_mode=notebook\n"
              "open the link, paste the code back, and do not tick 'read-only scopes'.")
@@ -80,54 +80,10 @@ def site_grid(site):
     return epsg, x0, y_top, config.TILE_SIZE_M // config.PIXEL_M
 
 
-def dem_image(region):
-    dems = ee.ImageCollection("COPERNICUS/DEM/GLO30_2024_1").filterBounds(region).select("DEM")
-    return dems.mosaic().setDefaultProjection(dems.first().projection())
-
-
-def flatten_terrain(img, slope, aspect):
-    """sigma0 (dB) scene -> terrain-flattened gamma0 in linear power, with layover, shadow and edges masked.
-
-    Volume model of Vollrath et al. 2020. Both the look direction (aspect of the incidence-angle
-    field, which rises away from the sensor) and the terrain aspect come from ee.Terrain.aspect, so
-    their difference is 0 for a slope facing the sensor and alpha_r is its slope angle in range.
-    """
-    angle = img.select("angle")
-    theta = angle.multiply(DEG)
-    heading = ee.Terrain.aspect(angle).reduceRegion(ee.Reducer.mean(), img.geometry(), 1000).get("aspect")
-    phi_r = ee.Image.constant(heading).multiply(DEG).subtract(aspect)
-    alpha_r = slope.tan().multiply(phi_r.cos()).atan()
-    ninety = ee.Image.constant(math.pi / 2)
-    scf = ninety.subtract(theta).add(alpha_r).tan().divide(ninety.subtract(theta).tan())
-    sigma0 = ee.Image(10).pow(img.select(["VV", "VH"]).divide(10))
-    gamma0 = sigma0.divide(theta.cos()).divide(scf)
-    valid = (angle.gt(31).And(angle.lt(45))
-             .And(alpha_r.lt(theta))
-             .And(alpha_r.gt(theta.subtract(ninety))))
-    return gamma0.updateMask(valid)
-
-
-def month_collection(region, month):
-    start = ee.Date.fromYMD(config.YEAR, month, 1)
-    return (ee.ImageCollection("COPERNICUS/S1_GRD")
-            .filterBounds(region)
-            .filterDate(start, start.advance(1, "month"))
-            .filter(ee.Filter.eq("instrumentMode", "IW"))
-            .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV"))
-            .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VH")))
-
-
-def monthly_composite(region, month, slope, aspect):
-    linear = month_collection(region, month).map(lambda img: flatten_terrain(img, slope, aspect))
-    db = linear.mean().log10().multiply(10)
-    return db.rename([f"VV_{month:02d}", f"VH_{month:02d}"])
-
-
 def s1_image(region):
-    dem = dem_image(region)
-    slope = ee.Terrain.slope(dem).multiply(DEG)
-    aspect = ee.Terrain.aspect(dem).multiply(DEG)
-    stack = ee.Image.cat([monthly_composite(region, m, slope, aspect) for m in config.MONTHS])
+    slope, aspect = sentinel1.slope_aspect(region)
+    stack = ee.Image.cat([sentinel1.monthly_composite(region, config.YEAR, m, slope, aspect)
+                          .rename([f"VV_{m:02d}", f"VH_{m:02d}"]) for m in config.MONTHS])
     codes = stack.subtract(config.DB_MIN).divide(config.DB_STEP).round().clamp(1, 255)
     return codes.unmask(config.NODATA).toUint8()
 
@@ -151,7 +107,7 @@ def label_image(region):
 
 
 def terrain_image(region):
-    dem = dem_image(region)
+    dem = sentinel1.dem_image(region)
     slope = ee.Terrain.slope(dem).multiply(10)
     hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd").multiply(10)
     stack = ee.Image.cat([dem, slope, hand]).resample("bilinear")
@@ -254,7 +210,8 @@ def download_site(site, terrain=False):
             raise SkipSite(f"not a mosaic, WorldCover class shares {shares}")
 
     if not s1_path.exists():
-        counts = ee.Dictionary({str(m): month_collection(region, m).size() for m in config.MONTHS}).getInfo()
+        counts = ee.Dictionary({str(m): sentinel1.month_collection(region, config.YEAR, m).size()
+                                for m in config.MONTHS}).getInfo()
         print(f"{name}: S1 scenes per month {counts}")
         if min(counts.values()) == 0:
             raise SkipSite(f"months without Sentinel-1 IW scenes: {counts}")

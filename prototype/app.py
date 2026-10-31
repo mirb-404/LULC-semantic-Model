@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import torch
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, to_rgb
 from matplotlib.patches import Patch
 
 import pipeline
@@ -44,6 +44,15 @@ def month_label(year, month):
     return f"{pipeline.MONTH_NAMES[month - 1]} {year}"
 
 
+def line_color(color):
+    """Very light class colours (snow) are drawn grey in line and bar charts on a white background."""
+    return "#9e9e9e" if sum(to_rgb(color)) / 3 > 0.85 else color
+
+
+def dataset_dir(iteration):
+    return ROOT / ("Dataset_2nd_iteration" if iteration >= 2 else "Dataset")
+
+
 def default_project():
     if os.environ.get("EE_PROJECT"):
         return os.environ["EE_PROJECT"]
@@ -62,20 +71,20 @@ def get_model(key, _weight_bytes, card_text, device_name):
 
 
 @st.cache_data(show_spinner=False)
-def gee_data(project, lat, lon, year, month, n, need_terrain):
+def gee_data(project, lat, lon, year, month, n, need_terrain, iteration):
     import gee
     gee.initialize(project)
     months_all = [shift_month(year, month, k) for k in range(-N_BEFORE, 12)]
     epsg, x0, y_top, region = gee.grid(lat, lon, n)
     counts = gee.scene_counts(region, months_all)
-    image, bands = gee.s1_stack(region, months_all)
+    image, bands = gee.s1_stack(region, months_all, iteration)
     codes = gee.fetch(image, bands, epsg, x0, y_top, n, np.uint8, 0).reshape(len(months_all), 2, n, n)
     terrain = None
     if need_terrain:
         terrain = gee.fetch(gee.terrain_image(region), gee.TERRAIN_BANDS, epsg, x0, y_top, n, np.int16, 0)
     ref_year = Counter(y for y, _ in months_all[N_BEFORE:]).most_common(1)[0][0]
     try:
-        esri, used_year = gee.esri_image(ref_year)
+        esri, used_year = gee.esri_image(ref_year, iteration)
         ref = gee.fetch(esri, ["esri"], epsg, x0, y_top, n, np.uint8, 0)[0]
         ref_name = f"Esri 10 m Annual LULC {used_year} (independent, Sentinel-2 based)"
     except Exception as err:
@@ -84,31 +93,34 @@ def gee_data(project, lat, lon, year, month, n, need_terrain):
                 ref_name=ref_name, lat=lat, lon=lon)
 
 
-def local_sites():
-    return sorted(p.stem for p in (ROOT / "Dataset" / "s1").glob("*.tif"))
+def local_sites(iteration):
+    return sorted(p.stem for p in (dataset_dir(iteration) / "s1").glob("*.tif") if not p.stem.endswith(".tmp"))
 
 
 @st.cache_data(show_spinner=False)
-def local_data(site, month):
-    """A downloaded 2021 dataset tile. Months before the start wrap within 2021, as in training."""
+def local_data(site, month, iteration):
+    """A downloaded 2021 dataset tile of the model's iteration. Months before the start wrap within 2021,
+    as in training."""
     import rasterio
     from pyproj import Transformer
-    with rasterio.open(ROOT / "Dataset" / "s1" / f"{site}.tif") as src:
+    root = dataset_dir(iteration)
+    with rasterio.open(root / "s1" / f"{site}.tif") as src:
         tile = src.read().reshape(12, 2, src.height, src.width)
         cx, cy = (src.bounds.left + src.bounds.right) / 2, (src.bounds.bottom + src.bounds.top) / 2
         lon, lat = Transformer.from_crs(src.crs, 4326, always_xy=True).transform(cx, cy)
     idx = [(month - 1 + k) % 12 for k in range(-N_BEFORE, 12)]
-    terrain_path = ROOT / "Dataset" / "terrain" / f"{site}.tif"
+    terrain_path = root / "terrain" / f"{site}.tif"
     terrain = None
     if terrain_path.exists():
         with rasterio.open(terrain_path) as src:
             terrain = src.read()
     ref, ref_name = None, "no label file"
-    label_path = ROOT / "Dataset" / "labels" / f"{site}.tif"
+    label_path = root / "labels" / f"{site}.tif"
     if label_path.exists():
         with rasterio.open(label_path) as src:
-            ref = src.read(1)
-        ref_name = "training consensus label (WorldCover ∩ Dynamic World 2021): NOT independent, test use only"
+            ref = src.read(2 if iteration >= 2 else 1)
+        ref_name = (("training label (WorldCover 2021)" if iteration >= 2 else
+                     "training consensus label (WorldCover ∩ Dynamic World 2021)") + ": NOT independent, test use only")
     return dict(codes=tile[idx], months_all=[(2021, i + 1) for i in idx], counts=None, terrain=terrain,
                 ref=ref, ref_name=ref_name, lat=lat, lon=lon)
 
@@ -127,7 +139,8 @@ st.sidebar.header("1. Model")
 weight_source = st.sidebar.radio("Weights", ["Upload files", "Local Weights folder"], horizontal=True)
 weight_bytes, card_text, weight_name = None, None, None
 if weight_source == "Upload files":
-    up_w = st.sidebar.file_uploader("Weights (`<variant>_best.pt`)", type=["pt", "pth"])
+    up_w = st.sidebar.file_uploader("Weights (`final_model.pt`; 1st iteration: `<variant>_best.pt`)",
+                                    type=["pt", "pth"])
     up_c = st.sidebar.file_uploader("`model_card.json` from the same run", type=["json"])
     if up_w and up_c:
         weight_bytes, card_text, weight_name = up_w.getvalue(), up_c.getvalue().decode("utf-8"), up_w.name
@@ -137,7 +150,7 @@ else:
         st.sidebar.info("No run folder with model_card.json in `Weights/`. Upload files instead.")
     else:
         run = st.sidebar.selectbox("Run folder", runs, format_func=lambda p: p.name)
-        pts = sorted(run.glob("*.pt"))
+        pts = sorted(run.glob("*.pt"), key=lambda p: (p.name != "final_model.pt", p.name))
         if pts:
             pt = st.sidebar.selectbox("Weights file", pts, format_func=lambda p: p.name)
             weight_bytes, card_text, weight_name = pt.read_bytes(), (run / "model_card.json").read_text(), pt.name
@@ -149,9 +162,9 @@ if weight_bytes:
         card = json.loads(card_text)
         key = hashlib.sha1(weight_bytes).hexdigest() + hashlib.sha1(card_text.encode()).hexdigest()
         net, variant = get_model(key, weight_bytes, card_text, device.type)
-        st.sidebar.success(f"`{weight_name}` → **{variant['name']}** ({3 * variant['n_months']} monthly + "
-                           f"{int(variant['pca']) * 6 + int(variant['stats']) * 5 + int(variant['terrain']) * 3} "
-                           f"static channels) on {device.type.upper()}")
+        st.sidebar.success(f"`{weight_name}` → **{variant['name']}** (iteration {variant['iteration']}, "
+                           f"{3 * variant['n_months']} monthly + {variant['n_static']} static channels"
+                           f"{', 3-month smoothing' if variant['smoothing'] else ''}) on {device.type.upper()}")
         if variant["terrain"]:
             st.sidebar.warning("This variant also uses terrain (DEM, HAND): not Sentinel-1 only. "
                                "The brief's deliverable is a Sentinel-1-only model.")
@@ -176,18 +189,19 @@ if source == "Google Earth Engine":
     month = c2.selectbox("Start month", range(1, 13), format_func=lambda m: pipeline.MONTH_NAMES[m - 1])
     size = SIZES[st.sidebar.selectbox("Area", list(SIZES), index=1)]
 else:
-    sites = local_sites()
-    site = st.sidebar.selectbox("Site (Dataset/s1)", sites) if sites else None
+    local_dir = dataset_dir(variant["iteration"] if variant else 2)
+    sites = local_sites(variant["iteration"] if variant else 2)
+    site = st.sidebar.selectbox(f"Site ({local_dir.name}/s1)", sites) if sites else None
     if not sites:
-        st.sidebar.info("No tiles in `Dataset/s1/`.")
+        st.sidebar.info(f"No tiles in `{local_dir.name}/s1/`.")
     month = st.sidebar.selectbox("Start month (2021)", range(1, 13), format_func=lambda m: pipeline.MONTH_NAMES[m - 1])
 stride = OVERLAPS[st.sidebar.select_slider("Patch overlap", list(OVERLAPS), value="25 %")]
 run_clicked = st.sidebar.button("Run", type="primary", disabled=net is None)
 
 # ---------------------------------------------------------------- run
 st.title("Sentinel-1 land use / land cover: 12 monthly maps")
-st.caption("U-Net (ResNet-34) trained on Sentinel-1 monthly composites. Classes: "
-           "Built-up, Cropland, Trees, Shrub & grass, Bare, Water, Wetland, Snow & ice.")
+st.caption("U-Net (ResNet-34) trained on Sentinel-1 monthly composites."
+           + (f" Classes: {', '.join(card['class_names'])}." if card else ""))
 
 if run_clicked:
     try:
@@ -196,11 +210,12 @@ if run_clicked:
                 if not project:
                     st.error("Enter an Earth Engine project ID.")
                     st.stop()
-                data = gee_data(project, float(lat), float(lon), int(year), int(month), size, variant["terrain"])
+                data = gee_data(project, float(lat), float(lon), int(year), int(month), size, variant["terrain"],
+                                variant["iteration"])
             else:
                 if not site:
                     st.stop()
-                data = local_data(site, int(month))
+                data = local_data(site, int(month), variant["iteration"])
         if variant["terrain"] and data["terrain"] is None:
             st.error("This variant needs terrain, which is not available for this tile.")
             st.stop()
@@ -209,7 +224,8 @@ if run_clicked:
                                        data["terrain"], device, stride, progress=bar.progress)
         bar.empty()
         valid = (data["codes"][N_BEFORE:, 0] > 0).any(0)
-        st.session_state["result"] = dict(data=data, preds=preds, valid=valid, variant=variant["name"],
+        model_name = variant["name"] + (" (smoothed)" if variant["smoothing"] else "")
+        st.session_state["result"] = dict(data=data, preds=preds, valid=valid, variant=model_name,
                                           card=card, weights=weight_name)
     except Exception as err:
         st.error(f"Run failed: {err}")
@@ -269,7 +285,7 @@ with tab_share:
     st.dataframe(pct.round(2))
     fig, ax = plt.subplots(figsize=(12, 4.5))
     for name, color in zip(names, colors):
-        ax.plot(labels, pct[name], marker="o", color=color if color != "#f0f0f0" else "#9e9e9e", label=name)
+        ax.plot(labels, pct[name], marker="o", color=line_color(color), label=name)
     ax.set_ylabel("% of area")
     ax.tick_params(axis="x", rotation=45)
     ax.grid(alpha=0.3)
@@ -285,7 +301,7 @@ with tab_change:
     st.subheader(f"Total change {total.name} (percentage points)")
     st.dataframe(total.round(2).to_frame("pp"))
     fig, ax = plt.subplots(figsize=(10, 3.5))
-    ax.bar(names, total.values, color=["#9e9e9e" if c == "#f0f0f0" else c for c in colors], edgecolor="black")
+    ax.bar(names, total.values, color=[line_color(c) for c in colors], edgecolor="black")
     ax.axhline(0, color="black", lw=0.8)
     ax.set_ylabel("pp")
     ax.tick_params(axis="x", rotation=30)
@@ -327,8 +343,9 @@ with tab_check:
         plt.tight_layout(rect=(0, 0.06, 1, 1))
         st.pyplot(fig)
         plt.close(fig)
-        st.caption("The reference maps use their own class definitions (e.g. Esri 'rangeland' ≈ our Shrub & grass, "
-                   "'flooded vegetation' ≈ Wetland), so part of the disagreement is definitional.")
+        st.caption("The reference maps use their own class definitions (e.g. Esri 'rangeland' and 'flooded "
+                   "vegetation' are mapped to our grassland class, Esri 'built area' counts vegetation mixed with "
+                   "buildings as built), so part of the disagreement is definitional.")
 
 with tab_radar:
     k = st.select_slider("Month", options=list(range(12)), format_func=lambda i: labels[i])

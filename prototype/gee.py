@@ -1,17 +1,23 @@
 """Google Earth Engine retrieval for the prototype.
 
-The Sentinel-1 processing is identical to data_pipeline/download.py (the training data), only
-generalised from the fixed year 2021 to any (year, month):
-  IW scenes with VV and VH, both orbit directions; incidence angle 31-45 deg; monthly mean in
-  linear power; back to dB; 3x3 focal median; uint8 codes dB = code * 0.2 - 35 (0 = no data).
-Earth Engine's COPERNICUS/S1_GRD is already calibrated, terrain-corrected and in dB.
+The Sentinel-1 processing must match the training data of the model in use, generalised from the
+fixed year 2021 to any (year, month); uint8 codes dB = code * 0.2 - 35 (0 = no data):
+  2nd iteration: data_pipeline/sentinel1.py itself (terrain-flattened gamma0, layover / shadow masked,
+                 monthly mean, no spatial filter), so training and prototype cannot drift apart.
+  1st iteration: sigma0, incidence angle 31-45 deg, monthly mean in linear power, dB, 3x3 focal median
+                 (the 1st-iteration data_pipeline/download.py, commit 40e1280).
 """
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import ee
 import numpy as np
 from pyproj import Transformer
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "data_pipeline"))
+import sentinel1  # noqa: E402
 
 PIXEL_M = 10
 DB_MIN, DB_STEP, NODATA = -35.0, 0.2, 0
@@ -21,9 +27,14 @@ TERRAIN_BANDS = ["elevation_m", "slope_decideg", "hand_dm"]
 # Esri 10 m Annual LULC (Impact Observatory, Sentinel-2 based): independent of the training labels.
 ESRI_COLLECTION = "projects/sat-io/open-datasets/landcover/ESRI_Global-LULC_10m_TS"
 ESRI_YEARS = (2017, 2024)
-# Esri class -> our class id (1 Built-up, 2 Cropland, 3 Trees, 4 Shrub & grass, 5 Bare, 6 Water,
-# 7 Wetland, 8 Snow); clouds (10) and no data -> 0
-ESRI_TO_CLASS = {1: 6, 2: 3, 4: 7, 5: 2, 7: 1, 8: 5, 9: 8, 11: 4}
+# Esri classes: 1 water, 2 trees, 4 flooded vegetation, 5 crops, 7 built area, 8 bare ground, 9 snow/ice,
+# 10 clouds, 11 rangeland. Mapped to our class ids per iteration; clouds and no data -> 0.
+ESRI_TO_CLASS = {
+    # 1 Built-up, 2 Cropland, 3 Trees, 4 Shrub & grass, 5 Bare, 6 Water, 7 Wetland, 8 Snow
+    1: {1: 6, 2: 3, 4: 7, 5: 2, 7: 1, 8: 5, 9: 8, 11: 4},
+    # 1 Man-made, 2 Crop fields, 3 Trees, 4 Grassland, 5 Bare ground, 6 Water, 7 Snow & ice
+    2: {1: 6, 2: 3, 4: 4, 5: 2, 7: 1, 8: 5, 9: 7, 11: 4},
+}
 
 
 def initialize(project):
@@ -50,50 +61,47 @@ def mask_edges(img):
     return img.updateMask(angle.gt(31).And(angle.lt(45))).select(["VV", "VH"])
 
 
-def month_collection(region, year, month):
-    start = ee.Date.fromYMD(year, month, 1)
-    return (ee.ImageCollection("COPERNICUS/S1_GRD")
-            .filterBounds(region)
-            .filterDate(start, start.advance(1, "month"))
-            .filter(ee.Filter.eq("instrumentMode", "IW"))
-            .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV"))
-            .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VH")))
-
-
-def monthly_composite(region, year, month):
-    linear = month_collection(region, year, month).map(
+def monthly_composite_sigma0(region, year, month):
+    """1st-iteration composite: sigma0, monthly mean, 3x3 focal median."""
+    linear = sentinel1.month_collection(region, year, month).map(
         lambda img: ee.Image(10).pow(mask_edges(img).divide(10)))
     db = linear.mean().log10().multiply(10)
-    db = db.focalMedian(radius=1, kernelType="square", units="pixels")
-    return db.rename([f"VV_{year}_{month:02d}", f"VH_{year}_{month:02d}"])
+    return db.focalMedian(radius=1, kernelType="square", units="pixels")
 
 
-def s1_stack(region, months):
+def s1_stack(region, months, iteration):
     """uint8 code image for a list of (year, month), bands VV/VH per month in list order."""
-    stack = ee.Image.cat([monthly_composite(region, y, m) for y, m in months])
+    if iteration >= 2:
+        slope, aspect = sentinel1.slope_aspect(region)
+        composites = [sentinel1.monthly_composite(region, y, m, slope, aspect) for y, m in months]
+    else:
+        composites = [monthly_composite_sigma0(region, y, m) for y, m in months]
+    stack = ee.Image.cat([c.rename([f"VV_{y}_{m:02d}", f"VH_{y}_{m:02d}"])
+                          for c, (y, m) in zip(composites, months)])
     codes = stack.subtract(DB_MIN).divide(DB_STEP).round().clamp(1, 255)
     bands = [f"{pol}_{y}_{m:02d}" for y, m in months for pol in ("VV", "VH")]
     return codes.unmask(NODATA).toUint8(), bands
 
 
 def scene_counts(region, months):
-    counts = ee.Dictionary({f"{y}-{m:02d}": month_collection(region, y, m).size() for y, m in months}).getInfo()
+    counts = ee.Dictionary({f"{y}-{m:02d}": sentinel1.month_collection(region, y, m).size()
+                            for y, m in months}).getInfo()
     return [counts[f"{y}-{m:02d}"] for y, m in months]
 
 
 def terrain_image(region):
-    dems = ee.ImageCollection("COPERNICUS/DEM/GLO30_2024_1").filterBounds(region).select("DEM")
-    dem = dems.mosaic().setDefaultProjection(dems.first().projection())
+    dem = sentinel1.dem_image(region)
     slope = ee.Terrain.slope(dem).multiply(10)
     hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd").multiply(10)
     stack = ee.Image.cat([dem, slope, hand]).resample("bilinear")
     return stack.round().clamp(-32767, 32767).rename(TERRAIN_BANDS).unmask(0).toInt16()
 
 
-def esri_image(year):
+def esri_image(year, iteration):
     year = min(max(year, ESRI_YEARS[0]), ESRI_YEARS[1])
     lulc = ee.ImageCollection(ESRI_COLLECTION).filterDate(f"{year}-01-01", f"{year + 1}-01-01").mosaic()
-    return lulc.remap(list(ESRI_TO_CLASS), list(ESRI_TO_CLASS.values()), 0).rename("esri").unmask(0).toUint8(), year
+    mapping = ESRI_TO_CLASS[min(iteration, 2)]
+    return lulc.remap(list(mapping), list(mapping.values()), 0).rename("esri").unmask(0).toUint8(), year
 
 
 def fetch(image, bands, epsg, x0, y_top, n, dtype, fill):

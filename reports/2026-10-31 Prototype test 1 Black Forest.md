@@ -263,5 +263,5 @@ Built, not yet run: the dataset scripts (`data_pipeline/`, Datalab steps in `dat
 
 1. Build `Dataset_2nd_iteration/` on Datalab, then `make_patches.py` and `preview.py`. Check steep tiles in the previews and `skipped_sites.json`.
 2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, per-class precision and recall, and the Man-made IoU on the 4 test cities (below about 0.85: add more city-edge sites).
-3. Update the prototype for the 2nd iteration: gamma0 composites without median in `prototype/gee.py`; the new model card (9 statistics, 0/1/3 months, 7 classes, smoothing) in `prototype/pipeline.py`.
+3. Prototype updated for the 2nd iteration (done): the radar processing now comes from the shared `data_pipeline/sentinel1.py`, so the prototype's input is the training input (verified: 0 difference at `black_forest_villages`); model card driven variants, 9 statistics, 7 classes, 3-month smoothing. 1st-iteration weights still work.
 4. Repeat this Black Forest test with the new model and compare.

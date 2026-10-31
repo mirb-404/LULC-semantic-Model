@@ -457,12 +457,17 @@ Correction: earlier in the session the urban share was quoted as "66 % of sites,
   - `download.py`: flattening, no median, mosaic check, months without scenes skipped, `--workers`, `--terrain` (optional), auth hint, `skipped_sites.json`, GeoTIFF tag `preprocessing`.
   - `make_patches.py`: filters on WorldCover, `MIN_VALID` 0.95, summary column `agree_pct`. `preview.py`: WorldCover label.
   - New `data_pipeline/README.md`: changes table and Datalab steps.
-- `prototype/` docstrings now point to `Notebooks/1st_iteration.ipynb`. The prototype itself is still 1st-iteration (sigma0 input, 8 classes, old model card).
+- **Prototype updated for the 2nd iteration, 1st-iteration weights still work** (switch: `"iteration": 2` in `model_card.json`):
+  - New `data_pipeline/sentinel1.py`: the Sentinel-1 processing (month collection, GLO-30 slope/aspect, flattening, monthly composite), imported by both `download.py` and `prototype/gee.py`, so training and prototype cannot drift apart. `download.py` refactor verified: identical Earth Engine graph, 0 code difference.
+  - `gee.py`: `s1_stack(region, months, iteration)` (2: sentinel1.py; 1: sigma0 + 3×3 median), `ESRI_TO_CLASS` per iteration (2: rangeland and flooded vegetation → Grassland, snow → 7).
+  - `pipeline.py`: 2nd-iteration variant from the card (`n_months`, `static_channels`, class count checked against the weights), 9 seasonal statistics, `predict_probs` + 3-month smoothing (first / last month: one neighbour; the notebook's test wrapped the year).
+  - `app.py`: `final_model.pt` listed first, local tiles from `Dataset_2nd_iteration/` (WorldCover band as reference), class names from the card, light colours drawn grey in charts.
+  - Proof: stub test (no torch locally): statistics identical to the notebook, input channels 9/12/18 for n_months 0/1/3, smoothing runs; live Earth Engine at `black_forest_villages` 2021: prototype stack vs `download.py` 0 code difference (iteration 2) and vs commit `40e1280` 0 difference (iteration 1). Not yet run end to end with real weights.
 - `.gitignore`: `Dataset_2nd_iteration/`.
 
 ### 14.5 Next steps
 
 1. Datalab: build the dataset (`data_pipeline/README.md`), then `make_patches.py` and `preview.py`; check steep tiles and `skipped_sites.json`.
 2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, precision / recall per class, Man-made IoU on the 4 test cities (below about 0.85: add city-edge sites).
-3. Update the prototype: gamma0 composites without median in `gee.py`; new model card (9 statistics, 0/1/3 months, 7 classes, smoothing) in `pipeline.py`.
+3. Prototype: done (14.4); run it with the first `final_model.pt` + `model_card.json`.
 4. Repeat the Black Forest test with the new model.
