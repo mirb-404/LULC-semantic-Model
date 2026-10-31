@@ -100,7 +100,7 @@ lat/lon, start month
    ▼  gee.py: Earth Engine, same processing as the training data (data_pipeline/download.py)
 Sentinel-1 GRD (IW, VV+VH) ─► per month: incidence 31-45°, mean in linear power, dB, 3x3 median
    │                          uint8 codes (dB = code x 0.2 - 35); 14 months = 2 before the start + 12
-   ▼  pipeline.py: features as in Prototype.ipynb
+   ▼  pipeline.py: features as in Notebooks/1st_iteration.ipynb
 monthly channels: VV, VH, VV-VH of the target month and the 2 months before it, standardised
 static channels (if the variant uses them), from the 12 analysis months:
    PCA (6), seasonal statistics (5), terrain (3, only for the terrain ablation)

@@ -1,6 +1,6 @@
 """Model loading, input features, sliding-window inference and change statistics.
 
-The features reproduce Prototype.ipynb exactly (sections 4, 5 and 5b), using the normalisation
+The features reproduce Notebooks/1st_iteration.ipynb exactly (sections 4, 5 and 5b), using the normalisation
 stored in the run's model_card.json:
   monthly: VV, VH, VV-VH in dB per month (oldest first), standardised, missing -> 0
   PCA:     pca_weights @ (36 standardised values Jan..Dec - pca_mean)
@@ -41,7 +41,7 @@ def load_model(weight_bytes, card, device):
         state = state["state_dict"]
     state = {k.removeprefix("module."): v for k, v in state.items() if k != "n_averaged"}
     if "stem.0.weight" not in state:
-        raise ValueError("not a UNetResNet34 state dict from Prototype.ipynb (no 'stem.0.weight')")
+        raise ValueError("not a UNetResNet34 state dict from Notebooks/1st_iteration.ipynb (no 'stem.0.weight')")
     in_ch = state["stem.0.weight"].shape[1]
     if in_ch not in VARIANTS:
         raise ValueError(f"unknown input channel count {in_ch}; expected one of {sorted(VARIANTS)}")

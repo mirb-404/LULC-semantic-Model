@@ -2,15 +2,16 @@
 
 Patches are stored as an index into the site GeoTIFFs (no pixel copies), keeping the
 dataset compact; the training loader cuts each patch with a windowed read.
-A patch is kept when at most 60% of its pixels are unlabelled and every month has
-valid S1 data for >= 99% of its pixels. Each patch carries all 12 monthly composites,
+A patch is kept when at most 60% of its pixels are unlabelled in config.TRAIN_LABEL_BAND (WorldCover in
+the 2nd iteration) and every month has valid S1 data for >= 95% of its pixels (terrain flattening masks
+layover and shadow, so steep tiles lose a few pixels). Each patch carries all 12 monthly composites,
 so the training loader can sample any month against the same 2021 label.
 
 Outputs in Dataset/patches/:
   <split>_patches.csv       index, site, region, focus, row, col (pixel offsets in the site tile)
   norm_stats.json           per-band mean/std in dB from train patches
   class_distribution.json   pixel counts and shares per split
-  site_summary.csv          per site: split, focus, kept patches, share of pixels kept as labels, class shares
+  site_summary.csv          per site: split, focus, kept patches, share of pixels where WorldCover and Dynamic World agree, class shares
 """
 import csv
 import json
@@ -22,7 +23,7 @@ import config
 
 P = config.PATCH
 MAX_IGNORE = 0.6
-MIN_VALID = 0.99
+MIN_VALID = 0.95
 SPLITS = ("train", "val", "test")
 
 
@@ -30,7 +31,7 @@ def load_site(name):
     with rasterio.open(config.S1_DIR / f"{name}.tif") as src:
         x = src.read().reshape(12, 2, src.height, src.width)
     with rasterio.open(config.LABEL_DIR / f"{name}.tif") as src:
-        y = src.read(1)
+        y = src.read(config.LABEL_BANDS.index(config.TRAIN_LABEL_BAND) + 1)
     return x, y
 
 
@@ -88,7 +89,7 @@ def main():
         kept_pct = json.loads((config.LABEL_DIR / f"{name}_stats.json").read_text())["kept_pct"]
         labelled = max(site_counts[1:].sum(), 1)
         summary.append({"site": name, "split": split, "region": site["region"], "focus": site["focus"],
-                        "patches": len(origins), "label_kept_pct": kept_pct,
+                        "patches": len(origins), "agree_pct": kept_pct,
                         **{class_names[k]: round(site_counts[k] / labelled * 100, 1) for k in range(1, n_classes)}})
         print(f"{split}/{name}: {len(origins)} patches")
 

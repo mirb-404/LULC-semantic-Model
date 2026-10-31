@@ -1,4 +1,4 @@
-"""U-Net with a ResNet-34 encoder. Same architecture as Prototype.ipynb section 7, so the saved
+"""U-Net with a ResNet-34 encoder. Same architecture as Notebooks/1st_iteration.ipynb section 7, so the saved
 state dicts (`<variant>_best.pt`) load without changes. Dropout is inactive at inference."""
 import torch
 import torch.nn as nn

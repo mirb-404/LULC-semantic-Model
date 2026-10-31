@@ -46,7 +46,7 @@ def main():
         labels = None
         if label_path.exists():
             with rasterio.open(label_path) as src:
-                labels = src.read(1)
+                labels = src.read(config.LABEL_BANDS.index(config.TRAIN_LABEL_BAND) + 1)
 
         fig, axes = plt.subplots(1, 3, figsize=(18, 6.5))
         axes[0].imshow(false_colour(s1, 1))
@@ -55,7 +55,7 @@ def main():
         axes[1].set_title(f"{name} S1 July {config.YEAR}")
         if labels is not None:
             axes[2].imshow(labels, cmap=cmap, vmin=0, vmax=len(config.CLASSES) - 1, interpolation="nearest")
-        axes[2].set_title(f"Training labels {config.YEAR} (WorldCover + Dynamic World consensus)")
+        axes[2].set_title(f"Training labels {config.YEAR} ({config.TRAIN_LABEL_BAND})")
         for ax in axes:
             ax.axis("off")
         fig.legend(handles=[Patch(color=c, label=n) for n, c in config.CLASSES.values()],

@@ -1,6 +1,6 @@
 # Session Context
 
-This is a handover note for the next working session: what has been done, where things stand, and what comes next. Last updated: 2026-10-24.
+This is a handover note for the next working session: what has been done, where things stand, and what comes next. Last updated: 2026-10-31.
 
 ## 1. Project goal
 
@@ -377,3 +377,92 @@ All beat the baseline (test mIoU 0.559).
 1. Seed run: `three_month_stats` and `three_month_pca_stats`, 3 seeds each (about 35 min). Choose by mean val mIoU. If they tie, deliver `three_month_stats` (WorldCover-style, order-independent, 14 channels, no PCA weights in the prototype). Not set up in the notebook yet.
 2. `VAL_EVERY = 1` (validation now about 3-4 s).
 3. Log the chosen model in `model_card.json`, then build the prototype, write the report, add the dataset link and complete `requirements.txt`.
+
+## 13. Update 2026-10-27: Streamlit prototype, first live test
+
+Details: `reports/2026-10-27 Prototype 1.md` (test results, Datalab setup fixes, improvement research).
+
+### 13.1 Prototype
+
+- Folder `prototype/`: `app.py` (Streamlit), `pipeline.py` (features, inference, statistics), `gee.py` (Earth Engine), `model.py`, `launch.py`, `README.md`, `requirements.txt`, `.streamlit/config.toml`.
+- Weights by upload (`.pt` + the same run's `model_card.json`) or from `Weights/<run>/` on the server. The variant is detected from the first layer's channel count.
+- `launch.py` runs the app on Datalab: JupyterHub proxy link if available, else a Cloudflare quick tunnel with a random `?key=` access key. On Datalab the Cloudflare tunnel worked.
+- The Earth Engine project ID is never sent to the browser (blank field = `EE_PROJECT` / `.env` on the server).
+
+### 13.2 Datalab Earth Engine setup (what worked)
+
+- `uv venv` in `prototype/`, no `sudo`. `uv add gcloud` was a mistake (unrelated PyPI package; touched `pyproject.toml` / `uv.lock`, revert them).
+- `earthengine authenticate --auth_mode=notebook`, on the login page a project that can host the login client, and **without** "read-only scopes" (read-only tokens fail on refresh with `invalid_scope`).
+- The Datalab-provided Cloud project has no Earth Engine API / registration and the user cannot register it. Use the user's own registered project via `export EE_PROJECT=...`.
+
+### 13.3 Test results (Test_6 `three_month_stats`, 2021, 5.12 km)
+
+| Site | Agreement with Esri 2021 | Note |
+|---|---|---|
+| Central Berlin (52.52, 13.405) | 96.2 % | Esri is 97.1 % built-up: majority baseline is higher, test is uninformative. Parks, Spree correct. Water recall 59.5 % (thin river) |
+| Potsdam (52.42, 13.03) | 77.9 % | Shapes match (lakes, fields, forest). Model 39.4 % Trees vs Esri 22.8 %, Built-up 32.6 % vs 48.0 %: tree-rich suburbs |
+
+- The Trees vs Built-up disagreement is mostly definitional: Esri counts vegetation mixed with buildings as built area, WorldCover (our label source) counts urban trees as trees.
+- Report agreement per class and against the majority-class baseline; use mixed areas for the sanity check and the screen recording.
+
+### 13.4 Next steps (prototype)
+
+1. Fairer sanity check: majority baseline, per-class F1, kappa, harmonised Built-up/Trees agreement.
+2. Temporal smoothing (3-month softmax average or HMM), show raw vs smoothed change.
+3. Flip test-time augmentation (2-4 × inference time).
+4. Confidence map.
+5. Sanity check on 5-6 mixed sites for the report. Retraining ideas (VV/VH texture channels, peri-urban sites) are future work.
+
+## 14. Update 2026-10-31: Black Forest failure → 2nd iteration (rural objective)
+
+Full story with evidence: `reports/2026-10-31 Prototype test 1 Black Forest.md` (sections 1-5 the failure, section 6 the decisions incl. 6.9 one final model, section 7 the training philosophy: variant names, months, PCA, terrain; section 8 the status).
+
+### 14.1 What happened
+
+- The user ran the prototype (Test_6 `three_month_stats`, the 1st-iteration best model, test mIoU 0.742) on a Black Forest clearing: forest with meadows, no water, no buildings.
+- The 12 monthly maps were wrong in a **seasonal** way: water, wetland and cropland in Jan-May and Dec, almost none in Jun-Nov, plus red built-up spots and rounded blob shapes. The PCA variant was more stable (yearly information outweighs the month).
+- The user set the **product goal: rural land worldwide**. Cities are already well mapped, so the tool adds little there. Pixel-perfect maps are not possible (Sentinel-1 real resolution about 20 × 22 m; labels 65-75 % correct); the goal is the right classes, clean shapes at 20-30 m and no seasonal flicker.
+- The test point is near the 1st-iteration training tile `black_forest` (48.2 N, 8.2 E), so the model failed on a landscape it had seen.
+
+### 14.2 Causes found
+
+| Cause | Evidence |
+|---|---|
+| no radiometric terrain correction (sigma0): hillsides look like buildings (facing the sensor) or water (facing away) | live check, July 2021 single scenes: VV correlated 0.74-0.82 with the slope towards the sensor (nepal_midhills, andes_sacred_valley, black_forest) |
+| consensus labels ignored disagreement pixels, which are mostly boundaries, so edges were never trained | blob shapes; the 3 × 3 median filter blurred edges further |
+| 3-month window without enough yearly context: a dark winter month (snow, frozen or wet soil) flips forest to water | seasonal error pattern; PCA (yearly) variant stable |
+| city-heavy data: 79 of 176 sites urban (45 %), built-up the largest class (30.8 % of train, 54.2 % of test pixels) | test mIoU dominated by built-up (IoU 0.94-0.96), says little about rural land |
+| Wetland & mangrove: worst labels (WorldCover herbaceous wetland 30-45 % correct) | wetland was a main winter false alarm |
+
+Correction: earlier in the session the urban share was quoted as "66 % of sites, built-up 46.9 %"; those numbers belong to the old 116-site dataset. Fixed in the report, the notebook and the README.
+
+### 14.3 Decisions (all implemented, not yet run)
+
+1. **Rural objective**: model built, chosen and tested for rural land; cities only as towns, city edges and for the brief's urban screen recording.
+2. **Terrain flattening**: gamma0, Vollrath et al. 2020 volume model on GLO-30, layover / shadow masked; 3 × 3 median dropped. Verified live: correlation with slope 0.74-0.82 → -0.14-0.05, VV spatial std -30-40 %, 97-99.8 % valid pixels.
+3. **Sites (178)**: 54 mixed rural mosaics (41 train / 7 val / 6 test; 5 with lakes or rivers), 92 single-class rural sites (5 training glacier sites dropped), 32 towns and city edges (20 kept cities + Kampala, Port-au-Prince + 10 new city edges with Man-made 30-51 %). Mosaic rule: largest WorldCover class ≤ 80 %, second ≥ 10 % (the first rule, "≥ 3 classes with 5 %", rejected the Black Forest: WorldCover maps pasture as grassland). All new sites checked live; 14 mosaics moved by 0.15°. Test includes `black_forest_villages` (47.95 N, 8.10 E). Freiburg rejected as a city edge (19 km from that test site).
+4. **7 classes** (the user chose names and colours): 1 Man-made `#e31a1c`, 2 Crop fields `#ffd92f`, 3 Trees `#1a9850`, 4 Grassland `#a6d96a`, 5 Bare ground `#bf812d`, 6 Water `#2c7fb8`, 7 Snow & ice `#dfe9f0` (light blue-grey, not white). Wetland removed: WorldCover 95 mangroves → Trees, 90 herbaceous wetland → Grassland, Dynamic World flooded vegetation → Grassland. Strict agreement rule, `SNOW = 7`. "Built-up" is not only buildings (roads, paved surfaces), hence "Man-made" and not "bldg". Crop fields vs Grassland and Trees vs Grassland stay separate on purpose.
+5. **Class balance**: realistic shares, mild correction (sqrt class weights, class-aware sampler, Lovász). Estimated train shares (7 classes, before the city-edge / water / glacier changes): Trees 32.8, Grassland 24.5, Crop fields 14.4, Bare 10.2, Snow 7.5, Man-made 6.2, Water 4.5 % (about 7:1). Equal shares rejected: the model would over-predict rare classes. No extra tree data (Trees already largest). Per-class precision added to watch over-prediction.
+6. **Labels**: WorldCover on every pixel; agreement pixels loss weight 1, disagreement 0.5 (`DISAGREE_WEIGHT`); Lovász and main scores on agreement pixels, second score on all pixels.
+7. **Input**: 9 order-independent seasonal statistics in every variant; variants `year_stats` (stats only), `month_year` (1 month + stats), `three_month_year` (3 months + stats); `MONTH_DROP` 0.3; no PCA, no terrain channels.
+8. **Evaluation**: main score rural test mIoU; all 12 months per test patch, raw vs 3-month smoothed softmax; **flicker** (month-to-month class changes); row- and column-normalised confusion (recall, precision); 12-month maps of every mosaic test site. `BEST` = best val mIoU among monthly variants. mIoU is not comparable with the 1st iteration (7 classes, new test set).
+
+### 14.4 Repository changes (not committed)
+
+- `Prototype.ipynb` → `Notebooks/1st_iteration.ipynb` (git mv, unchanged). **The Kaggle GitHub sync pointed at `Prototype.ipynb`**: relink on Kaggle if it is still used. Run from `Notebooks/`, the 1st-iteration notebook writes to `Notebooks/Weights/` (ignored by git).
+- New `Notebooks/2nd_iteration.ipynb` (41 cells, pyflakes-clean, not run). Generated from a script in the session scratchpad; edit the notebook directly from now on. Finds `Dataset_2nd_iteration/` by the `gamma0` tag in the S1 GeoTIFFs; writes `Weights/<RUN_NAME>/` at the repo root (`RUN_NAME = "Iter2_Test_1"`). Label code: 0-6 class (agreement), 7-13 class + 7 (WorldCover only), -1 no label.
+  - **One final weight** (user request): each run folder holds `final_model.pt` (the model to use, copy of `BEST`) + `model_card.json`; variant checkpoints and histories go to `variants/`. `DEV = True` (default) trains all 3 variants for 15 epochs only to choose; `DEV = False` trains only `FINAL_VARIANT` (default `month_year`). The report's variant comparison comes from the DEV run and the 1st-iteration ablation (Test_6).
+- `data_pipeline/` builds `Dataset_2nd_iteration/` (env `LULC_DATASET` overrides; the 1st-iteration scripts are at commit `40e1280`):
+  - `config.py`: `MOSAIC_SITES`, `is_mosaic`, `URBAN_KEPT`, `CITY_EDGE_SITES`, `DROPPED_SITES`, 7 `CLASSES`, new WorldCover / Dynamic World mapping, strict `consensus_labels`, `TRAIN_LABEL_BAND = "worldcover"`.
+  - `download.py`: flattening, no median, mosaic check, months without scenes skipped, `--workers`, `--terrain` (optional), auth hint, `skipped_sites.json`, GeoTIFF tag `preprocessing`.
+  - `make_patches.py`: filters on WorldCover, `MIN_VALID` 0.95, summary column `agree_pct`. `preview.py`: WorldCover label.
+  - New `data_pipeline/README.md`: changes table and Datalab steps.
+- `prototype/` docstrings now point to `Notebooks/1st_iteration.ipynb`. The prototype itself is still 1st-iteration (sigma0 input, 8 classes, old model card).
+- `.gitignore`: `Dataset_2nd_iteration/`.
+
+### 14.5 Next steps
+
+1. Datalab: build the dataset (`data_pipeline/README.md`), then `make_patches.py` and `preview.py`; check steep tiles and `skipped_sites.json`.
+2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, precision / recall per class, Man-made IoU on the 4 test cities (below about 0.85: add city-edge sites).
+3. Update the prototype: gamma0 composites without median in `gee.py`; new model card (9 statistics, 0/1/3 months, 7 classes, smoothing) in `pipeline.py`.
+4. Repeat the Black Forest test with the new model.

@@ -1,1 +1,4 @@
 optimizer/ activation for percentage
+compare my output with google earth engine model
+fix the classes too many classes
+remove pca entirely
