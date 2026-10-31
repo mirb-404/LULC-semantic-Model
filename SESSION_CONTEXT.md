@@ -483,6 +483,67 @@ Full write-up: report section 9.
 ### 14.5 Next steps
 
 1. Done: dataset built on Datalab (14.6). Still to do: print and review the class distribution (`patches/class_distribution.json`), look at the previews of steep tiles and `black_forest_villages`.
-2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, precision / recall per class, Man-made IoU on the 4 test cities (below about 0.85: add city-edge sites).
+2. Done (section 15): run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, precision / recall per class, Man-made IoU on the 4 test cities (below about 0.85: add city-edge sites).
 3. Prototype: done (14.4); run it with the first `final_model.pt` + `model_card.json`.
-4. Repeat the Black Forest test with the new model.
+4. Repeat the Black Forest test with the new model. Continued in section 15.6.
+
+## 15. Update 2026-10-31: first 2nd-iteration training runs
+
+Details: `reports/2026-10-31 Prototype test 1 Black Forest.md`, section 10 (DEV run 1) and section 11 (repeat DEV run, full run, comparison with the 1st iteration).
+
+### 15.1 Runs (all on Datalab, RTX A6000, bf16, batch 64, data on the GPU)
+
+| Run folder | Mode | Variants | Result |
+|---|---|---|---|
+| `Weights/Iter2_Test_1` | DEV, 15 epochs | all 3 | `month_year` best val 0.741, rural test 0.639 |
+| `Weights/Iter2_Test_1_20261031_144820` | DEV, 15 epochs (repeated by accident, `RUN_NAME` unchanged) | all 3 | `month_year` best val 0.723, rural test 0.624 |
+| `Weights/Iter2_Test_1_Full` | FINAL, up to 40 epochs | `month_year` | **best val 0.732, rural test 0.679: the current `final_model.pt`** |
+
+- Data as trained: train 2218 patches / 139 sites (114 rural), val 335 / 21 (18), test 265 / 17 (13). Class shares (train): Man-made 9.1 %, Crop fields 16.0, Trees 33.9, Grassland 25.5, Bare ground 7.4, Water 5.4, Snow & ice 2.8. 73.6 % of labelled train pixels are agreement pixels (Grassland only 55 %).
+- About 6 s per epoch, 10 s with validation (every 2nd epoch; the `nan` val values on odd epochs are not an error). Per epoch the speed equals Test_6; the runs are short because DEV has 15 epochs and the final run trains only one variant.
+- A run once seemed stuck in 9.2 for 20+ min with no output: the kernel or the browser connection had failed, not the code (the rerun took 3-14 s per test pass). Kernel restart and Run All fixed it.
+
+### 15.2 Notebook change
+
+- `Notebooks/2nd_iteration.ipynb`, 9.2 and 9.4: progress lines per test pass and per region / site type, with mIoU and seconds (the 9.4 seconds are cumulative). Committed by the user (`1a708dd`).
+
+### 15.3 Noise between identical runs
+
+| Variant | Val mIoU, run 1 → run 2 | Rural test mIoU, run 1 → run 2 |
+|---|---|---|
+| `year_stats` | 0.714 → 0.717 | 0.646 → 0.643 |
+| `month_year` | 0.741 → 0.723 | 0.639 → 0.624 |
+| `three_month_year` | 0.714 → 0.715 | 0.639 → 0.643 |
+
+- Up to 0.02 mIoU between identical runs, as large as the gaps between variants: one 15-epoch run cannot rank them.
+- `month_year` kept (best val in both runs). `year_stats` gives the same map in all 12 months (flicker 0 by construction), so it cannot show monthly change. `three_month_year` is the steadiest alternative if `month_year` disappoints.
+
+### 15.4 Full run `Iter2_Test_1_Full`
+
+- Best epoch 22, early stop at 32, 4.7 min. Train-val gap 0.122. Val loss lowest at epoch 22 (0.530), then slowly rising (mild overfitting, handled by early stopping).
+- Test, 12-month evaluation: OA 0.872, mIoU 0.750 (all sites); **rural mIoU 0.679** (smoothed 0.680; all WorldCover pixels 0.597); flicker 2.4 % → 0.9 % smoothed. `temporal_smoothing` on in the model card.
+- Rural IoU per class: Man-made 0.747, Crop fields 0.656, Trees 0.833, Grassland 0.682, Bare ground 0.894, Water 0.492, Snow & ice 0.449.
+- By region: Asia 0.656, Europe 0.654, S. America 0.584, N. America 0.569 (flicker 4.7 %), Africa 0.492, Oceania 0.441. Wetland sites flicker 10.1 % (3.6 % smoothed).
+- Monthly maps: `black_forest_villages` correct and stable in all 12 months (the section 14.1 failure is gone); `willamette_foothills` stable despite strong seasonal radar change, some crop fields mapped as grassland, a few water specks in August.
+
+### 15.5 Comparison with the 1st iteration (Test_6)
+
+| | 1st iteration | 2nd iteration |
+|---|---|---|
+| Test mIoU, all sites | 0.742 (`three_month_stats`) / 0.617 (selected `three_month_pca_stats`) | 0.750 |
+| Built-up / Man-made share of test pixels | 54.2 % | 15.2 % |
+| Rural test mIoU | not measured | 0.679 |
+| Flicker | not measured | 2.4 % → 0.9 % |
+| Train-val gap | 0.18-0.21 | 0.12 |
+| Black Forest monthly maps | wrong in winter | correct all year |
+| Final training | 5 variants, 27 min | 1 variant, 4.7 min |
+
+- Not a like-for-like comparison (different test set, classes, labels). The 1st-iteration score was lifted by easy Built-up pixels; the 2nd iteration reaches a similar mIoU on a much more rural test set.
+- What made the difference: PCA dropped (calendar-bound, and val could not separate it, so the weakest variant was picked); terrain flattening (gamma0) instead of terrain channels; the whole year in every variant; rural sites (Built-up 30.8 % → 9.1 % of train); labels on all pixels and no median filter; wetland removed; one final model; 12-month evaluation with flicker.
+- Still weak: Water (0.49; dark forest / radar shadow, only the forbidden terrain channels fixed it in Test_6, 0.868), Snow & ice (0.45; the 1st-iteration PCA variant had 0.813), Crop fields vs Grassland, wetland flicker. The full run is a single seed (about ±0.02).
+
+### 15.6 Next steps
+
+1. Prototype: load `Weights/Iter2_Test_1_Full/final_model.pt` with its `model_card.json`; repeat the Black Forest test at the original clearing with the Esri check, plus 3-4 other rural mosaics.
+2. Report: Black Forest before / after images, the comparison table (15.5), the noise result (15.3).
+3. Later: rewrite the logs into human report prose.

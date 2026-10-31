@@ -1,6 +1,6 @@
 # 2026-10-31 Prototype test 1: Black Forest
 
-Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), section 8 the status before the build, and section 9 the dataset build on Datalab with the questions answered about the data (sources and exam compliance, previews, patches, roads, manual labels). Section 10 records the first 2nd-iteration training run (`Iter2_Test_1`) and its results.
+Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), section 8 the status before the build, and section 9 the dataset build on Datalab with the questions answered about the data (sources and exam compliance, previews, patches, roads, manual labels). Section 10 records the first 2nd-iteration training run (`Iter2_Test_1`) and its results; section 11 the repeat DEV run (noise), the full run (`Iter2_Test_1_Full`) and the comparison with the 1st iteration.
 
 Previous reports in this story: `reports/Test run 6 results.md` (the 1st-iteration model), `reports/2026-10-27 Prototype 1.md` (first prototype tests in Berlin and Potsdam).
 
@@ -443,3 +443,107 @@ These are physical limits of C-band radar and of the labels, not pipeline errors
 1. Final run: `DEV = False`, `FINAL_VARIANT = "month_year"`, `RUN_NAME = "Iter2_Final"` (up to 40 epochs).
 2. Prototype: load `Weights/Iter2_Final/final_model.pt` with its model card; repeat the Black Forest test (section 1) away from the training tile, with the Esri sanity check, and on 3-4 other rural mosaics.
 3. Use the Black Forest before/after images and the tables of 10.3 in the report.
+
+## 11. Repeat DEV run and the full run (2026-10-31)
+
+### 11.1 Repeat DEV run: how large is the noise?
+
+After a stuck kernel, the DEV run was repeated by accident with identical code, data and seed (`Iter2_Test_1_20261031_144820`). The notebook ran end to end; the new progress lines in 9.2 and 9.4 worked and the 12-month test took 3-14 s per pass (the earlier hang was the kernel or the browser connection, not the code).
+
+| Variant | Val mIoU, run 1 → run 2 | Rural test mIoU, run 1 → run 2 | Flicker %, run 1 → run 2 |
+|---|---|---|---|
+| `year_stats` | 0.714 → 0.717 | 0.646 → 0.643 | 0 → 0 |
+| `month_year` | 0.741 → 0.723 | 0.639 → 0.624 | 3.0 → 2.7 |
+| `three_month_year` | 0.714 → 0.715 | 0.639 → 0.643 | 2.5 → 2.5 |
+
+- Identical runs differ by up to 0.02 mIoU (GPU non-determinism, random sampling and augmentation). This is as large as the differences between the variants, so one 15-epoch run cannot rank them. This repeats the 1st-iteration finding (differences below about 0.05 test mIoU are noise).
+- `month_year` varies the most (in run 2 its val score peaked at epoch 10 and fell to 0.709 by epoch 15); `three_month_year` was the steadiest. `month_year` had the best val mIoU in both runs and was kept as `FINAL_VARIANT`.
+
+### 11.2 Full run: `Iter2_Test_1_Full`
+
+Settings: `DEV = False`, `FINAL_VARIANT = "month_year"`, up to 40 epochs, patience 10. Outputs in `Weights/Iter2_Test_1_Full/` (`final_model.pt`, `model_card.json`, `test_metrics.json`, plots; archive `Iter2_Test_1_Full.zip`).
+
+**Training**
+- Best val mIoU **0.732** at epoch 22; early stop at epoch 32 (no improvement for 10 epochs); 4.7 minutes.
+- Train-val mIoU gap at the best epoch 0.122 (1st iteration 0.18-0.21).
+- Val loss falls to 0.530 at epoch 22 and rises slowly to 0.568 by epoch 32 while the train loss keeps falling: mild overfitting after epoch 22. Early stopping and the saved best epoch handle it.
+
+**Test (12-month evaluation)**
+
+| Score | DEV run 1 (15 epochs) | DEV run 2 (15 epochs) | **Full run** |
+|---|---|---|---|
+| Val mIoU | 0.741 | 0.723 | 0.732 |
+| Test OA, all sites | 0.861 | 0.835 | **0.872** |
+| Test mIoU, all sites | 0.714 | 0.699 | **0.750** |
+| **Rural test mIoU** (main score) | 0.639 | 0.624 | **0.679** |
+| Rural mIoU, smoothed | 0.641 | 0.625 | **0.680** |
+| Rural mIoU, all WorldCover pixels | 0.534 | 0.528 | **0.597** |
+| Flicker % (raw → smoothed) | 3.0 → 1.2 | 2.7 → 1.1 | **2.4 → 0.9** |
+
+The longer schedule added about 0.04-0.055 rural test mIoU over the two DEV runs: more than the noise level, so it is a real gain. The cosine schedule over 40 epochs keeps the learning rate higher for longer than the 15-epoch schedule did.
+
+Per class, rural test sites (agreement pixels):
+
+| Class | IoU | Precision | Recall | DEV run 1 IoU |
+|---|---|---|---|---|
+| Man-made | 0.747 | 0.823 | 0.891 | 0.721 |
+| Crop fields | 0.656 | 0.808 | 0.776 | 0.660 |
+| Trees | 0.833 | 0.917 | 0.901 | 0.824 |
+| Grassland | 0.682 | 0.793 | 0.829 | 0.652 |
+| Bare ground | 0.894 | 0.965 | 0.923 | 0.826 |
+| Water | 0.492 | 0.592 | 0.744 | 0.471 |
+| Snow & ice | 0.449 | 0.602 | 0.639 | 0.322 |
+
+Every class except crop fields (unchanged) improved; snow & ice gained the most (+0.13), and bare ground +0.07.
+
+By region (all test patches): Asia 0.656, Europe 0.654 (OA 0.960), South America 0.584, North America 0.569 (highest flicker, 4.7 % → 1.8 % smoothed), Africa 0.492, Oceania 0.441. By site type: mosaic 0.462, cropland 0.449, urban 0.485 (OA 0.920), trees 0.377, shrub_grass 0.233, snow_ice 0.222 (OA 0.545), wetland 0.223 (flicker 10.1 % → 3.6 %). Per-site-type mIoU is low partly because each group contains few classes.
+
+**Monthly maps of unseen test mosaics**
+- `black_forest_villages`: forest, valley meadows and the village are mapped as in WorldCover in all 12 months, with no seasonal false classes. The failure of section 1 stays fixed in the final model.
+- `willamette_foothills` (Oregon farmland): the radar changes strongly over the year (fields bright in winter, dark in summer after harvest), but the maps stay stable: the crop field blocks, forest strips and grassland keep their shape every month. Remaining errors: part of the WorldCover crop fields (top right) mapped as grassland, and a few small water patches appear in August only, which smoothing reduces.
+
+### 11.3 Comparison with the 1st iteration
+
+| | 1st iteration (Test_6, `Notebooks/1st_iteration.ipynb`) | 2nd iteration (`Iter2_Test_1_Full`) |
+|---|---|---|
+| Goal | general LULC, city-heavy | rural land worldwide |
+| Sites | 176; 79 city centres (45 %) | 177; 54 rural mosaics, 10 city edges, 20 cities kept |
+| Classes | 8 (Built-up, Cropland, Trees, Shrub & grass, Bare / sparse, Water, Wetland & mangrove, Snow & ice) | 7 (Man-made, Crop fields, Trees, Grassland, Bare ground, Water, Snow & ice) |
+| Built-up share | 30.8 % of train, 54.2 % of test pixels | 9.1 % of train, 15.2 % of test pixels |
+| Radar | sigma0, 3×3 median filter | gamma0 terrain flattening, layover/shadow masked, no spatial filter |
+| Labels | consensus only (disagreement pixels ignored) | WorldCover on all pixels, disagreement weighted 0.5 |
+| Input | 3 months + optional PCA (6), 5 statistics, terrain (3) | target month + 9 order-independent seasonal statistics (12 channels) |
+| Variants trained for the final run | 5 (40 epochs each, 27 min) | 1 (4.7 min) |
+| Delivered weights | one `<variant>_best.pt` per variant | one `final_model.pt` |
+| Best val mIoU | 0.657 (`three_month_stats`) / 0.671 (`three_month_pca_stats`, selected) | 0.732 |
+| Test mIoU, all test sites | 0.742 (`three_month_stats`) / 0.617 (selected) | 0.750 |
+| Rural test mIoU | not measured | 0.679 |
+| Flicker between months | not measured; Black Forest showed seasonal water / wetland / crop errors | 2.4 % raw, 0.9 % smoothed |
+| Train-val gap | 0.18-0.21 | 0.12 |
+| Black Forest monthly maps | wrong in winter (water, wetland, crop, red spots, blobs) | stable and correct in all 12 months |
+
+**How to read the scores.** The test sets, classes and labels differ, so the mIoU values are not a like-for-like comparison. The 1st-iteration 0.742 was lifted by Built-up (54 % of test pixels, IoU 0.95). The 2nd iteration reaches a slightly higher mIoU (0.750) on a test set with only 15 % man-made pixels and a harder rural mix, and scores 0.679 on the rural sites alone. Built-up was the 1st iteration's easiest class, and it is now a small one.
+
+**What the changes did, step by step**
+
+1. **PCA dropped.** In Test_6 the variant without PCA (`three_month_stats`) was best on test by 0.075-0.125 mIoU. PCA loadings are tied to calendar months, so they shift with the hemisphere and the site; the val split could not separate the PCA variants from the statistics variant (0.657-0.671) and picked the weakest one on test. The 2nd iteration uses only order-independent seasonal statistics (9 instead of 5: VV/VH/VV-VH mean, 2nd lowest and 2nd highest VV and VH, VH std, water months), which avoids both the calendar problem and the selection trap.
+2. **Terrain channels dropped, terrain flattening added.** The 1st-iteration terrain channels (DEM, slope, HAND) broke the Sentinel-1-only rule and were only an ablation. The 2nd iteration corrects terrain inside the radar processing (gamma0), which is allowed: VV-slope correlation fell from 0.74-0.82 to -0.14-0.05. This removed the hillside "buildings" and "water" in mountains.
+3. **Yearly context in every variant.** In Test_6, yearly features were the biggest lever (+0.09-0.12 val mIoU over plain `three_month`). Now every variant sees the whole year through the statistics, and the month only adds what changes. This removed the winter flips of the Black Forest test.
+4. **Rural sites and fewer cities.** Built-up fell from 30.8 % to 9.1 % of the training pixels; trees and grassland are now the largest classes, as in real rural land. Man-made still scores 0.747 IoU on rural test sites, so villages are not lost.
+5. **Labels on all pixels.** Disagreement pixels (mostly boundaries) are now trained with weight 0.5 instead of ignored, and the 3×3 median is gone. The maps show sharper edges and no blob shapes.
+6. **Wetland removed, classes renamed.** Wetland had the worst labels (30-45 % correct) and was a main winter false alarm in the Black Forest test.
+7. **One model.** The final run trains one variant and delivers one file. Overfitting fell (gap 0.12 vs 0.18-0.21), and the run takes 4.7 minutes.
+8. **New evaluation.** Rural mIoU, the 12-month test, flicker and temporal smoothing measure what the prototype shows. The 1st iteration only scored one random month per patch.
+
+### 11.4 What did not improve
+
+- **Water** (IoU 0.49, precision 0.59): false water in dark forest or radar shadow; water is 2.1 % of the test pixels, so a few false patches cost a lot. In the 1st iteration only the terrain ablation (HAND) fixed water (0.868), and terrain channels are not allowed.
+- **Snow & ice** (0.45): better than in the DEV runs (0.32), but snow is still confused with bare ground. The 1st-iteration PCA variant scored 0.813 on snow, because PCA encodes the calendar pattern of snow cover; the order-independent statistics lose part of this.
+- **Crop fields vs grassland**: about 20 % of crop fields are mapped as grassland; the two label maps agree on only 55 % of grassland.
+- **Wetland sites** flicker most (10.1 %): partly real seasonal flooding, which an annual label counts as error.
+- **Single run:** the full run is one seed. From 11.1, its scores carry about ±0.02 noise.
+
+### 11.5 Next steps
+
+1. Prototype: load `Weights/Iter2_Test_1_Full/final_model.pt` with its `model_card.json`; repeat the Black Forest test (section 1) at the original clearing, with the Esri sanity check, and on 3-4 other rural mosaics.
+2. Report: Black Forest before / after images (section 1 vs `months_black_forest_villages.png`), the comparison table of 11.3, the noise result of 11.1.
