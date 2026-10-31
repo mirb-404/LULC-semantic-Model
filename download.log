@@ -1,0 +1,549 @@
+nohup: ignoring input
+dataset: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration | 178 sites
+68 sites already downloaded, 110 to go
+sites:   0%|          | 0/110 [00:00<?, ?site/s]sites:   1%|          | 1/110 [00:05<10:09,  5.59s/site]sites:   2%|▏         | 2/110 [00:06<05:12,  2.89s/site]sites:   3%|▎         | 3/110 [00:14<09:34,  5.37s/site]sites:   4%|▎         | 4/110 [00:16<06:38,  3.76s/site]sites:   5%|▍         | 5/110 [00:20<07:06,  4.06s/site]sites:   5%|▌         | 6/110 [00:24<06:34,  3.79s/site]sites:   6%|▋         | 7/110 [00:26<05:57,  3.47s/site]sites:   7%|▋         | 8/110 [00:29<05:14,  3.08s/site]sites:   8%|▊         | 9/110 [00:30<04:01,  2.39s/site]sites:   9%|▉         | 10/110 [00:34<05:01,  3.02s/site]sites:  10%|█         | 11/110 [00:36<04:25,  2.68s/site]sites:  11%|█         | 12/110 [00:42<06:00,  3.68s/site]sites:  12%|█▏        | 13/110 [00:42<04:26,  2.75s/site]sites:  13%|█▎        | 14/110 [00:50<06:40,  4.18s/site]sites:  14%|█▎        | 15/110 [00:54<06:47,  4.29s/site]sites:  15%|█▍        | 16/110 [00:59<06:47,  4.33s/site]sites:  15%|█▌        | 17/110 [00:59<04:55,  3.18s/site]sites:  16%|█▋        | 18/110 [01:07<07:07,  4.64s/site]sites:  17%|█▋        | 19/110 [01:10<06:10,  4.07s/site]sites:  18%|█▊        | 20/110 [01:15<06:33,  4.37s/site]sites:  19%|█▉        | 21/110 [01:17<05:12,  3.51s/site]sites:  20%|██        | 22/110 [01:23<06:29,  4.43s/site]sites:  21%|██        | 23/110 [01:28<06:33,  4.53s/site]sites:  22%|██▏       | 24/110 [01:28<04:40,  3.26s/site]sites:  23%|██▎       | 25/110 [01:34<05:43,  4.04s/site]sweden_taiga: S1 scenes per month {'1': 12, '10': 25, '11': 18, '12': 12, '2': 11, '3': 13, '4': 12, '5': 18, '6': 25, '7': 27, '8': 25, '9': 25}
+appalachian_forest: S1 scenes per month {'1': 3, '10': 2, '11': 3, '12': 2, '2': 2, '3': 3, '4': 2, '5': 3, '6': 2, '7': 2, '8': 2, '9': 3}
+  s1/appalachian_forest.tif written
+  labels/quebec_boreal.tif written
+quebec_boreal: 70.7% of pixels where WorldCover and Dynamic World agree
+quebec_boreal: done
+olympic_rainforest: S1 scenes per month {'1': 10, '10': 10, '11': 9, '12': 7, '2': 10, '3': 10, '4': 10, '5': 10, '6': 9, '7': 11, '8': 7, '9': 8}
+  labels/alaska_boreal.tif written
+alaska_boreal: 78.1% of pixels where WorldCover and Dynamic World agree
+alaska_boreal: done
+sikhote_alin_forest: S1 scenes per month {'1': 2, '10': 3, '11': 2, '12': 2, '2': 2, '3': 3, '4': 2, '5': 3, '6': 3, '7': 2, '8': 6, '9': 2}
+  s1/sweden_taiga.tif written
+  s1/sikhote_alin_forest.tif written
+  s1/olympic_rainforest.tif written
+  labels/appalachian_forest.tif written
+appalachian_forest: 94.6% of pixels where WorldCover and Dynamic World agree
+appalachian_forest: done
+gabon_forest: S1 scenes per month {'1': 2, '10': 3, '11': 2, '12': 3, '2': 2, '3': 3, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  labels/sikhote_alin_forest.tif written
+sikhote_alin_forest: 99.9% of pixels where WorldCover and Dynamic World agree
+sikhote_alin_forest: done
+tasmania_forest: S1 scenes per month {'1': 8, '10': 9, '11': 6, '12': 8, '2': 7, '3': 8, '4': 7, '5': 3, '6': 4, '7': 4, '8': 7, '9': 8}
+  s1/gabon_forest.tif written
+  labels/gabon_forest.tif written
+gabon_forest: 93.2% of pixels where WorldCover and Dynamic World agree
+gabon_forest: done
+papua_forest: S1 scenes per month {'1': 6, '10': 5, '11': 5, '12': 5, '2': 4, '3': 5, '4': 5, '5': 5, '6': 2, '7': 4, '8': 4, '9': 5}
+  s1/tasmania_forest.tif written
+  labels/olympic_rainforest.tif written
+olympic_rainforest: 87.7% of pixels where WorldCover and Dynamic World agree
+olympic_rainforest: done
+juneau_icefield: S1 scenes per month {'1': 6, '10': 4, '11': 6, '12': 4, '2': 4, '3': 3, '4': 6, '5': 6, '6': 4, '7': 6, '8': 3, '9': 6}
+  s1/papua_forest.tif written
+  labels/sweden_taiga.tif written
+sweden_taiga: 85.6% of pixels where WorldCover and Dynamic World agree
+sweden_taiga: done
+khumbu_himalaya: S1 scenes per month {'1': 8, '10': 9, '11': 5, '12': 8, '2': 7, '3': 8, '4': 7, '5': 8, '6': 7, '7': 8, '8': 9, '9': 6}
+  labels/tasmania_forest.tif written
+tasmania_forest: 97.0% of pixels where WorldCover and Dynamic World agree
+tasmania_forest: done
+tasman_glacier: S1 scenes per month {'1': 13, '10': 14, '11': 10, '12': 11, '2': 12, '3': 13, '4': 12, '5': 12, '6': 11, '7': 12, '8': 10, '9': 13}
+  s1/juneau_icefield.tif written
+  labels/papua_forest.tif written
+papua_forest: 99.0% of pixels where WorldCover and Dynamic World agree
+papua_forest: done
+caucasus_elbrus: S1 scenes per month {'1': 14, '10': 15, '11': 14, '12': 14, '2': 13, '3': 16, '4': 15, '5': 15, '6': 15, '7': 15, '8': 15, '9': 15}
+  s1/khumbu_himalaya.tif written
+  labels/juneau_icefield.tif written
+juneau_icefield: 99.7% of pixels where WorldCover and Dynamic World agree
+juneau_icefield: done
+nebraska_sandhills: S1 scenes per month {'1': 3, '10': 3, '11': 2, '12': 2, '2': 2, '3': 3, '4': 2, '5': 3, '6': 2, '7': 3, '8': 3, '9': 2}
+  labels/khumbu_himalaya.tif written
+khumbu_himalaya: 63.5% of pixels where WorldCover and Dynamic World agree
+khumbu_himalaya: done
+great_basin_sagebrush: S1 scenes per month {'1': 11, '10': 12, '11': 13, '12': 11, '2': 9, '3': 10, '4': 10, '5': 11, '6': 9, '7': 12, '8': 11, '9': 13}
+  s1/tasman_glacier.tif written
+  s1/caucasus_elbrus.tif written
+  s1/nebraska_sandhills.tif written
+  labels/tasman_glacier.tif written
+tasman_glacier: 78.3% of pixels where WorldCover and Dynamic World agree
+tasman_glacier: done
+patagonia_steppe: S1 scenes per month {'1': 12, '10': 16, '11': 14, '12': 15, '2': 12, '3': 17, '4': 14, '5': 14, '6': 8, '7': 7, '8': 13, '9': 14}
+  labels/caucasus_elbrus.tif written
+caucasus_elbrus: 95.6% of pixels where WorldCover and Dynamic World agree
+caucasus_elbrus: done
+karoo_shrubland: S1 scenes per month {'1': 5, '10': 5, '11': 5, '12': 6, '2': 4, '3': 6, '4': 5, '5': 3, '6': 4, '7': 5, '8': 5, '9': 5}
+  s1/great_basin_sagebrush.tif written
+  s1/karoo_shrubland.tif written
+  labels/nebraska_sandhills.tif written
+nebraska_sandhills: 95.8% of pixels where WorldCover and Dynamic World agree
+nebraska_sandhills: done
+tibet_grassland: S1 scenes per month {'1': 10, '10': 12, '11': 8, '12': 11, '2': 10, '3': 10, '4': 10, '5': 10, '6': 10, '7': 10, '8': 10, '9': 10}
+  s1/patagonia_steppe.tif written
+  labels/karoo_shrubland.tif written
+karoo_shrubland: 86.6% of pixels where WorldCover and Dynamic World agree
+karoo_shrubland: done
+saskatchewan_wheat: S1 scenes per month {'1': 2, '10': 2, '11': 3, '12': 2, '2': 3, '3': 2, '4': 3, '5': 2, '6': 3, '7': 3, '8': 2, '9': 3}
+  s1/tibet_grassland.tif written
+  labels/great_basin_sagebrush.tif written
+great_basin_sagebrush: 16.7% of pixels where WorldCover and Dynamic World agree
+great_basin_sagebrush: done
+central_valley_ca: S1 scenes per month {'1': 16, '10': 18, '11': 16, '12': 15, '2': 17, '3': 17, '4': 17, '5': 18, '6': 17, '7': 16, '8': 17, '9': 18}
+  labels/patagonia_steppe.tif written
+patagonia_steppe: 74.2% of pixels where WorldCover and Dynamic World agree
+patagonia_steppe: done
+punjab_pakistan: S1 scenes per month {'1': 5, '10': 8, '11': 6, '12': 8, '2': 5, '3': 5, '4': 5, '5': 5, '6': 6, '7': 4, '8': 6, '9': 6}
+  s1/saskatchewan_wheat.tif written
+  s1/punjab_pakistan.tif written
+  labels/tibet_grassland.tif written
+tibet_grassland: 77.5% of pixels where WorldCover and Dynamic World agree
+tibet_grassland: done
+karawang_rice: S1 scenes per month {'1': 7, '10': 9, '11': 4, '12': 10, '2': 11, '3': 7, '4': 10, '5': 7, '6': 9, '7': 8, '8': 9, '9': 10}
+  s1/central_valley_ca.tif written
+  labels/saskatchewan_wheat.tif written
+saskatchewan_wheat: 83.2% of pixels where WorldCover and Dynamic World agree
+saskatchewan_wheat: done
+heilongjiang_maize: S1 scenes per month {'1': 5, '10': 5, '11': 4, '12': 3, '2': 5, '3': 4, '4': 5, '5': 3, '6': 3, '7': 3, '8': 4, '9': 5}
+  s1/karawang_rice.tif written
+  labels/punjab_pakistan.tif written
+punjab_pakistan: 83.8% of pixels where WorldCover and Dynamic World agree
+punjab_pakistan: done
+  s1/heilongjiang_maize.tif written
+australia_wheatbelt: S1 scenes per month {'1': 6, '10': 5, '11': 5, '12': 4, '2': 4, '3': 6, '4': 4, '5': 6, '6': 5, '7': 5, '8': 5, '9': 5}
+  labels/karawang_rice.tif written
+karawang_rice: 81.0% of pixels where WorldCover and Dynamic World agree
+karawang_rice: done
+hungarian_plain: S1 scenes per month {'1': 20, '10': 20, '11': 18, '12': 21, '2': 18, '3': 21, '4': 20, '5': 21, '6': 20, '7': 21, '8': 20, '9': 20}
+  s1/australia_wheatbelt.tif written
+  labels/central_valley_ca.tif written
+central_valley_ca: 55.7% of pixels where WorldCover and Dynamic World agree
+central_valley_ca: done
+hudson_bay_lowland: S1 scenes per month {'1': 5, '10': 4, '11': 5, '12': 2, '2': 4, '3': 6, '4': 5, '5': 4, '6': 5, '7': 5, '8': 5, '9': 5}
+  s1/hungarian_plain.tif written
+  labels/australia_wheatbelt.tif written
+australia_wheatbelt: 25.0% of pixels where WorldCover and Dynamic World agree
+australia_wheatbelt: done
+danube_delta: S1 scenes per month {'1': 22, '10': 24, '11': 23, '12': 19, '2': 21, '3': 23, '4': 23, '5': 22, '6': 21, '7': 21, '8': 23, '9': 22}
+  labels/heilongjiang_maize.tif written
+heilongjiang_maize: 91.1% of pixels where WorldCover and Dynamic World agree
+heilongjiang_maize: done
+louisiana_marsh: S1 scenes per month {'1': 6, '10': 5, '11': 5, '12': 5, '2': 4, '3': 5, '4': 4, '5': 5, '6': 5, '7': 5, '8': 5, '9': 5}
+  s1/hudson_bay_lowland.tif written
+  s1/louisiana_marsh.tif written
+  labels/hungarian_plain.tif written
+hungarian_plain: 92.4% of pixels where WorldCover and Dynamic World agree
+hungarian_plain: done
+niger_delta_mangrove: S1 scenes per month {'1': 5, '10': 5, '11': 5, '12': 5, '2': 4, '3': 5, '4': 5, '5': 5, '6': 5, '7': 6, '8': 5, '9': 5}
+  s1/niger_delta_mangrove.tif written
+  labels/hudson_bay_lowland.tif written
+hudson_bay_lowland: 68.6% of pixels where WorldCover and Dynamic World agreesites:  24%|██▎       | 26/110 [01:42<07:22,  5.26s/site]sites:  25%|██▍       | 27/110 [01:43<05:29,  3.96s/site]sites:  25%|██▌       | 28/110 [01:49<06:16,  4.59s/site]sites:  26%|██▋       | 29/110 [01:54<06:21,  4.71s/site]sites:  27%|██▋       | 30/110 [02:07<09:17,  6.96s/site]sites:  28%|██▊       | 31/110 [02:09<07:12,  5.47s/site]sites:  29%|██▉       | 32/110 [02:16<08:00,  6.17s/site]sites:  30%|███       | 33/110 [02:17<05:51,  4.56s/site]sites:  31%|███       | 34/110 [02:22<06:03,  4.78s/site]sites:  32%|███▏      | 35/110 [02:30<07:07,  5.70s/site]sites:  33%|███▎      | 36/110 [02:33<05:59,  4.86s/site]sites:  34%|███▎      | 37/110 [02:38<05:44,  4.72s/site]sites:  35%|███▍      | 38/110 [02:40<04:53,  4.07s/site]sites:  35%|███▌      | 39/110 [02:40<03:24,  2.88s/site]sites:  36%|███▋      | 40/110 [02:50<05:39,  4.86s/site]sites:  37%|███▋      | 41/110 [02:51<04:16,  3.71s/site]sites:  38%|███▊      | 42/110 [02:59<05:36,  4.96s/site]sites:  39%|███▉      | 43/110 [03:03<05:20,  4.79s/site]sites:  40%|████      | 44/110 [03:09<05:46,  5.25s/site]sites:  41%|████      | 45/110 [03:14<05:26,  5.03s/site]sites:  42%|████▏     | 46/110 [03:21<05:57,  5.59s/site]sites:  43%|████▎     | 47/110 [03:22<04:31,  4.31s/site]sites:  44%|████▎     | 48/110 [03:34<06:43,  6.51s/site]sites:  45%|████▌     | 50/110 [03:37<04:10,  4.17s/site]sites:  46%|████▋     | 51/110 [03:43<04:45,  4.84s/site]sites:  47%|████▋     | 52/110 [03:50<05:07,  5.30s/site]
+hudson_bay_lowland: done
+taklamakan_desert: S1 scenes per month {'1': 6, '10': 4, '11': 6, '12': 4, '2': 4, '3': 4, '4': 6, '5': 6, '6': 4, '7': 6, '8': 4, '9': 6}
+  labels/niger_delta_mangrove.tif written
+niger_delta_mangrove: 21.5% of pixels where WorldCover and Dynamic World agree
+niger_delta_mangrove: done
+lake_balaton: S1 scenes per month {'1': 25, '10': 24, '11': 21, '12': 22, '2': 21, '3': 26, '4': 25, '5': 27, '6': 23, '7': 22, '8': 21, '9': 22}
+  s1/taklamakan_desert.tif written
+  labels/louisiana_marsh.tif written
+louisiana_marsh: 84.9% of pixels where WorldCover and Dynamic World agree
+louisiana_marsh: done
+finnish_lakeland: S1 scenes per month {'1': 8, '10': 32, '11': 25, '12': 18, '2': 5, '3': 8, '4': 8, '5': 14, '6': 30, '7': 36, '8': 30, '9': 33}
+  labels/taklamakan_desert.tif written
+taklamakan_desert: 100.0% of pixels where WorldCover and Dynamic World agree
+taklamakan_desert: done
+finnmark_tundra: S1 scenes per month {'1': 41, '10': 42, '11': 38, '12': 35, '2': 39, '3': 40, '4': 40, '5': 40, '6': 38, '7': 38, '8': 40, '9': 40}
+  s1/danube_delta.tif written
+  s1/lake_balaton.tif written
+  s1/finnish_lakeland.tif written
+  labels/danube_delta.tif written
+danube_delta: 30.9% of pixels where WorldCover and Dynamic World agree
+danube_delta: done
+north_slope_alaska: S1 scenes per month {'1': 7, '10': 8, '11': 7, '12': 6, '2': 8, '3': 7, '4': 7, '5': 6, '6': 7, '7': 8, '8': 8, '9': 7}
+  s1/finnmark_tundra.tif written
+  labels/finnish_lakeland.tif written
+finnish_lakeland: 88.5% of pixels where WorldCover and Dynamic World agree
+finnish_lakeland: done
+iceland_highland: S1 scenes per month {'1': 23, '10': 23, '11': 22, '12': 21, '2': 22, '3': 20, '4': 21, '5': 21, '6': 19, '7': 21, '8': 23, '9': 23}
+  s1/north_slope_alaska.tif written
+  labels/finnmark_tundra.tif written
+finnmark_tundra: 32.2% of pixels where WorldCover and Dynamic World agree
+finnmark_tundra: done
+kola_tundra: S1 scenes per month {'1': 10, '10': 10, '11': 10, '12': 9, '2': 7, '3': 11, '4': 10, '5': 10, '6': 10, '7': 11, '8': 10, '9': 10}
+  labels/lake_balaton.tif written
+lake_balaton: 92.0% of pixels where WorldCover and Dynamic World agree
+lake_balaton: done
+kruger_savanna: S1 scenes per month {'1': 8, '10': 8, '11': 7, '12': 7, '2': 7, '3': 7, '4': 8, '5': 8, '6': 8, '7': 7, '8': 7, '9': 7}
+  labels/north_slope_alaska.tif written
+north_slope_alaska: 23.3% of pixels where WorldCover and Dynamic World agree
+north_slope_alaska: done
+  s1/kruger_savanna.tif written
+cerrado_goias: S1 scenes per month {'1': 5, '10': 6, '11': 3, '12': 4, '2': 5, '3': 5, '4': 5, '5': 5, '6': 5, '7': 5, '8': 6, '9': 4}
+  s1/cerrado_goias.tif written
+  s1/iceland_highland.tif written
+  s1/kola_tundra.tif written
+  labels/kruger_savanna.tif written
+kruger_savanna: 40.8% of pixels where WorldCover and Dynamic World agree
+kruger_savanna: done
+llanos_venezuela: S1 scenes per month {'1': 6, '10': 6, '11': 9, '12': 3, '2': 5, '3': 5, '4': 9, '5': 6, '6': 6, '7': 6, '8': 9, '9': 7}
+  labels/cerrado_goias.tif written
+cerrado_goias: 54.3% of pixels where WorldCover and Dynamic World agree
+cerrado_goias: done
+miombo_zambia: S1 scenes per month {'1': 5, '10': 8, '11': 5, '12': 7, '2': 4, '3': 9, '4': 8, '5': 7, '6': 8, '7': 7, '8': 8, '9': 7}
+  s1/llanos_venezuela.tif written
+  labels/iceland_highland.tif written
+iceland_highland: 76.4% of pixels where WorldCover and Dynamic World agree
+iceland_highland: done
+  s1/miombo_zambia.tif written
+sahel_niger: S1 scenes per month {'1': 2, '10': 2, '11': 2, '12': 2, '2': 2, '3': 2, '4': 3, '5': 2, '6': 3, '7': 3, '8': 2, '9': 3}
+  labels/llanos_venezuela.tif written
+llanos_venezuela: 91.0% of pixels where WorldCover and Dynamic World agree
+llanos_venezuela: done
+  labels/kola_tundra.tif written
+kola_tundra: 43.8% of pixels where WorldCover and Dynamic World agree
+kola_tundra: done
+top_end_savanna: S1 scenes per month {'1': 3, '10': 2, '11': 3, '12': 2, '2': 2, '3': 3, '4': 2, '5': 3, '6': 2, '7': 3, '8': 2, '9': 3}
+dehesa_spain: S1 scenes per month {'1': 17, '10': 18, '11': 17, '12': 17, '2': 14, '3': 17, '4': 17, '5': 16, '6': 14, '7': 15, '8': 18, '9': 17}
+  s1/sahel_niger.tif written
+  s1/top_end_savanna.tif written
+  labels/miombo_zambia.tif written
+miombo_zambia: 88.2% of pixels where WorldCover and Dynamic World agree
+miombo_zambia: done
+california_chaparral: S1 scenes per month {'1': 12, '10': 12, '11': 13, '12': 10, '2': 9, '3': 15, '4': 12, '5': 13, '6': 12, '7': 13, '8': 11, '9': 13}
+  s1/dehesa_spain.tif written
+  labels/sahel_niger.tif written
+sahel_niger: 51.2% of pixels where WorldCover and Dynamic World agree
+sahel_niger: done
+chile_matorral: S1 scenes per month {'1': 6, '10': 7, '11': 6, '12': 7, '2': 8, '3': 8, '4': 7, '5': 6, '6': 4, '7': 6, '8': 6, '9': 7}
+  labels/top_end_savanna.tif written
+top_end_savanna: 55.6% of pixels where WorldCover and Dynamic World agree
+top_end_savanna: done
+cape_fynbos: S1 scenes per month {'1': 2, '10': 3, '11': 2, '12': 2, '2': 3, '3': 2, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/chile_matorral.tif written
+  labels/dehesa_spain.tif written
+dehesa_spain: 76.2% of pixels where WorldCover and Dynamic World agree
+dehesa_spain: done
+crete_maquis: S1 scenes per month {'1': 17, '10': 17, '11': 16, '12': 14, '2': 18, '3': 17, '4': 18, '5': 17, '6': 18, '7': 19, '8': 19, '9': 18}
+  s1/cape_fynbos.tif written
+  s1/california_chaparral.tif written
+  labels/cape_fynbos.tif written
+cape_fynbos: 69.1% of pixels where WorldCover and Dynamic World agree
+cape_fynbos: done
+ethiopia_highland_farms: S1 scenes per month {'1': 2, '10': 3, '11': 2, '12': 3, '2': 2, '3': 3, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/crete_maquis.tif written
+  labels/chile_matorral.tif written
+chile_matorral: 61.5% of pixels where WorldCover and Dynamic World agree
+chile_matorral: done
+malawi_farms: S1 scenes per month {'1': 8, '10': 8, '11': 7, '12': 7, '2': 6, '3': 8, '4': 8, '5': 8, '6': 7, '7': 8, '8': 7, '9': 7}
+  s1/ethiopia_highland_farms.tif written
+  labels/ethiopia_highland_farms.tif written
+ethiopia_highland_farms: 65.1% of pixels where WorldCover and Dynamic World agree
+ethiopia_highland_farms: done
+rwanda_hills: S1 scenes per month {'1': 8, '10': 7, '11': 7, '12': 7, '2': 7, '3': 7, '4': 8, '5': 9, '6': 10, '7': 9, '8': 8, '9': 7}
+  labels/california_chaparral.tif written
+california_chaparral: 81.1% of pixels where WorldCover and Dynamic World agree
+california_chaparral: done
+western_kenya_farms: S1 scenes per month {'1': 4, '10': 5, '11': 4, '12': 4, '2': 6, '3': 4, '4': 6, '5': 4, '6': 6, '7': 4, '8': 6, '9': 4}
+  s1/malawi_farms.tif written
+  s1/western_kenya_farms.tif written
+  s1/rwanda_hills.tif written
+  labels/malawi_farms.tif written
+  labels/western_kenya_farms.tif written
+malawi_farms: 27.9% of pixels where WorldCover and Dynamic World agree
+malawi_farms: done
+western_kenya_farms: 31.5% of pixels where WorldCover and Dynamic World agree
+western_kenya_farms: done
+kampala: S1 scenes per month {'1': 9, '10': 10, '11': 5, '12': 7, '2': 9, '3': 8, '4': 9, '5': 9, '6': 9, '7': 8, '8': 10, '9': 7}
+port_au_prince: S1 scenes per month {'1': 10, '10': 9, '11': 10, '12': 8, '2': 10, '3': 10, '4': 10, '5': 9, '6': 10, '7': 10, '8': 9, '9': 12}
+  labels/rwanda_hills.tif written
+rwanda_hills: 34.2% of pixels where WorldCover and Dynamic World agree
+rwanda_hills: done
+nepal_midhills: S1 scenes per month {'1': 8, '10': 8, '11': 7, '12': 7, '2': 7, '3': 7, '4': 8, '5': 8, '6': 7, '7': 8, '8': 8, '9': 7}
+  s1/nepal_midhills.tif written
+  labels/crete_maquis.tif written
+crete_maquis: 78.4% of pixels where WorldCover and Dynamic World agree
+crete_maquis: done
+andes_sacred_valley: S1 scenes per month {'1': 4, '10': 4, '11': 4, '12': 2, '2': 6, '3': 3, '4': 6, '5': 4, '6': 6, '7': 4, '8': 6, '9': 4}
+  s1/port_au_prince.tif written
+  s1/andes_sacred_valley.tif written
+  labels/nepal_midhills.tif written
+nepal_midhills: 76.0% of pixels where WorldCover and Dynamic World agree
+nepal_midhills: done
+gran_chaco: S1 scenes per month {'1': 6, '10': 6, '11': 4, '12': 4, '2': 4, '3': 6, '4': 4, '5': 5, '6': 4, '7': 6, '8': 6, '9': 4}
+  s1/kampala.tif written
+  labels/andes_sacred_valley.tif written
+andes_sacred_valley: 64.6% of pixels where WorldCover and Dynamic World agreesites:  48%|████▊     | 53/110 [03:54<04:37,  4.86s/site]sites:  49%|████▉     | 54/110 [03:55<03:32,  3.79s/site]sites:  50%|█████     | 55/110 [03:56<02:44,  2.98s/site]sites:  51%|█████     | 56/110 [04:03<03:51,  4.29s/site]sites:  52%|█████▏    | 57/110 [04:15<05:49,  6.60s/site]sites:  53%|█████▎    | 58/110 [04:23<06:04,  7.01s/site]sites:  55%|█████▍    | 60/110 [04:30<04:27,  5.35s/site]sites:  55%|█████▌    | 61/110 [04:40<05:17,  6.47s/site]sites:  56%|█████▋    | 62/110 [04:45<04:50,  6.05s/site]sites:  57%|█████▋    | 63/110 [04:53<05:08,  6.56s/site]sites:  58%|█████▊    | 64/110 [04:57<04:27,  5.81s/site]sites:  59%|█████▉    | 65/110 [04:59<03:41,  4.91s/site]sites:  60%|██████    | 66/110 [05:02<03:08,  4.27s/site]sites:  61%|██████    | 67/110 [05:13<04:26,  6.21s/site]sites:  62%|██████▏   | 68/110 [05:14<03:21,  4.79s/site]sites:  63%|██████▎   | 69/110 [05:18<02:56,  4.31s/site]sites:  64%|██████▎   | 70/110 [05:29<04:17,  6.44s/site]sites:  65%|██████▍   | 71/110 [05:32<03:25,  5.27s/site]sites:  65%|██████▌   | 72/110 [05:32<02:24,  3.80s/site]sites:  66%|██████▋   | 73/110 [05:43<03:46,  6.12s/site]sites:  67%|██████▋   | 74/110 [05:45<02:55,  4.87s/site]sites:  68%|██████▊   | 75/110 [05:49<02:32,  4.37s/site]sites:  69%|██████▉   | 76/110 [05:53<02:33,  4.51s/site]sites:  70%|███████   | 77/110 [05:59<02:36,  4.76s/site]sites:  71%|███████   | 78/110 [06:04<02:32,  4.76s/site]sites:  72%|███████▏  | 79/110 [06:05<01:58,  3.81s/site]
+andes_sacred_valley: done
+kanha_deciduous: S1 scenes per month {'1': 4, '10': 5, '11': 5, '12': 5, '2': 5, '3': 5, '4': 5, '5': 5, '6': 6, '7': 5, '8': 5, '9': 5}
+  labels/port_au_prince.tif written
+port_au_prince: 69.7% of pixels where WorldCover and Dynamic World agree
+port_au_prince: done
+vosges_mosaic: S1 scenes per month {'1': 17, '10': 15, '11': 15, '12': 12, '2': 13, '3': 16, '4': 14, '5': 17, '6': 13, '7': 13, '8': 15, '9': 15}
+  labels/kampala.tif written
+kampala: 73.2% of pixels where WorldCover and Dynamic World agree
+kampala: done
+bavarian_forest: S1 scenes per month {'1': 19, '10': 21, '11': 22, '12': 20, '2': 22, '3': 22, '4': 22, '5': 21, '6': 20, '7': 21, '8': 21, '9': 20}
+  s1/kanha_deciduous.tif written
+  s1/gran_chaco.tif written
+  labels/kanha_deciduous.tif written
+kanha_deciduous: 97.4% of pixels where WorldCover and Dynamic World agree
+kanha_deciduous: done
+harz_mosaic: S1 scenes per month {'1': 21, '10': 23, '11': 24, '12': 21, '2': 18, '3': 22, '4': 23, '5': 23, '6': 22, '7': 22, '8': 20, '9': 23}
+  s1/vosges_mosaic.tif written
+  labels/gran_chaco.tif written
+gran_chaco: 69.8% of pixels where WorldCover and Dynamic World agree
+gran_chaco: done
+  s1/bavarian_forest.tif written
+allgaeu_prealps: S1 scenes per month {'1': 15, '10': 20, '11': 20, '12': 18, '2': 8, '3': 14, '4': 20, '5': 21, '6': 19, '7': 21, '8': 18, '9': 20}
+  labels/vosges_mosaic.tif written
+vosges_mosaic: 78.6% of pixels where WorldCover and Dynamic World agree
+vosges_mosaic: done
+  labels/bavarian_forest.tif written
+bavarian_forest: 78.2% of pixels where WorldCover and Dynamic World agree
+bavarian_forest: done
+bukovina_hills: S1 scenes per month {'1': 13, '10': 11, '11': 10, '12': 9, '2': 12, '3': 13, '4': 12, '5': 13, '6': 9, '7': 10, '8': 10, '9': 10}
+  s1/harz_mosaic.tif written
+swiss_jura: S1 scenes per month {'1': 14, '10': 12, '11': 13, '12': 10, '2': 11, '3': 12, '4': 13, '5': 14, '6': 11, '7': 12, '8': 12, '9': 13}
+  labels/harz_mosaic.tif written
+harz_mosaic: 80.4% of pixels where WorldCover and Dynamic World agree
+harz_mosaic: done
+  s1/swiss_jura.tif written
+beskid_foothills: S1 scenes per month {'1': 20, '10': 20, '11': 19, '12': 21, '2': 18, '3': 21, '4': 20, '5': 21, '6': 22, '7': 22, '8': 21, '9': 23}
+  s1/beskid_foothills.tif written
+  labels/swiss_jura.tif written
+swiss_jura: 77.5% of pixels where WorldCover and Dynamic World agree
+swiss_jura: done
+ardennes: S1 scenes per month {'1': 23, '10': 23, '11': 23, '12': 20, '2': 19, '3': 23, '4': 23, '5': 23, '6': 20, '7': 22, '8': 22, '9': 23}
+  labels/beskid_foothills.tif written
+beskid_foothills: 55.2% of pixels where WorldCover and Dynamic World agree
+beskid_foothills: done
+massif_central: S1 scenes per month {'1': 20, '10': 21, '11': 20, '12': 17, '2': 20, '3': 20, '4': 20, '5': 20, '6': 18, '7': 19, '8': 21, '9': 20}
+  s1/bukovina_hills.tif written
+  s1/ardennes.tif written
+  s1/allgaeu_prealps.tif written
+  labels/bukovina_hills.tif written
+bukovina_hills: 74.3% of pixels where WorldCover and Dynamic World agree
+bukovina_hills: done
+galicia_farms: S1 scenes per month {'1': 15, '10': 16, '11': 15, '12': 14, '2': 15, '3': 15, '4': 15, '5': 12, '6': 12, '7': 13, '8': 13, '9': 15}
+  s1/massif_central.tif written
+  labels/allgaeu_prealps.tif written
+allgaeu_prealps: 75.7% of pixels where WorldCover and Dynamic World agree
+allgaeu_prealps: done
+highland_fringe: S1 scenes per month {'1': 25, '10': 25, '11': 23, '12': 19, '2': 23, '3': 24, '4': 25, '5': 25, '6': 25, '7': 25, '8': 24, '9': 24}
+  labels/massif_central.tif written
+massif_central: 84.5% of pixels where WorldCover and Dynamic World agree
+massif_central: done
+welsh_uplands: S1 scenes per month {'1': 20, '10': 20, '11': 20, '12': 17, '2': 19, '3': 21, '4': 20, '5': 20, '6': 20, '7': 21, '8': 20, '9': 20}
+  labels/ardennes.tif written
+ardennes: 75.5% of pixels where WorldCover and Dynamic World agree
+ardennes: done
+smaland_farm_forest: S1 scenes per month {'1': 19, '10': 30, '11': 27, '12': 21, '2': 17, '3': 25, '4': 22, '5': 26, '6': 30, '7': 31, '8': 29, '9': 30}
+  s1/highland_fringe.tif written
+  s1/welsh_uplands.tif written
+  s1/smaland_farm_forest.tif written
+  labels/highland_fringe.tif written
+highland_fringe: 72.5% of pixels where WorldCover and Dynamic World agree
+highland_fringe: done
+latvia_mosaic: S1 scenes per month {'1': 10, '10': 23, '11': 17, '12': 11, '2': 7, '3': 11, '4': 14, '5': 17, '6': 25, '7': 22, '8': 22, '9': 22}
+  labels/welsh_uplands.tif written
+welsh_uplands: 73.6% of pixels where WorldCover and Dynamic World agree
+welsh_uplands: done
+tuscany_hills: S1 scenes per month {'1': 23, '10': 26, '11': 24, '12': 23, '2': 17, '3': 25, '4': 23, '5': 27, '6': 21, '7': 27, '8': 23, '9': 24}
+  labels/smaland_farm_forest.tif written
+smaland_farm_forest: 74.1% of pixels where WorldCover and Dynamic World agree
+smaland_farm_forest: done
+vermont_mosaic: S1 scenes per month {'1': 2, '10': 2, '11': 2, '12': 1, '2': 3, '3': 2, '4': 3, '5': 1, '6': 1, '7': 2, '8': 3, '9': 2}
+  s1/galicia_farms.tif written
+  s1/vermont_mosaic.tif written
+  s1/latvia_mosaic.tif written
+  labels/galicia_farms.tif written
+galicia_farms: 58.1% of pixels where WorldCover and Dynamic World agree
+galicia_farms: done
+wisconsin_driftless: S1 scenes per month {'1': 2, '10': 2, '11': 2, '12': 2, '2': 2, '3': 2, '4': 3, '5': 3, '6': 2, '7': 3, '8': 2, '9': 3}
+  labels/vermont_mosaic.tif written
+vermont_mosaic: 81.0% of pixels where WorldCover and Dynamic World agree
+vermont_mosaic: done
+  labels/latvia_mosaic.tif written
+latvia_mosaic: 80.0% of pixels where WorldCover and Dynamic World agree
+latvia_mosaic: done
+ozark_farms: S1 scenes per month {'1': 6, '10': 5, '11': 5, '12': 5, '2': 4, '3': 5, '4': 4, '5': 5, '6': 5, '7': 5, '8': 5, '9': 5}
+pennsylvania_ridges: S1 scenes per month {'1': 3, '10': 3, '11': 2, '12': 3, '2': 1, '3': 3, '4': 1, '5': 2, '6': 2, '7': 1, '8': 3, '9': 2}
+  s1/pennsylvania_ridges.tif written
+  s1/wisconsin_driftless.tif written
+  s1/ozark_farms.tif written
+  labels/wisconsin_driftless.tif written
+wisconsin_driftless: 83.2% of pixels where WorldCover and Dynamic World agree
+wisconsin_driftless: done
+quebec_farm_forest: S1 scenes per month {'1': 5, '10': 4, '11': 5, '12': 4, '2': 5, '3': 5, '4': 4, '5': 4, '6': 3, '7': 5, '8': 5, '9': 4}
+  labels/ozark_farms.tif written
+ozark_farms: 89.6% of pixels where WorldCover and Dynamic World agree
+ozark_farms: done
+willamette_foothills: S1 scenes per month {'1': 10, '10': 10, '11': 14, '12': 12, '2': 10, '3': 10, '4': 10, '5': 10, '6': 9, '7': 9, '8': 14, '9': 10}
+  labels/pennsylvania_ridges.tif written
+pennsylvania_ridges: 75.2% of pixels where WorldCover and Dynamic World agree
+pennsylvania_ridges: done
+  s1/tuscany_hills.tif written
+michoacan_highlands: S1 scenes per month {'1': 4, '10': 4, '11': 5, '12': 5, '2': 5, '3': 5, '4': 6, '5': 4, '6': 6, '7': 4, '8': 6, '9': 5}
+  labels/tuscany_hills.tif written
+tuscany_hills: 90.9% of pixels where WorldCover and Dynamic World agree
+tuscany_hills: done
+  s1/quebec_farm_forest.tif written
+serra_gaucha: S1 scenes per month {'1': 2, '10': 2, '11': 2, '12': 1, '2': 3, '3': 2, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/willamette_foothills.tif written
+  s1/michoacan_highlands.tif written
+  labels/quebec_farm_forest.tif written
+quebec_farm_forest: 83.8% of pixels where WorldCover and Dynamic World agree
+quebec_farm_forest: done
+colombia_coffee: S1 scenes per month {'1': 9, '10': 8, '11': 9, '12': 6, '2': 8, '3': 6, '4': 9, '5': 8, '6': 7, '7': 9, '8': 8, '9': 10}
+  s1/serra_gaucha.tif written
+  labels/willamette_foothills.tif written
+willamette_foothills: 76.8% of pixels where WorldCover and Dynamic World agree
+willamette_foothills: done
+chile_lakes: S1 scenes per month {'1': 10, '10': 10, '11': 9, '12': 9, '2': 8, '3': 12, '4': 9, '5': 10, '6': 7, '7': 7, '8': 10, '9': 10}
+  labels/michoacan_highlands.tif written
+michoacan_highlands: 71.7% of pixels where WorldCover and Dynamic World agree
+michoacan_highlands: done
+paraguay_mosaic: S1 scenes per month {'1': 2, '10': 3, '11': 2, '12': 2, '2': 2, '3': 3, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/chile_lakes.tif written
+  s1/paraguay_mosaic.tif written
+  s1/colombia_coffee.tif writtensites:  73%|███████▎  | 80/110 [06:14<02:43,  5.46s/site]sites:  74%|███████▎  | 81/110 [06:15<01:54,  3.95s/site]sites:  75%|███████▍  | 82/110 [06:17<01:37,  3.47s/site]sites:  75%|███████▌  | 83/110 [06:18<01:13,  2.74s/site]sites:  76%|███████▋  | 84/110 [06:26<01:50,  4.24s/site]sites:  77%|███████▋  | 85/110 [06:26<01:17,  3.10s/site]sites:  78%|███████▊  | 86/110 [06:29<01:10,  2.92s/site]sites:  79%|███████▉  | 87/110 [06:42<02:18,  6.02s/site]sites:  80%|████████  | 88/110 [06:45<01:53,  5.17s/site]                                                         sites:  80%|████████  | 88/110 [06:46<01:53,  5.17s/site]sites:  81%|████████  | 89/110 [06:46<01:20,  3.81s/site]sites:  82%|████████▏ | 90/110 [06:48<01:02,  3.14s/site]sites:  83%|████████▎ | 91/110 [06:52<01:09,  3.67s/site]sites:  84%|████████▎ | 92/110 [06:53<00:47,  2.64s/site]sites:  85%|████████▍ | 93/110 [07:00<01:08,  4.04s/site]sites:  85%|████████▌ | 94/110 [07:02<00:53,  3.35s/site]sites:  86%|████████▋ | 95/110 [07:04<00:46,  3.09s/site]sites:  87%|████████▋ | 96/110 [07:07<00:40,  2.90s/site]sites:  88%|████████▊ | 97/110 [07:13<00:51,  3.93s/site]sites:  89%|████████▉ | 98/110 [07:26<01:20,  6.74s/site]sites:  90%|█████████ | 99/110 [07:27<00:53,  4.87s/site]sites:  91%|█████████ | 100/110 [07:43<01:21,  8.19s/site]sites:  92%|█████████▏| 101/110 [07:49<01:09,  7.68s/site]sites:  93%|█████████▎| 102/110 [07:52<00:48,  6.07s/site]sites:  94%|█████████▎| 103/110 [08:00<00:47,  6.83s/site]sites:  95%|█████████▍| 104/110 [08:03<00:32,  5.49s/site]sites:  95%|█████████▌| 105/110 [08:03<00:20,  4.05s/site]sites:  96%|█████████▋| 106/110 [08:24<00:36,  9.15s/site]
+  labels/colombia_coffee.tif written
+colombia_coffee: 67.2% of pixels where WorldCover and Dynamic World agree
+colombia_coffee: done
+  labels/chile_lakes.tif written
+chile_lakes: 68.2% of pixels where WorldCover and Dynamic World agree
+chile_lakes: done
+rondonia_frontier: S1 scenes per month {'1': 6, '10': 5, '11': 5, '12': 4, '2': 4, '3': 5, '4': 4, '5': 6, '6': 4, '7': 5, '8': 5, '9': 5}
+uganda_mosaic: S1 scenes per month {'1': 13, '10': 12, '11': 11, '12': 12, '2': 12, '3': 12, '4': 13, '5': 13, '6': 15, '7': 15, '8': 13, '9': 12}
+  labels/paraguay_mosaic.tif written
+paraguay_mosaic: 56.9% of pixels where WorldCover and Dynamic World agree
+paraguay_mosaic: done
+ghana_cocoa: S1 scenes per month {'1': 5, '10': 6, '11': 4, '12': 4, '2': 5, '3': 4, '4': 5, '5': 5, '6': 4, '7': 5, '8': 5, '9': 5}
+  labels/serra_gaucha.tif written
+serra_gaucha: 77.5% of pixels where WorldCover and Dynamic World agree
+serra_gaucha: done
+nigeria_middle_belt: S1 scenes per month {'1': 2, '10': 3, '11': 3, '12': 2, '2': 3, '3': 2, '4': 3, '5': 2, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/rondonia_frontier.tif written
+  s1/ghana_cocoa.tif written
+  s1/nigeria_middle_belt.tif written
+  labels/ghana_cocoa.tif written
+ghana_cocoa: 75.4% of pixels where WorldCover and Dynamic World agree
+ghana_cocoa: done
+  labels/rondonia_frontier.tif written
+rondonia_frontier: 95.3% of pixels where WorldCover and Dynamic World agree
+rondonia_frontier: done
+cameroon_highlands: S1 scenes per month {'1': 5, '10': 5, '11': 6, '12': 5, '2': 5, '3': 5, '4': 5, '5': 5, '6': 5, '7': 5, '8': 5, '9': 5}
+madagascar_highlands: S1 scenes per month {'1': 2, '10': 2, '11': 3, '12': 2, '2': 3, '3': 2, '4': 3, '5': 2, '6': 3, '7': 3, '8': 2, '9': 3}
+  labels/nigeria_middle_belt.tif written
+nigeria_middle_belt: 55.6% of pixels where WorldCover and Dynamic World agree
+nigeria_middle_belt: done
+kzn_midlands: S1 scenes per month {'1': 6, '10': 6, '11': 4, '12': 5, '2': 4, '3': 5, '4': 4, '5': 6, '6': 5, '7': 5, '8': 5, '9': 5}
+  s1/madagascar_highlands.tif written
+  s1/uganda_mosaic.tif written
+  s1/cameroon_highlands.tif written
+  labels/madagascar_highlands.tif written
+madagascar_highlands: 64.2% of pixels where WorldCover and Dynamic World agree
+madagascar_highlands: done
+  s1/kzn_midlands.tif written
+kilimanjaro_slopes: S1 scenes per month {'1': 8, '10': 8, '11': 8, '12': 7, '2': 5, '3': 8, '4': 7, '5': 8, '6': 8, '7': 7, '8': 8, '9': 7}
+  labels/cameroon_highlands.tif written
+cameroon_highlands: 61.4% of pixels where WorldCover and Dynamic World agree
+cameroon_highlands: done
+java_rice_hills: S1 scenes per month {'1': 8, '10': 8, '11': 8, '12': 6, '2': 7, '3': 8, '4': 7, '5': 2, '6': 0, '7': 2, '8': 7, '9': 7}
+java_rice_hills: SKIPPED (months without Sentinel-1 IW scenes: {'1': 8, '10': 8, '11': 8, '12': 6, '2': 7, '3': 8, '4': 7, '5': 2, '6': 0, '7': 2, '8': 7, '9': 7})
+vietnam_midlands: S1 scenes per month {'1': 4, '10': 5, '11': 5, '12': 4, '2': 5, '3': 4, '4': 6, '5': 5, '6': 5, '7': 5, '8': 5, '9': 5}
+  labels/uganda_mosaic.tif written
+uganda_mosaic: 76.3% of pixels where WorldCover and Dynamic World agree
+uganda_mosaic: done
+isan_paddies: S1 scenes per month {'1': 15, '10': 15, '11': 13, '12': 13, '2': 14, '3': 14, '4': 15, '5': 15, '6': 15, '7': 15, '8': 16, '9': 14}
+  s1/kilimanjaro_slopes.tif written
+  labels/kilimanjaro_slopes.tif written
+kilimanjaro_slopes: 64.5% of pixels where WorldCover and Dynamic World agree
+kilimanjaro_slopes: done
+  labels/kzn_midlands.tif written
+kzn_midlands: 79.4% of pixels where WorldCover and Dynamic World agree
+kzn_midlands: done
+sri_lanka_hills: S1 scenes per month {'1': 6, '10': 6, '11': 5, '12': 6, '2': 4, '3': 6, '4': 4, '5': 6, '6': 6, '7': 6, '8': 6, '9': 4}
+kerala_mosaic: S1 scenes per month {'1': 3, '10': 3, '11': 2, '12': 3, '2': 2, '3': 3, '4': 2, '5': 3, '6': 3, '7': 2, '8': 3, '9': 2}
+  s1/vietnam_midlands.tif written
+  s1/isan_paddies.tif written
+  s1/sri_lanka_hills.tif written
+  s1/kerala_mosaic.tif written
+  labels/vietnam_midlands.tif written
+vietnam_midlands: 54.3% of pixels where WorldCover and Dynamic World agree
+vietnam_midlands: done
+nagano_satoyama: S1 scenes per month {'1': 7, '10': 8, '11': 7, '12': 5, '2': 8, '3': 7, '4': 8, '5': 7, '6': 7, '7': 7, '8': 9, '9': 7}
+  labels/sri_lanka_hills.tif written
+sri_lanka_hills: 73.3% of pixels where WorldCover and Dynamic World agree
+sri_lanka_hills: done
+sichuan_hills: S1 scenes per month {'1': 5, '10': 2, '11': 3, '12': 3, '2': 4, '3': 6, '4': 5, '5': 3, '6': 2, '7': 2, '8': 2, '9': 5}
+  labels/kerala_mosaic.tif written
+kerala_mosaic: 90.8% of pixels where WorldCover and Dynamic World agree
+kerala_mosaic: done
+yunnan_mosaic: S1 scenes per month {'1': 8, '10': 8, '11': 7, '12': 8, '2': 7, '3': 8, '4': 7, '5': 8, '6': 6, '7': 8, '8': 6, '9': 6}
+  labels/isan_paddies.tif written
+isan_paddies: 45.9% of pixels where WorldCover and Dynamic World agree
+isan_paddies: done
+nepal_terai: S1 scenes per month {'1': 10, '10': 11, '11': 8, '12': 11, '2': 8, '3': 11, '4': 11, '5': 10, '6': 10, '7': 10, '8': 11, '9': 9}
+  s1/sichuan_hills.tif written
+  labels/sichuan_hills.tif written
+sichuan_hills: 64.0% of pixels where WorldCover and Dynamic World agree
+sichuan_hills: done
+  s1/nagano_satoyama.tif written
+pontic_slopes: S1 scenes per month {'1': 14, '10': 17, '11': 13, '12': 13, '2': 15, '3': 15, '4': 15, '5': 14, '6': 15, '7': 15, '8': 14, '9': 15}
+  s1/nepal_terai.tif written
+  s1/yunnan_mosaic.tif written
+  labels/nepal_terai.tif written
+nepal_terai: 79.9% of pixels where WorldCover and Dynamic World agree
+nepal_terai: done
+  labels/yunnan_mosaic.tif written
+yunnan_mosaic: 73.6% of pixels where WorldCover and Dynamic World agree
+yunnan_mosaic: done
+georgia_mosaic: S1 scenes per month {'1': 15, '10': 15, '11': 15, '12': 14, '2': 12, '3': 17, '4': 15, '5': 15, '6': 15, '7': 15, '8': 15, '9': 15}
+waikato_farms: S1 scenes per month {'1': 5, '10': 5, '11': 5, '12': 4, '2': 4, '3': 5, '4': 4, '5': 4, '6': 3, '7': 2, '8': 5, '9': 5}
+  s1/pontic_slopes.tif written
+  s1/waikato_farms.tif written
+  labels/pontic_slopes.tif written
+pontic_slopes: 80.0% of pixels where WorldCover and Dynamic World agree
+pontic_slopes: done
+gippsland_mosaic: S1 scenes per month {'1': 8, '10': 8, '11': 5, '12': 7, '2': 7, '3': 8, '4': 7, '5': 4, '6': 5, '7': 5, '8': 7, '9': 9}
+  labels/nagano_satoyama.tif written
+nagano_satoyama: 73.2% of pixels where WorldCover and Dynamic World agree
+nagano_satoyama: done
+new_england_tablelands: S1 scenes per month {'1': 8, '10': 9, '11': 6, '12': 9, '2': 7, '3': 8, '4': 7, '5': 6, '6': 6, '7': 7, '8': 9, '9': 6}
+  labels/waikato_farms.tif written
+waikato_farms: 73.5% of pixels where WorldCover and Dynamic World agree
+waikato_farms: done
+mecklenburg_lakes: S1 scenes per month {'1': 21, '10': 21, '11': 21, '12': 20, '2': 19, '3': 23, '4': 20, '5': 23, '6': 20, '7': 21, '8': 20, '9': 20}
+  s1/georgia_mosaic.tif written
+  s1/new_england_tablelands.tif written
+  s1/gippsland_mosaic.tif written
+  labels/georgia_mosaic.tif written
+georgia_mosaic: 83.0% of pixels where WorldCover and Dynamic World agree
+georgia_mosaic: done
+masuria_lakes: S1 scenes per month {'1': 17, '10': 20, '11': 18, '12': 18, '2': 16, '3': 20, '4': 17, '5': 19, '6': 20, '7': 21, '8': 21, '9': 20}
+  labels/new_england_tablelands.tif written
+new_england_tablelands: 83.6% of pixels where WorldCover and Dynamic World agree
+new_england_tablelands: done
+  labels/gippsland_mosaic.tif written
+gippsland_mosaic: 72.5% of pixels where WorldCover and Dynamic World agree
+gippsland_mosaic: done
+parana_river: S1 scenes per month {'1': 9, '10': 6, '11': 8, '12': 6, '2': 6, '3': 7, '4': 8, '5': 9, '6': 4, '7': 9, '8': 7, '9': 8}
+brahmaputra_assam: S1 scenes per month {'1': 8, '10': 8, '11': 7, '12': 7, '2': 7, '3': 8, '4': 7, '5': 7, '6': 7, '7': 8, '8': 7, '9': 8}
+  s1/brahmaputra_assam.tif written
+  s1/parana_river.tif written
+  s1/masuria_lakes.tif written
+  labels/parana_river.tif written
+parana_river: 76.4% of pixels where WorldCover and Dynamic World agree
+parana_river: done
+  labels/brahmaputra_assam.tif written
+brahmaputra_assam: 62.2% of pixels where WorldCover and Dynamic World agree
+brahmaputra_assam: done
+lake_kyoga_shore: S1 scenes per month {'1': 13, '10': 15, '11': 7, '12': 9, '2': 13, '3': 11, '4': 13, '5': 13, '6': 13, '7': 11, '8': 14, '9': 10}sites:  98%|█████████▊| 108/110 [08:28<00:11,  5.85s/site]sites:  99%|█████████▉| 109/110 [08:35<00:06,  6.18s/site]sites: 100%|██████████| 110/110 [08:45<00:00,  7.08s/site]sites: 100%|██████████| 110/110 [08:45<00:00,  4.78s/site]
+
+  labels/masuria_lakes.tif written
+masuria_lakes: 78.5% of pixels where WorldCover and Dynamic World agree
+masuria_lakes: done
+  s1/lake_kyoga_shore.tif written
+  labels/lake_kyoga_shore.tif written
+lake_kyoga_shore: 76.1% of pixels where WorldCover and Dynamic World agree
+lake_kyoga_shore: done
+  s1/mecklenburg_lakes.tif written
+  labels/mecklenburg_lakes.tif written
+mecklenburg_lakes: 90.4% of pixels where WorldCover and Dynamic World agree
+mecklenburg_lakes: done
+skipped sites (see skipped_sites.json): ['java_rice_hills']
+all other sites downloaded
