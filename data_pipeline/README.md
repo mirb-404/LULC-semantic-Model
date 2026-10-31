@@ -44,7 +44,7 @@ Run the steps in this order, from the repository root.
    tail -f download.log
    ```
    - Rerun the same command after an interruption: existing files are skipped.
-   - `[k/178 sites]` lines show progress. `SKIPPED` sites (no mosaic, or a month without Sentinel-1 scenes) are listed in `Dataset_2nd_iteration/skipped_sites.json`; `FAILED` sites are retried on the next run.
+   - A progress bar shows sites done, elapsed time and the estimated time left (`sites: 40%| 70/176 [1:02:11<1:34:30, 53.5s/site]`); already downloaded sites are not counted. `SKIPPED` sites (no mosaic, or a month without Sentinel-1 scenes) are listed in `Dataset_2nd_iteration/skipped_sites.json`; `FAILED` sites are retried on the next run.
    - More `--workers` is faster, but Earth Engine limits concurrent requests per project; 4-6 is safe.
 5. **Patch index and statistics**:
    ```bash

@@ -48,6 +48,7 @@ import numpy as np
 import rasterio
 from pyproj import Transformer
 from rasterio.transform import from_origin
+from tqdm import tqdm
 
 import config
 
@@ -56,6 +57,9 @@ DEG = math.pi / 180
 AUTH_HINT = ("Earth Engine credentials missing or invalid. On a headless machine run\n"
              "  earthengine authenticate --auth_mode=notebook\n"
              "open the link, paste the code back, and do not tick 'read-only scopes'.")
+PROJECT_HINT = ("The Cloud project cannot use Earth Engine (not registered, access expired, or API disabled).\n"
+                "Use a project registered for Earth Engine: export EE_PROJECT=<id>, or pass --project <id>.\n"
+                "The project Datalab provides is not registered.")
 
 
 class SkipSite(Exception):
@@ -289,6 +293,9 @@ def initialize(project):
             text = str(err)
             if any(s in text for s in ("authorize", "credentials", "invalid_scope", "invalid_grant")):
                 raise SystemExit(f"{text}\n\n{AUTH_HINT}")
+            if any(s in text for s in ("access has expired", "not registered", "has not been used in project",
+                                       "Earth Engine API has not been", "PERMISSION_DENIED")):
+                raise SystemExit(f"project {project}: {text}\n\n{PROJECT_HINT}")
             if attempt == 9:
                 raise
             print(f"ee.Initialize failed ({err}); retrying")
@@ -318,22 +325,26 @@ def main():
         parser.error("pass --project, set EE_PROJECT or add Project_ID to .env")
 
     initialize(args.project)
-    for folder in (config.S1_DIR, config.LABEL_DIR) + ((config.TERRAIN_DIR,) if args.terrain else ()):
+    folders = (config.S1_DIR, config.LABEL_DIR) + ((config.TERRAIN_DIR,) if args.terrain else ())
+    for folder in folders:
         folder.mkdir(parents=True, exist_ok=True)
+    todo = [s for s in sites if not all((f / f"{s['name']}.tif").exists() for f in folders)]
+    print(f"{len(sites) - len(todo)} sites already downloaded, {len(todo)} to go")
     failed, skipped = [], {}
-    with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        jobs = {pool.submit(download_site, site, args.terrain): site["name"] for site in sites}
-        for done, job in enumerate(as_completed(jobs), 1):
+    with ThreadPoolExecutor(max_workers=args.workers) as pool, \
+            tqdm(total=len(todo), unit="site", desc="sites", dynamic_ncols=True) as bar:
+        jobs = {pool.submit(download_site, site, args.terrain): site["name"] for site in todo}
+        for job in as_completed(jobs):
             name = jobs[job]
             try:
                 job.result()
             except SkipSite as reason:
-                print(f"{name}: SKIPPED ({reason})")
+                tqdm.write(f"{name}: SKIPPED ({reason})")
                 skipped[name] = str(reason)
             except Exception as err:
-                print(f"{name}: FAILED ({err}); rerun the script to retry")
+                tqdm.write(f"{name}: FAILED ({err}); rerun the script to retry")
                 failed.append(name)
-            print(f"[{done}/{len(sites)} sites]")
+            bar.update(1)
     skipped_path = config.DATA_DIR / "skipped_sites.json"
     earlier = json.loads(skipped_path.read_text()) if skipped_path.exists() else {}
     earlier = {k: v for k, v in earlier.items() if k not in jobs.values()}

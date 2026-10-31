@@ -1,4 +1,5 @@
 .venv/
+.venv-data/
 __pycache__/
 Dataset/*
 !Dataset/README.md
