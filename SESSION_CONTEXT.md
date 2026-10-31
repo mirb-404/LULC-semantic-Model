@@ -415,7 +415,7 @@ Details: `reports/2026-10-27 Prototype 1.md` (test results, Datalab setup fixes,
 
 ## 14. Update 2026-10-31: Black Forest failure → 2nd iteration (rural objective)
 
-Full story with evidence: `reports/2026-10-31 Prototype test 1 Black Forest.md` (sections 1-5 the failure, section 6 the decisions incl. 6.9 one final model, section 7 the training philosophy: variant names, months, PCA, terrain; section 8 the status).
+Full story with evidence: `reports/2026-10-31 Prototype test 1 Black Forest.md` (sections 1-5 the failure, section 6 the decisions incl. 6.9 one final model, section 7 the training philosophy: variant names, months, PCA, terrain; section 8 the status before the build; section 9 the Datalab build and the data Q&A).
 
 ### 14.1 What happened
 
@@ -465,9 +465,24 @@ Correction: earlier in the session the urban share was quoted as "66 % of sites,
   - Proof: stub test (no torch locally): statistics identical to the notebook, input channels 9/12/18 for n_months 0/1/3, smoothing runs; live Earth Engine at `black_forest_villages` 2021: prototype stack vs `download.py` 0 code difference (iteration 2) and vs commit `40e1280` 0 difference (iteration 1). Not yet run end to end with real weights.
 - `.gitignore`: `Dataset_2nd_iteration/`.
 
+### 14.6 Dataset build on Datalab and data Q&A (2026-10-31)
+
+Full write-up: report section 9.
+
+- **Datalab environment:** the root `.venv` is broken (symlink to a Python from an older image; `sudo` does not help). Use `uv venv .venv-data && source .venv-data/bin/activate && uv pip install -r requirements.txt`. `.venv-data/` is git-ignored.
+- **Earth Engine project:** `EE_PROJECT` was `datalab-512920` (Datalab's project; noncommercial access expired). Use the user's own registered project (the `Project_ID` in the local `.env`); the user added `export EE_PROJECT=...` to `~/.bashrc` on Datalab. The Earth Engine login itself stayed valid (`~/.config/earthengine/credentials`; `git reset` does not touch it). `download.py` `initialize()` now stops at once with `PROJECT_HINT` for expired / unregistered projects instead of retrying.
+- **Progress bar:** `download.py` shows a tqdm bar (sites done / to go, elapsed, ETA) and prints how many sites are already downloaded; SKIPPED / FAILED lines via `tqdm.write`. Restart is safe (`.tmp.tif` + rename; finished files skipped; missing `_stats.json` → `--relabel`).
+- **Result:** 177 of 178 sites; `java_rice_hills` skipped (June 2021: 0 Sentinel-1 IW scenes). 2-site test: agreement 88.0 % (black_forest_villages), 61.9 % (krakow_edge). `Dataset_2nd_iteration/` = 3.7 GB. `make_patches.py` and `preview.py` done on Datalab; class distribution not yet reviewed.
+- **Exam compliance confirmed:** Sentinel-1 is the only model input; Earth Engine is only the data platform; WorldCover / Dynamic World are labels (not input); the GLO-30 DEM is preprocessing (terrain correction, listed in the brief); Esri is the independent sanity check. Google Earth screenshots are not evidence. In the report, describe the monthly mean of 15-22 scenes as the speckle filter (temporal multilooking).
+- **User's understanding of the previews (explained):** panel 1 = radar January, panel 2 = radar July (both input), panel 3 = WorldCover translated into our 7 classes (training target, not a model result). "ignore" = no label (mostly open sea); disagreement pixels are no longer ignored. Patches = 256 × 256 px windows (input size + quality filter: ≤ 60 % unlabelled, ≥ 95 % radar every month), stored as an index.
+- **Roads:** the user saw roads in the radar that WorldCover misses. Rural roads (3-8 m) are sub-pixel at 10 m and below the ~20 m radar resolution. Decision: accept and document (critical discussion); OpenStreetMap roads and a road class rejected.
+- **Manual label editing:** rejected (scale, inconsistency, reproducibility). Only rule-based fixes for systematic errors after the first results; optional small hand-checked gold test set for the report.
+- **Prototype:** updated for the 2nd iteration (14.4), shared `data_pipeline/sentinel1.py`, verified 0 difference against the dataset at `black_forest_villages`.
+- **Commits:** the user commits and pushes. On Datalab, after each push: `git fetch && git reset --hard origin/main` (data and `.venv-data/` are untracked and survive).
+
 ### 14.5 Next steps
 
-1. Datalab: build the dataset (`data_pipeline/README.md`), then `make_patches.py` and `preview.py`; check steep tiles and `skipped_sites.json`.
+1. Done: dataset built on Datalab (14.6). Still to do: print and review the class distribution (`patches/class_distribution.json`), look at the previews of steep tiles and `black_forest_villages`.
 2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, precision / recall per class, Man-made IoU on the 4 test cities (below about 0.85: add city-edge sites).
 3. Prototype: done (14.4); run it with the first `final_model.pt` + `model_card.json`.
 4. Repeat the Black Forest test with the new model.

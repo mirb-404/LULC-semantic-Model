@@ -1,6 +1,6 @@
 # 2026-10-31 Prototype test 1: Black Forest
 
-Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), and section 8 the status.
+Review of the first rural prototype test (`Documentation/Images/Prototype_test_1/`): Google Earth view of a Black Forest clearing, `lulc_12_months.png` (`three_month_stats`) and `lulc_12_months_pca.png` (PCA variant), 2021, January start. Sections 1-5 analyse the failure; section 6 records the decisions taken because of it for the 2nd iteration, section 7 explains the training philosophy (variant names, months, PCA, terrain, one final model), section 8 the status before the build, and section 9 the dataset build on Datalab with the questions answered about the data (sources and exam compliance, previews, patches, roads, manual labels).
 
 Previous reports in this story: `reports/Test run 6 results.md` (the 1st-iteration model), `reports/2026-10-27 Prototype 1.md` (first prototype tests in Berlin and Potsdam).
 
@@ -265,3 +265,84 @@ Built, not yet run: the dataset scripts (`data_pipeline/`, Datalab steps in `dat
 2. Run `Notebooks/2nd_iteration.ipynb`, DEV first. Read rural mIoU, flicker raw vs smoothed, per-class precision and recall, and the Man-made IoU on the 4 test cities (below about 0.85: add more city-edge sites).
 3. Prototype updated for the 2nd iteration (done): the radar processing now comes from the shared `data_pipeline/sentinel1.py`, so the prototype's input is the training input (verified: 0 difference at `black_forest_villages`); model card driven variants, 9 statistics, 7 classes, 3-month smoothing. 1st-iteration weights still work.
 4. Repeat this Black Forest test with the new model and compare.
+
+## 9. Building the dataset on Datalab (2026-10-31)
+
+### 9.1 Run log
+
+| Step | What happened | Fix |
+|---|---|---|
+| first `download.py` | `ModuleNotFoundError: No module named 'ee'`: the active environment had no Earth Engine package | install `requirements.txt` into a separate environment |
+| `uv pip install` | "Broken symlink at `.venv/bin/python3`": the root `.venv` points to a Python from an older Datalab image (same problem as on 2026-10-27); `sudo` does not help | `uv venv .venv-data`, `source .venv-data/bin/activate`, `uv pip install -r requirements.txt` (`.venv-data/` is git-ignored) |
+| test and full download started at once | the three commands were pasted together, so the full `nohup` run started in parallel with the 2-site test | `pkill -f data_pipeline/download.py`, then one step at a time |
+| `ee.Initialize` | "Project datalab-512920 noncommercial Earth Engine access has expired": `EE_PROJECT` pointed to the project Datalab provides | `export EE_PROJECT=<own registered project>` (the `Project_ID` in the local `.env`; also added to `~/.bashrc`). The Earth Engine login itself was still valid |
+| retries | the script retried this error 10 × 10 s although a retry cannot fix it | `initialize()` now stops at once with a hint for expired / unregistered projects |
+| 2-site test | `black_forest_villages` and `krakow_edge` downloaded; agreement WorldCover / Dynamic World 88.0 % and 61.9 % (city edges have more disagreement pixels, which the 1st-iteration consensus rule would have dropped) | — |
+| full download | no progress information in the log | progress bar (tqdm: sites done / to go, elapsed, ETA); already downloaded sites are not counted; restart is safe |
+| result | 177 of 178 sites; `java_rice_hills` skipped: June 2021 has 0 Sentinel-1 IW scenes (May and July 2 each) | correct behaviour: a month without radar cannot be used. One training site less |
+| size | `Dataset_2nd_iteration/` = **3.7 GB** (budget 4-5 GB) | — |
+
+Restarting is safe: every file is written as `<site>.tmp.tif` and renamed only when complete; a rerun skips finished files. If a run is cancelled right after a label file is written, its `_stats.json` can be missing; `download.py --relabel` rebuilds it offline.
+
+### 9.2 Exam compliance of the data sources
+
+The brief requires "Sentinel-1 data as its only input". The question was whether using Google Earth Engine, whose Google Earth imagery looks very good, breaks this. It does not: Earth Engine is only the platform that serves the data.
+
+| Data | Source | Role | Compliant |
+|---|---|---|---|
+| model input | Sentinel-1 GRD, VV + VH, monthly (`COPERNICUS/S1_GRD`) | the only input | yes |
+| training labels | ESA WorldCover, Dynamic World (made from Sentinel-2 optical) | target to learn from, never an input | yes: labels are not input |
+| elevation model | Copernicus GLO-30 | corrects the radar for slopes during preprocessing | yes: the brief lists terrain correction as a preprocessing step; terrain as an input channel was removed |
+| sanity check | Esri 10 m LULC | independent comparison, not used in training | yes: the brief asks for exactly this |
+| Google Earth screenshot | aerial imagery | visual impression only | not evidence: different date and resolution, not a land-cover map |
+
+For the report: the brief's preprocessing list names **speckle filtering**. The 2nd iteration has no spatial filter, but every monthly composite is the mean of 15-22 scenes; this temporal multilooking is the speckle filter. The 3 × 3 median was dropped because it blurred field edges.
+
+### 9.3 Understanding the data (questions answered during the build)
+
+**What the pipeline does for each site** (`download.py`, `sentinel1.py`):
+
+1. A 10.24 × 10.24 km tile (1024 × 1024 px, 10 m) around the site coordinates, in the local UTM projection.
+2. Radar, for each month of 2021: all Sentinel-1 scenes of the month, each corrected for slopes (terrain flattening) and cleaned of layover, shadow and image edges, then averaged. Saved as `s1/<site>.tif`, 24 bands (12 months × VV, VH), uint8 codes.
+3. Labels: ESA WorldCover (11 classes) and Google Dynamic World (9 classes) for 2021, translated into our 7 classes (`WORLDCOVER_TO_CLASS`, `DYNAMICWORLD_TO_CLASS` in `config.py`) and sampled onto exactly the same 10 m grid.
+4. Agreement: for each pixel, whether both maps give the same class. Saved as `labels/<site>.tif`, 4 bands: agreement, WorldCover, Dynamic World, Dynamic World without snow.
+
+Who does what: ESA made the land-cover map; this project chose the classes, translated WorldCover into them, matched the labels to the radar grid pixel by pixel, computed the agreement and processed the radar. The model then learns to produce such maps from radar alone, which works through clouds and every month.
+
+**The preview images** (`preview.py`, one PNG per site): panel 1 is the radar in January, panel 2 the radar in July (both model input, false colour R = VV, G = VH, B = VV - VH), panel 3 the WorldCover label in our class names and colours (the training target). They are **not** a model result: nothing had been trained yet. The two radar months show how the signal changes with the season while the label stays the same: fields change between bare / snow-covered and grown, forest stays similar, water stays dark. This seasonal difference is what separates crop fields from grassland and forest, and it caused the Black Forest error when a dark winter month looked like water. Bright / pink = buildings, green = vegetation (strongest for forest), dark = water, smooth sand, wet or frozen ground.
+
+**Patches** (`make_patches.py`): 256 × 256 px squares (2.56 km), up to 16 per tile. They are the model's input size (a full tile in a batch of 64 does not fit in GPU memory) and a quality filter: a patch is kept only if at most 60 % of its pixels have no label and every month has radar for at least 95 % of its pixels. Only an index is stored (`patches/<split>_patches.csv`: site, region, site type, row, column), plus `norm_stats.json`, `class_distribution.json` and `site_summary.csv`. Val and test always use the indexed windows; training cuts its squares at random positions around them (±128 px).
+
+**"ignore" in the preview legend** means "no label": WorldCover has no value, mostly over open sea and at data gaps. Those pixels count in neither the loss nor the scores, and patches that are more than 60 % unlabelled are dropped. In the 1st iteration "ignore" also included every pixel where the two maps disagreed (12-40 % of a tile, mostly boundaries); in the 2nd iteration those pixels are trained at half weight.
+
+### 9.4 Observation: roads are missing from the labels
+
+The user noticed in the previews that roads are visible in the radar but only partly present in the WorldCover label.
+
+- Rural roads are 3-8 m wide, narrower than one 10 m pixel. WorldCover assigns each pixel its dominant cover, so most roads disappear into the surrounding trees, grassland or fields; only wide roads appear as Man-made, often with gaps. Tree crowns over roads hide them in the optical imagery WorldCover is made from.
+- What the eye sees in the radar is often the corridor (a cut through forest, a tree line, a shadow strip), not the asphalt, which is below the radar's effective resolution of about 20 m.
+- Consequence: the model maps wide roads partly and absorbs narrow ones into their surroundings, so rural Man-made area is somewhat underestimated; roads are a small share of rural land, so class percentages and changes barely move. A road the model finds but the label misses counts as an error (slightly pessimistic scores).
+- **Decision: accept and document.** Burning OpenStreetMap roads into the labels was rejected (incomplete in rural Africa and Asia, so inconsistent labels between regions; narrow roads stay sub-pixel in the radar, so the model would learn noisy lines; new download and retraining). A separate road class was rejected for the same resolution reason.
+- Sentence for the critical discussion: *Roads narrower than the 10 m pixel are mostly absent from the WorldCover labels and below the effective radar resolution (~20 m), so rural Man-made area is underestimated; wide roads are mapped partly.*
+
+### 9.5 Decision: no manual label editing
+
+Question: can the remaining issues be fixed by editing the training labels by hand?
+
+- Better labels raise the ceiling: WorldCover is about 75 % correct overall (shrub and wetland much less), and the model cannot be better than its teacher. Labels could fix class errors the radar can see (a meadow labelled as crop field, a shifted forest edge).
+- They cannot fix what the radar cannot see (sub-pixel roads) or input effects (snow, wet soil; handled by the yearly statistics and terrain flattening).
+- **Rejected:** 177 tiles × about 1 million pixels; hand edits would follow optical imagery of other dates, differ between regions and sessions, and be hard to describe and reproduce in the report's label-matching section.
+- **Instead:** rule-based label fixes only where an error is systematic (already done: agreement weighting, wetland removed, seasonal snow rule), decided after the first training results. Optional for the report: a small hand-checked "gold" test set of 3-5 patches (Black Forest, Latvia, Madagascar) checked against high-resolution imagery, reported next to the WorldCover score (about 1-2 hours; does not change training).
+
+### 9.6 Prototype updated for the 2nd iteration
+
+The prototype could not use 2nd-iteration weights: it built 1st-iteration sigma0 radar (a silent mismatch: wrong maps without an error), recognised models by channel counts that the new variants do not have, used 8 classes in the Esri comparison and had no smoothing.
+
+- New `data_pipeline/sentinel1.py` holds the Sentinel-1 processing and is imported by both `download.py` and `prototype/gee.py`, so training and prototype input cannot drift apart. The `download.py` refactor was verified (identical Earth Engine graph, 0 difference).
+- The model card decides everything for 2nd-iteration weights (`"iteration": 2`, `n_months`, 9 statistics, 7 classes, `temporal_smoothing`); 1st-iteration weights still work.
+- Verified at `black_forest_villages`, 2021: the prototype's radar input equals the dataset's for both iterations (0 code difference each; the two iterations differ by up to 108 codes). Statistics identical to the notebook; input channels 9 / 12 / 18 for 0 / 1 / 3 months.
+
+### 9.7 Status after the build
+
+- `Dataset_2nd_iteration/` built (177 sites, 3.7 GB), `make_patches.py` and `preview.py` done.
+- Next: print the class distribution, check the previews of steep tiles (`nepal_midhills`, `andes_sacred_valley`) and `black_forest_villages`, then run `Notebooks/2nd_iteration.ipynb` with `DEV = True`.
