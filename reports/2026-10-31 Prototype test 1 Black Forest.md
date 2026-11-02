@@ -136,6 +136,36 @@ The median filter is dropped because it blurred field edges, roads and streams; 
 - **Snow & ice stays separate from Bare ground** and gets a light blue-grey, because white (`#f0f0f0`) disappears on white figure backgrounds.
 - mIoU over 7 classes is **not comparable** with the 1st iteration's 8-class mIoU.
 
+### 6.4b Which source classes are merged, and why not more classes (added 2026-11-02)
+
+**Merge table** (`data_pipeline/config.py`, `WORLDCOVER_TO_CLASS` and `DYNAMICWORLD_TO_CLASS`):
+
+| Our class | ESA WorldCover (training label) | Dynamic World (agreement check) | Merged in the 1st iteration? |
+|---|---|---|---|
+| Man-made | built-up (50) | built (6) | no (named Built-up) |
+| Crop fields | cropland (40) | crops (4) | no (named Cropland) |
+| Trees | tree cover (10) **+ mangroves (95)** | trees (1) | mangroves were in Wetland & mangrove |
+| Grassland | **shrubland (20) + grassland (30) + herbaceous wetland (90)** | **grass (2) + shrub/scrub (5) + flooded vegetation (3)** | shrub + grass already merged (named Shrub & grass); wetland was separate |
+| Bare ground | bare / sparse vegetation (60) **+ moss & lichen (100)** | bare (7) | moss & lichen already in Bare / sparse |
+| Water | permanent water bodies (80) | water (0) | no |
+| Snow & ice | snow & ice (70) | snow/ice (8) | no |
+
+So shrubs and grass were merged in **both** iterations; the 2nd iteration only renamed the class (Shrub & grass → Grassland) and added herbaceous wetland to it. Mangroves moved to Trees.
+
+**Why the model does not get more classes.** A class is worth having only if the radar can see it and the labels are reliable. Splitting a class that fails either test makes the maps look more detailed but less correct:
+
+- **Noise.** When the radar cannot separate two classes, the model guesses between them. The guess changes from pixel to pixel (speckled patches inside one field) and from month to month (flicker), and the change maps then show change that did not happen.
+- **Shrub vs grass fails both tests.** Both are low vegetation with weak volume scattering in C-band, and they differ mainly in height and woodiness, which a 10-20 m radar pixel barely resolves. WorldCover shrubland is one of its least accurate classes, and WorldCover and Dynamic World agree on only 55 % of the merged Grassland pixels even now (section 10.1).
+- **Wetland failed both tests** (section 6.4): 30-45 % correct labels, and the main winter false alarm in the Black Forest test; flooded marsh looks like water, dry marsh like grass.
+- **Evidence from the 1st iteration:** shrub_grass test sites scored mIoU 0.14 (Test_6), and the wetland class flickered most.
+- **Scores.** mIoU is the mean over classes, so one added class at IoU 0.3 lowers the mean even if every other class stays the same. Rare classes also have few training pixels and few test sites, so their scores are noisy (one or two sites decide them).
+
+**When a split does help.** Crop fields vs Grassland stays separate because it passes both tests: crops are ploughed, grow and are harvested, so their radar signal changes over the year, while grass stays similar; the seasonal statistics (VH std, low and high values) capture exactly this. The full run scores 0.656 and 0.682 IoU for the two classes. Trees vs Grassland also passes (tall vegetation scatters strongly in VH).
+
+**Naming.** The class names should say what is merged, so users are not misled (for example a shrubland shown as "Grassland"). Options under discussion: keep the short names and explain the merges in the legend and the report ("Grassland: grass, shrubs, herbaceous wetland"; "Trees: incl. mangroves"; "Bare ground: incl. moss and lichen"), or use longer names in the model ("Grassland & shrubs", "Trees & mangroves"). Renaming changes only text: the notebook `CLASS_NAMES`, `data_pipeline/config.py` and the run's `model_card.json` (the prototype reads the names from the card); no retraining is needed.
+
+**Sentence for the report:** *Classes were merged where C-band radar cannot separate them and the label sources disagree (shrub and grass, herbaceous wetland and grass, mangroves and forest); separate classes would add detail on paper but mostly add noise: speckled patches, month-to-month flicker and a lower mean IoU.*
+
 ### 6.5 Class balance: realistic shares, mild correction
 
 **Decision.** Keep realistic class shares and correct only mildly (sqrt class weights, class-aware patch sampler, Lovász loss). Do not aim for equal shares.

@@ -166,10 +166,9 @@ source = st.sidebar.radio("Data", ["Google Earth Engine", "Local dataset tile (o
 if source == "Google Earth Engine":
     # the default stays on the server: a prefilled value would be sent to the browser
     project = st.sidebar.text_input("Earth Engine project ID", type="password",
-                                    placeholder="blank = server default",
+                                    placeholder="blank = server default" if gee.default_project() else "",
                                     help="Google Cloud project registered for Earth Engine. "
-                                         "Blank: EE_PROJECT, Project_ID in the repo's .env, "
-                                         "or the built-in default") or gee.default_project()
+                                         "Blank: EE_PROJECT or Project_ID in the repo's .env") or gee.default_project()
     c1, c2 = st.sidebar.columns(2)
     lat = c1.number_input("Latitude", -60.0, 72.0, 52.5200, step=0.01, format="%.4f")
     lon = c2.number_input("Longitude", -180.0, 180.0, 13.4050, step=0.01, format="%.4f")
@@ -196,6 +195,9 @@ if run_clicked:
     try:
         with st.spinner("Fetching Sentinel-1 monthly composites ..."):
             if source == "Google Earth Engine":
+                if not project:
+                    st.error("Enter an Earth Engine project ID, or set Project_ID in the repo's .env.")
+                    st.stop()
                 data = gee_data(project, float(lat), float(lon), int(year), int(month), size, variant["terrain"],
                                 variant["iteration"])
             else:

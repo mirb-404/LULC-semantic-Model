@@ -36,7 +36,7 @@ The CPU also works. A 5 x 5 km area takes about 1-2 minutes for all 12 months.
    ```bash
    earthengine authenticate
    ```
-3. Enter the project ID in the sidebar, or leave it blank to use, in this order: the environment variable `EE_PROJECT`, `Project_ID = ...` in the repository's `.env` file (git-ignored), or the built-in default `ai-agent-455119` (`DEFAULT_PROJECT` in `gee.py`).
+3. Put the project ID in a `.env` file at the repository root (git-ignored, so the ID stays private): copy `.env.example` to `.env` and fill in `Project_ID = <your-project-id>`. Alternatives: the environment variable `EE_PROJECT` (wins over `.env`), or type it in the sidebar.
 4. Check that everything works:
    ```bash
    python check_auth.py                 # or: python check_auth.py --project <id>

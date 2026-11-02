@@ -26,8 +26,11 @@ def fail(step, err, hint):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--project", default=gee.default_project(),
-                        help="Earth Engine project (default: EE_PROJECT, .env Project_ID, or the built-in default)")
+                        help="Earth Engine project (default: EE_PROJECT, else Project_ID in .env)")
     project = parser.parse_args().project
+    if not project:
+        fail("project", "no project ID", "Set Project_ID = <id> in the repository's .env (see .env.example), "
+                                         "EE_PROJECT=<id>, or pass --project <id>.")
     print(f"project: {project}")
 
     credentials = Path(ee.oauth.get_credentials_path())

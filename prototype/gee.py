@@ -38,11 +38,8 @@ ESRI_TO_CLASS = {
 }
 
 
-DEFAULT_PROJECT = "ai-agent-455119"
-
-
 def default_project():
-    """Earth Engine project: EE_PROJECT, else Project_ID in the repository's .env, else DEFAULT_PROJECT."""
+    """Earth Engine project: EE_PROJECT, else Project_ID in the repository's .env (git-ignored), else ""."""
     if os.environ.get("EE_PROJECT"):
         return os.environ["EE_PROJECT"]
     env = Path(__file__).resolve().parent.parent / ".env"
@@ -51,7 +48,7 @@ def default_project():
             key, sep, value = line.partition("=")
             if sep and key.strip() == "Project_ID":
                 return value.strip().strip("\"'")
-    return DEFAULT_PROJECT
+    return ""
 
 
 def initialize(project):
