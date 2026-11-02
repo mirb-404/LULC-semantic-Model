@@ -36,7 +36,7 @@ The CPU also works. A 5 x 5 km area takes about 1-2 minutes for all 12 months.
    ```bash
    earthengine authenticate
    ```
-3. Put the project ID in a `.env` file at the repository root (git-ignored, so the ID stays private): copy `.env.example` to `.env` and fill in `Project_ID = <your-project-id>`. Alternatives: the environment variable `EE_PROJECT` (wins over `.env`), or type it in the sidebar.
+3. Put the project ID in a `.env` file at the repository root (git-ignored, so the ID stays private): copy `.env.example` to `.env` and fill in `Project_ID = <your-project-id>`. Alternative: the environment variable `EE_PROJECT` (wins over `.env`). The app has no project field: the ID stays on the server.
 4. Check that everything works:
    ```bash
    python check_auth.py                 # or: python check_auth.py --project <id>
@@ -71,7 +71,7 @@ python launch.py
 
 From a notebook cell: `!cd prototype && python launch.py`. Interrupting the cell stops the app.
 
-The Earth Engine project ID is never sent to the browser: leave the field blank to use `EE_PROJECT` or `Project_ID` from `.env` on the server.
+The Earth Engine project ID is never sent to the browser: the app reads `EE_PROJECT` or `Project_ID` from `.env` on the server and hides it in error messages.
 
 ## How to use
 

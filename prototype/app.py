@@ -43,6 +43,15 @@ def shift_month(year, month, k):
     return i // 12, i % 12 + 1
 
 
+def parse_degrees(text, lo, hi):
+    """Decimal degrees from a text box (pasted values may carry spaces or a trailing comma), or None."""
+    try:
+        value = float(text.strip().strip(",;"))
+    except ValueError:
+        return None
+    return value if lo <= value <= hi else None
+
+
 def month_label(year, month):
     return f"{pipeline.MONTH_NAMES[month - 1]} {year}"
 
@@ -237,14 +246,12 @@ if weight_bytes:
 st.sidebar.header("2. Location and time")
 source = st.sidebar.radio("Data", ["Google Earth Engine", "Local dataset tile (offline test)"])
 if source == "Google Earth Engine":
-    # the default stays on the server: a prefilled value would be sent to the browser
-    project = st.sidebar.text_input("Earth Engine project ID", type="password",
-                                    placeholder="blank = server default" if gee.default_project() else "",
-                                    help="Google Cloud project registered for Earth Engine. "
-                                         "Blank: EE_PROJECT or Project_ID in the repo's .env") or gee.default_project()
+    # text boxes instead of number inputs: no +/- buttons, coordinates are usually pasted
     c1, c2 = st.sidebar.columns(2)
-    lat = c1.number_input("Latitude", -60.0, 72.0, 52.5200, step=0.01, format="%.4f")
-    lon = c2.number_input("Longitude", -180.0, 180.0, 13.4050, step=0.01, format="%.4f")
+    lat = parse_degrees(c1.text_input("Latitude", "49.3988"), -60, 72)  # Sentinel-1 IW coverage
+    lon = parse_degrees(c2.text_input("Longitude", "8.6724"), -180, 180)
+    if lat is None or lon is None:
+        st.sidebar.error("Latitude -60 to 72, longitude -180 to 180, in decimal degrees (e.g. 47.95 and 8.10).")
     c1, c2 = st.sidebar.columns(2)
     year = c1.number_input("Start year", 2015, 2025, 2021, step=1)
     month = c2.selectbox("Start month", range(1, 13), format_func=lambda m: pipeline.MONTH_NAMES[m - 1])
@@ -257,7 +264,8 @@ else:
         st.sidebar.info(f"No tiles in `{local_dir.name}/s1/`.")
     month = st.sidebar.selectbox("Start month (2021)", range(1, 13), format_func=lambda m: pipeline.MONTH_NAMES[m - 1])
 stride = OVERLAPS[st.sidebar.select_slider("Patch overlap", list(OVERLAPS), value="25 %")]
-run_clicked = st.sidebar.button("Run", type="primary", disabled=net is None)
+run_clicked = st.sidebar.button("Run", type="primary",
+                                disabled=net is None or (source == "Google Earth Engine" and (lat is None or lon is None)))
 
 # ---------------------------------------------------------------- run
 st.title("Sentinel-1 land use / land cover: 12 monthly maps")
@@ -268,8 +276,10 @@ if run_clicked:
     try:
         with st.spinner("Fetching Sentinel-1 monthly composites ..."):
             if source == "Google Earth Engine":
+                # the project ID stays on the server (EE_PROJECT or Project_ID in .env), never in the browser
+                project = gee.default_project()
                 if not project:
-                    st.error("Enter an Earth Engine project ID, or set Project_ID in the repo's .env.")
+                    st.error("No Earth Engine project configured: set Project_ID in the repo's .env on the server.")
                     st.stop()
                 data = gee_data(project, float(lat), float(lon), int(year), int(month), size, variant["terrain"],
                                 variant["iteration"])
@@ -296,10 +306,13 @@ if run_clicked:
         st.session_state["result"] = dict(data=data, preds=preds, valid=valid, variant=model_name,
                                           card=card, weights=weight_name, settings=settings, place=place)
     except Exception as err:
-        st.error(f"Run failed: {err}")
+        message = str(err)
+        if source == "Google Earth Engine" and gee.default_project():
+            message = message.replace(gee.default_project(), "<project>")  # Earth Engine errors name the project
+        st.error(f"Run failed: {message}")
         if source == "Google Earth Engine":
-            st.info("Earth Engine needs a one-time login: run `earthengine authenticate` in a terminal, "
-                    "and the project must be registered for Earth Engine.")
+            st.info("Earth Engine needs a one-time login on the server: run `python check_auth.py` there "
+                    "to see which step fails.")
         st.stop()
 
 result = st.session_state.get("result")

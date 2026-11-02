@@ -1,0 +1,3 @@
+# to authenticate google earth engine
+
+earthengine authenticate --auth_mode=notebook
