@@ -7,6 +7,7 @@ import hmac
 import io
 import json
 import os
+import time
 from collections import Counter
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from matplotlib.patches import Patch
 
 import gee
 import pipeline
+import runlog
 
 ROOT = Path(__file__).resolve().parent.parent
 N_BEFORE = 2  # months fetched before the start month, for the three-month window
@@ -122,6 +124,77 @@ def false_colour(codes_2hw, card):
     return np.nan_to_num(rgb)
 
 
+def maps_figure(preds, valid, labels, cmap, legend, n_classes):
+    fig, axes = plt.subplots(3, 4, figsize=(16, 12.5))
+    for ax, p, lab in zip(axes.ravel(), preds, labels):
+        ax.imshow(np.where(valid, p, 0), cmap=cmap, vmin=0, vmax=n_classes, interpolation="nearest")
+        ax.set_title(lab)
+        ax.axis("off")
+    fig.legend(handles=legend, loc="lower center", ncol=len(legend))
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    return fig
+
+
+def radar_figure(codes, labels, card):
+    fig, axes = plt.subplots(3, 4, figsize=(16, 12.5))
+    for ax, c, lab in zip(axes.ravel(), codes, labels):
+        ax.imshow(false_colour(c, card))
+        ax.set_title(lab)
+        ax.axis("off")
+    fig.suptitle("Sentinel-1 input: R = VV, G = VH, B = VV-VH")
+    fig.tight_layout()
+    return fig
+
+
+def shares_figure(pct, names, colors, labels):
+    fig, ax = plt.subplots(figsize=(12, 4.5))
+    for name, color in zip(names, colors):
+        ax.plot(labels, pct[name], marker="o", color=line_color(color), label=name)
+    ax.set_ylabel("% of area")
+    ax.tick_params(axis="x", rotation=45)
+    ax.grid(alpha=0.3)
+    ax.legend(ncol=4, fontsize=8)
+    fig.tight_layout()
+    return fig
+
+
+def change_figure(total, names, colors):
+    fig, ax = plt.subplots(figsize=(10, 3.5))
+    ax.bar(names, total.values, color=[line_color(c) for c in colors], edgecolor="black")
+    ax.axhline(0, color="black", lw=0.8)
+    ax.set_ylabel("pp")
+    ax.tick_params(axis="x", rotation=30)
+    fig.tight_layout()
+    return fig
+
+
+def sanity_check(preds, ref, valid, names):
+    """Annual mode vs reference: (annual map, agreement %, per-class area table)."""
+    annual = pipeline.annual_mode(preds, len(names))
+    both = valid & (ref > 0)
+    agree = (annual[both] == ref[both]).mean() * 100 if both.any() else float("nan")
+    n = max(int(both.sum()), 1)
+    area = pd.DataFrame({"model (annual mode) %": [(annual[both] == k + 1).sum() / n * 100 for k in range(len(names))],
+                         "reference %": [(ref[both] == k + 1).sum() / n * 100 for k in range(len(names))],
+                         "reference pixels found by model %": [
+                             ((annual == k + 1) & (ref == k + 1) & both).sum() / max(((ref == k + 1) & both).sum(), 1) * 100
+                             for k in range(len(names))]}, index=names)
+    return annual, agree, area
+
+
+def check_figure(annual, ref, valid, cmap, legend, n_classes):
+    fig, axes = plt.subplots(1, 2, figsize=(13, 6.5))
+    axes[0].imshow(np.where(valid, annual, 0), cmap=cmap, vmin=0, vmax=n_classes, interpolation="nearest")
+    axes[0].set_title("model: most frequent class over 12 months")
+    axes[1].imshow(ref, cmap=cmap, vmin=0, vmax=n_classes, interpolation="nearest")
+    axes[1].set_title("reference")
+    for ax in axes:
+        ax.axis("off")
+    fig.legend(handles=legend, loc="lower center", ncol=len(legend))
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    return fig
+
+
 # ---------------------------------------------------------------- sidebar: model
 st.sidebar.header("1. Model")
 weight_source = st.sidebar.radio("Weights", ["Upload files", "Local Weights folder"], horizontal=True)
@@ -213,8 +286,15 @@ if run_clicked:
         bar.empty()
         valid = (data["codes"][N_BEFORE:, 0] > 0).any(0)
         model_name = variant["name"] + (" (smoothed)" if variant["smoothing"] else "")
+        settings = dict(source=source, start_month=int(month), patch_stride=stride, device=device.type)
+        if source == "Google Earth Engine":
+            settings.update(start_year=int(year), area_px=size)
+            place = f"{data['lat']:.4f}_{data['lon']:.4f}_{int(year)}-{int(month):02d}"
+        else:
+            settings.update(site=site)
+            place = f"{site}_2021-{int(month):02d}"
         st.session_state["result"] = dict(data=data, preds=preds, valid=valid, variant=model_name,
-                                          card=card, weights=weight_name)
+                                          card=card, weights=weight_name, settings=settings, place=place)
     except Exception as err:
         st.error(f"Run failed: {err}")
         if source == "Google Earth Engine":
@@ -236,6 +316,38 @@ months = data["months_all"][N_BEFORE:]
 labels = [month_label(y, m) for y, m in months]
 pct = pipeline.class_percentages(preds, valid, names, labels)
 steps, total = pipeline.month_changes(pct)
+changes = pd.concat([steps, total.to_frame().T])
+check = sanity_check(preds, data["ref"], valid, names) if data["ref"] is not None else None
+
+# every run is saved once to prototype/runs/ for later analysis (see runlog.py)
+if "log_dir" not in result:
+    try:
+        folder = runlog.run_dir(result["place"])
+        figures = {"lulc_12_months.png": maps_figure(preds, valid, labels, cmap, legend, len(names)),
+                   "radar_12_months.png": radar_figure(data["codes"][N_BEFORE:], labels, card),
+                   "class_shares.png": shares_figure(pct, names, colors, labels),
+                   "total_change.png": change_figure(total, names, colors)}
+        if check is not None:
+            figures["sanity_check.png"] = check_figure(check[0], data["ref"], valid, cmap, legend, len(names))
+        meta = dict(time=time.strftime("%Y-%m-%d %H:%M:%S"), **result["settings"], lat=data["lat"],
+                    lon=data["lon"], weights=result["weights"], model=result["variant"],
+                    model_card={k: card.get(k) for k in ("iteration", "variant", "n_months", "in_channels",
+                                                         "temporal_smoothing", "test_rural_mIoU", "test_mIoU")},
+                    class_names=names, months=labels,
+                    months_fetched=[month_label(y, m) for y, m in data["months_all"]],
+                    scene_counts=None if data["counts"] is None else [int(c) for c in data["counts"]],
+                    valid_share=float(valid.mean()), reference=data["ref_name"],
+                    reference_agreement_pct=None if check is None else float(check[1]))
+        arrays = dict(radar_codes=data["codes"], lulc=preds.astype(np.uint8), valid=valid, reference=data["ref"],
+                      terrain=data["terrain"])
+        tables = {"class_percentages.csv": pct.round(4), "class_changes.csv": changes.round(4)}
+        if check is not None:
+            tables["sanity_check.csv"] = check[2].round(2)
+        runlog.save_run(folder, meta, arrays, tables, figures)
+        result["log_dir"] = folder
+    except Exception as err:
+        result["log_dir"] = None
+        st.warning(f"Could not save the run log: {err}")
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Location", f"{data['lat']:.4f}, {data['lon']:.4f}")
@@ -243,6 +355,8 @@ c2.metric("Period", f"{labels[0]} – {labels[-1]}")
 c3.metric("Model", result["variant"])
 c4.metric("Area", f"{preds.shape[-1] * 10 / 1000:.2f} km × {preds.shape[-2] * 10 / 1000:.2f} km")
 st.map(pd.DataFrame({"lat": [data["lat"]], "lon": [data["lon"]]}), zoom=9, height=220)
+if result["log_dir"]:
+    st.caption(f"Run saved to `{result['log_dir']}`")
 
 if data["counts"] is not None:
     empty = [month_label(y, m) for (y, m), c in zip(data["months_all"], data["counts"]) if c == 0]
@@ -255,13 +369,7 @@ tab_maps, tab_share, tab_change, tab_check, tab_radar = st.tabs(
     ["Monthly maps", "Class shares", "Change", "Sanity check", "Radar input"])
 
 with tab_maps:
-    fig, axes = plt.subplots(3, 4, figsize=(16, 12.5))
-    for ax, p, lab in zip(axes.ravel(), preds, labels):
-        ax.imshow(np.where(valid, p, 0), cmap=cmap, vmin=0, vmax=len(names), interpolation="nearest")
-        ax.set_title(lab)
-        ax.axis("off")
-    fig.legend(handles=legend, loc="lower center", ncol=len(legend))
-    plt.tight_layout(rect=(0, 0.04, 1, 1))
+    fig = maps_figure(preds, valid, labels, cmap, legend, len(names))
     st.pyplot(fig)
     png = io.BytesIO()
     fig.savefig(png, dpi=110, bbox_inches="tight")
@@ -271,14 +379,7 @@ with tab_maps:
 with tab_share:
     st.subheader("Share of the area per class (%)")
     st.dataframe(pct.round(2))
-    fig, ax = plt.subplots(figsize=(12, 4.5))
-    for name, color in zip(names, colors):
-        ax.plot(labels, pct[name], marker="o", color=line_color(color), label=name)
-    ax.set_ylabel("% of area")
-    ax.tick_params(axis="x", rotation=45)
-    ax.grid(alpha=0.3)
-    ax.legend(ncol=4, fontsize=8)
-    plt.tight_layout()
+    fig = shares_figure(pct, names, colors, labels)
     st.pyplot(fig)
     plt.close(fig)
     st.download_button("Download class shares (CSV)", pct.round(4).to_csv(), "class_percentages.csv", "text/csv")
@@ -288,47 +389,25 @@ with tab_change:
     st.dataframe(steps.round(2))
     st.subheader(f"Total change {total.name} (percentage points)")
     st.dataframe(total.round(2).to_frame("pp"))
-    fig, ax = plt.subplots(figsize=(10, 3.5))
-    ax.bar(names, total.values, color=[line_color(c) for c in colors], edgecolor="black")
-    ax.axhline(0, color="black", lw=0.8)
-    ax.set_ylabel("pp")
-    ax.tick_params(axis="x", rotation=30)
-    plt.tight_layout()
+    fig = change_figure(total, names, colors)
     st.pyplot(fig)
     plt.close(fig)
     st.caption("Read with care: the label is annual, so a change from month to month is often a seasonal "
                "radar effect (snow, wet soil, harvest, flooding), not a real land-use change. Classification "
                "errors that differ between months add up in these differences and inflate the change.")
     st.download_button("Download changes (CSV)",
-                       pd.concat([steps, total.to_frame().T]).round(4).to_csv(), "class_changes.csv", "text/csv")
+                       changes.round(4).to_csv(), "class_changes.csv", "text/csv")
 
 with tab_check:
     st.subheader("Comparison with a reference map")
     st.write(data["ref_name"])
-    if data["ref"] is None:
+    if check is None:
         st.info("No reference map available.")
     else:
-        ref = data["ref"]
-        annual = pipeline.annual_mode(preds, len(names))
-        both = valid & (ref > 0)
-        agree = (annual[both] == ref[both]).mean() * 100 if both.any() else float("nan")
+        annual, agree, area = check
         st.metric("Pixel agreement (most frequent monthly class vs reference)", f"{agree:.1f} %")
-        n = max(int(both.sum()), 1)
-        area = pd.DataFrame({"model (annual mode) %": [(annual[both] == k + 1).sum() / n * 100 for k in range(len(names))],
-                             "reference %": [(ref[both] == k + 1).sum() / n * 100 for k in range(len(names))],
-                             "reference pixels found by model %": [
-                                 ((annual == k + 1) & (ref == k + 1) & both).sum() / max(((ref == k + 1) & both).sum(), 1) * 100
-                                 for k in range(len(names))]}, index=names)
         st.dataframe(area.round(1))
-        fig, axes = plt.subplots(1, 2, figsize=(13, 6.5))
-        axes[0].imshow(np.where(valid, annual, 0), cmap=cmap, vmin=0, vmax=len(names), interpolation="nearest")
-        axes[0].set_title("model: most frequent class over 12 months")
-        axes[1].imshow(ref, cmap=cmap, vmin=0, vmax=len(names), interpolation="nearest")
-        axes[1].set_title("reference")
-        for ax in axes:
-            ax.axis("off")
-        fig.legend(handles=legend, loc="lower center", ncol=len(legend))
-        plt.tight_layout(rect=(0, 0.06, 1, 1))
+        fig = check_figure(annual, data["ref"], valid, cmap, legend, len(names))
         st.pyplot(fig)
         plt.close(fig)
         st.caption("The reference maps use their own class definitions (e.g. Esri 'rangeland' and 'flooded "

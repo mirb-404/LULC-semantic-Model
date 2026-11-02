@@ -141,6 +141,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 | `model.py` | the U-Net / ResNet-34 architecture (identical to the notebook) |
 | `launch.py` | starts the app on a remote machine, with a JupyterHub proxy link or a Cloudflare tunnel |
 | `check_auth.py` | checks the Earth Engine login, project and data access |
+| `runlog.py` | saves every run to `runs/<time>_<place>/` (git-ignored): `run.json` (settings, model, months, scene counts, sanity-check score), `arrays.npz` (radar codes, class maps, valid mask, reference), the CSV tables and PNGs of the monthly maps, radar input, class shares, change and sanity check |
 | `requirements.txt` | Python dependencies |
 | `.streamlit/config.toml` | upload limit |
 
