@@ -7,6 +7,7 @@ fixed year 2021 to any (year, month); uint8 codes dB = code * 0.2 - 35 (0 = no d
   1st iteration: sigma0, incidence angle 31-45 deg, monthly mean in linear power, dB, 3x3 focal median
                  (the 1st-iteration data_pipeline/download.py, commit 40e1280).
 """
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -35,6 +36,22 @@ ESRI_TO_CLASS = {
     # 1 Man-made, 2 Crop fields, 3 Trees, 4 Grassland, 5 Bare ground, 6 Water, 7 Snow & ice
     2: {1: 6, 2: 3, 4: 4, 5: 2, 7: 1, 8: 5, 9: 7, 11: 4},
 }
+
+
+DEFAULT_PROJECT = "ai-agent-455119"
+
+
+def default_project():
+    """Earth Engine project: EE_PROJECT, else Project_ID in the repository's .env, else DEFAULT_PROJECT."""
+    if os.environ.get("EE_PROJECT"):
+        return os.environ["EE_PROJECT"]
+    env = Path(__file__).resolve().parent.parent / ".env"
+    if env.exists():
+        for line in env.read_text().splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key.strip() == "Project_ID":
+                return value.strip().strip("\"'")
+    return DEFAULT_PROJECT
 
 
 def initialize(project):

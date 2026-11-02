@@ -18,6 +18,7 @@ import torch
 from matplotlib.colors import ListedColormap, to_rgb
 from matplotlib.patches import Patch
 
+import gee
 import pipeline
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -53,18 +54,6 @@ def dataset_dir(iteration):
     return ROOT / ("Dataset_2nd_iteration" if iteration >= 2 else "Dataset")
 
 
-def default_project():
-    if os.environ.get("EE_PROJECT"):
-        return os.environ["EE_PROJECT"]
-    env = ROOT / ".env"
-    if env.exists():
-        for line in env.read_text().splitlines():
-            key, sep, value = line.partition("=")
-            if sep and key.strip() == "Project_ID":
-                return value.strip().strip("\"'")
-    return ""
-
-
 @st.cache_resource(show_spinner="Loading model ...")
 def get_model(key, _weight_bytes, card_text, device_name):
     return pipeline.load_model(_weight_bytes, json.loads(card_text), torch.device(device_name))
@@ -72,7 +61,6 @@ def get_model(key, _weight_bytes, card_text, device_name):
 
 @st.cache_data(show_spinner=False)
 def gee_data(project, lat, lon, year, month, n, need_terrain, iteration):
-    import gee
     gee.initialize(project)
     months_all = [shift_month(year, month, k) for k in range(-N_BEFORE, 12)]
     epsg, x0, y_top, region = gee.grid(lat, lon, n)
@@ -178,9 +166,10 @@ source = st.sidebar.radio("Data", ["Google Earth Engine", "Local dataset tile (o
 if source == "Google Earth Engine":
     # the default stays on the server: a prefilled value would be sent to the browser
     project = st.sidebar.text_input("Earth Engine project ID", type="password",
-                                    placeholder="blank = server default" if default_project() else "",
+                                    placeholder="blank = server default",
                                     help="Google Cloud project registered for Earth Engine. "
-                                         "Blank: EE_PROJECT or Project_ID in the repo's .env") or default_project()
+                                         "Blank: EE_PROJECT, Project_ID in the repo's .env, "
+                                         "or the built-in default") or gee.default_project()
     c1, c2 = st.sidebar.columns(2)
     lat = c1.number_input("Latitude", -60.0, 72.0, 52.5200, step=0.01, format="%.4f")
     lon = c2.number_input("Longitude", -180.0, 180.0, 13.4050, step=0.01, format="%.4f")
@@ -207,9 +196,6 @@ if run_clicked:
     try:
         with st.spinner("Fetching Sentinel-1 monthly composites ..."):
             if source == "Google Earth Engine":
-                if not project:
-                    st.error("Enter an Earth Engine project ID.")
-                    st.stop()
                 data = gee_data(project, float(lat), float(lon), int(year), int(month), size, variant["terrain"],
                                 variant["iteration"])
             else:

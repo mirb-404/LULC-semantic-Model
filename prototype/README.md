@@ -36,7 +36,12 @@ The CPU also works. A 5 x 5 km area takes about 1-2 minutes for all 12 months.
    ```bash
    earthengine authenticate
    ```
-3. Enter the project ID in the sidebar, or leave it blank to use the environment variable `EE_PROJECT` or `Project_ID = ...` in the repository's `.env` file (git-ignored).
+3. Enter the project ID in the sidebar, or leave it blank to use, in this order: the environment variable `EE_PROJECT`, `Project_ID = ...` in the repository's `.env` file (git-ignored), or the built-in default `ai-agent-455119` (`DEFAULT_PROJECT` in `gee.py`).
+4. Check that everything works:
+   ```bash
+   python check_auth.py                 # or: python check_auth.py --project <id>
+   ```
+   It checks the credentials file, the login and project, and read access to Sentinel-1 and the Esri map, and prints the fix for the first step that fails (exit code 0 = ready).
 
 No other accounts or API keys are needed.
 
@@ -135,6 +140,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 | `pipeline.py` | model loading (variant from the model card or the channel count), input features, sliding-window inference, temporal smoothing, percentages and changes |
 | `model.py` | the U-Net / ResNet-34 architecture (identical to the notebook) |
 | `launch.py` | starts the app on a remote machine, with a JupyterHub proxy link or a Cloudflare tunnel |
+| `check_auth.py` | checks the Earth Engine login, project and data access |
 | `requirements.txt` | Python dependencies |
 | `.streamlit/config.toml` | upload limit |
 

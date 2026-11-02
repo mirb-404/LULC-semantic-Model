@@ -4,3 +4,4 @@ pyproj
 numpy
 tqdm
 matplotlib
+streamlit
