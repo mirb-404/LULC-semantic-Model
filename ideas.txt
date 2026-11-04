@@ -2,3 +2,5 @@ optimizer/ activation for percentage
 compare my output with google earth engine model
 fix the classes too many classes
 remove pca entirely
+mix and match all models and concepts learnt from lectures currently we using resnet-50 with some mods lets try something else as well
+Prof Levente's Graph based DL was very interesting i wanna see how pixel values/ input can be mapped with labels to get maybe an even better segmentation output or what it can help achieve definitely interesting

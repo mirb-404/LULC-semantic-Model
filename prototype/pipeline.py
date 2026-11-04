@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from model import UNetResNet34
+from model import ENCODER_CHANNELS, UNet
 
 PATCH = 256
 WATER_DB = -18.0  # notebook WATER_DB
@@ -50,7 +50,7 @@ def load_model(weight_bytes, card, device):
         state = state["state_dict"]
     state = {k.removeprefix("module."): v for k, v in state.items() if k != "n_averaged"}
     if "stem.0.weight" not in state:
-        raise ValueError("not a UNetResNet34 state dict from Notebooks/1st_iteration.ipynb (no 'stem.0.weight')")
+        raise ValueError("not a U-Net state dict from the training notebooks (no 'stem.0.weight')")
     in_ch = state["stem.0.weight"].shape[1]
     n_classes = state["head.weight"].shape[0]
     if card_iteration(card) >= 2:
@@ -71,7 +71,11 @@ def load_model(weight_bytes, card, device):
             if missing:
                 raise ValueError(f"model_card.json lacks {missing}, needed by {variant['name']}: "
                                  "use the model card from the same run as the weights")
-    net = UNetResNet34(in_ch, n_classes)
+    encoder = card.get("encoder", "resnet34")  # cards before the 3rd iteration have no encoder: ResNet-34
+    if encoder not in ENCODER_CHANNELS:
+        raise ValueError(f"unknown encoder '{encoder}' in model_card.json; known: {sorted(ENCODER_CHANNELS)}")
+    variant["encoder"] = encoder
+    net = UNet(in_ch, n_classes, encoder)
     net.load_state_dict(state)
     return net.to(device).eval(), variant
 

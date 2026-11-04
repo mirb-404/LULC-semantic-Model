@@ -8,7 +8,7 @@ Enter a latitude/longitude and a start month. The app downloads 12 monthly Senti
 - a **sanity check** against the independent Esri 10 m Annual LULC map;
 - the Sentinel-1 input as a false-colour image.
 
-You choose the model yourself: `final_model.pt` from a 2nd-iteration run folder (or a 1st-iteration `<variant>_best.pt`) together with that run's `model_card.json`.
+You choose the model yourself: `final_model.pt` from a 2nd-iteration run folder, `best_model.pt` from a 3rd-iteration experiment folder (or a 1st-iteration `<variant>_best.pt`), together with that run's `model_card.json`.
 
 ## Setup
 
@@ -115,7 +115,7 @@ static channels from the 12 analysis months:
    2nd iteration: 9 seasonal statistics
    1st iteration (if the variant uses them): PCA (6), seasonal statistics (5), terrain (3)
    │
-   ▼  model.py: U-Net / ResNet-34, sliding window 256 px, overlapping softmax summed
+   ▼  model.py: U-Net (encoder from the model card, default ResNet-34), sliding window 256 px, overlapping softmax summed
    │  2nd iteration, if the card says so: probabilities averaged over months t-1, t, t+1
 12 class maps (one per month)
    │
@@ -127,7 +127,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 - **Class percentages:** the share of valid pixels per class in each month. Pixels without radar data in all 12 months are excluded.
 - **Change:** `pct[month] - pct[previous month]` and `pct[last] - pct[first]`, in percentage points.
 - **Sanity check:**
-  - The most frequent class per pixel over the 12 months is compared with Esri's annual map for the year that covers most of the analysis months (Esri exists for 2017-2024; other years use the nearest one).
+  - The most frequent class per pixel over the 12 months is compared with Esri's annual map for the year that covers most of the analysis months (Esri exists for 2017-2025; other years use the nearest one).
   - Esri classes are mapped onto ours: 2nd iteration rangeland and flooded vegetation → Grassland, snow/ice → Snow & ice; 1st iteration rangeland → Shrub & grass, flooded vegetation → Wetland; clouds → ignored.
   - Esri is not one of the training label sources (ESA WorldCover and Dynamic World), so it is an independent check.
 
@@ -138,7 +138,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 | `app.py` | Streamlit interface, caching, plots, downloads |
 | `gee.py` | Earth Engine: grid, monthly Sentinel-1 composites (2nd iteration via `../data_pipeline/sentinel1.py`), terrain, Esri reference, chunked download |
 | `pipeline.py` | model loading (variant from the model card or the channel count), input features, sliding-window inference, temporal smoothing, percentages and changes |
-| `model.py` | the U-Net / ResNet-34 architecture (identical to the notebook) |
+| `model.py` | the U-Net with an exchangeable encoder (ResNet-34, ResNet-50, VGG-16-BN, DenseNet-121, EfficientNet-B0), identical to the 3rd-iteration notebooks; cards without `encoder` mean ResNet-34 |
 | `launch.py` | starts the app on a remote machine, with a JupyterHub proxy link or a Cloudflare tunnel |
 | `check_auth.py` | checks the Earth Engine login, project and data access |
 | `runlog.py` | saves every run to `runs/<time>_<place>/` (git-ignored): `run.json` (settings, model, months, scene counts, sanity-check score), `arrays.npz` (radar codes, class maps, valid mask, reference), the CSV tables and PNGs of the monthly maps, radar input, class shares, change and sanity check |
@@ -153,4 +153,4 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 - **2nd-iteration smoothing:** with `temporal_smoothing`, a one-month change is smoothed away; changes that last 2 months or more stay. The first and last month are averaged with one neighbour only.
 - **SAR confusion:** smooth surfaces (water, snow, sand, wet soil) can all be dark. Trees and cropland both scatter in the vegetation volume.
 - **Missing months:** if Earth Engine has no scene for a month, that input is treated as missing (the app warns). The prediction then relies on the other months and the yearly channels.
-- **Edges:** months before 2015 have no Sentinel-1 IW coverage for most places; Sentinel-1B failed in Dec 2021, so 2022-2024 have fewer scenes.
+- **Edges:** months before 2015 have no Sentinel-1 IW coverage for most places; Sentinel-1B failed in Dec 2021, so 2022-2024 have fewer scenes; Sentinel-1C adds scenes again from 2025.

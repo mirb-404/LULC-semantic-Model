@@ -27,7 +27,7 @@ TERRAIN_BANDS = ["elevation_m", "slope_decideg", "hand_dm"]
 
 # Esri 10 m Annual LULC (Impact Observatory, Sentinel-2 based): independent of the training labels.
 ESRI_COLLECTION = "projects/sat-io/open-datasets/landcover/ESRI_Global-LULC_10m_TS"
-ESRI_YEARS = (2017, 2024)
+ESRI_YEARS = (2017, 2025)
 # Esri classes: 1 water, 2 trees, 4 flooded vegetation, 5 crops, 7 built area, 8 bare ground, 9 snow/ice,
 # 10 clouds, 11 rangeland. Mapped to our class ids per iteration; clouds and no data -> 0.
 ESRI_TO_CLASS = {
