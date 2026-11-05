@@ -112,8 +112,18 @@ def gee_data(project, lat, lon, year, month, n, need_terrain, iteration):
         ref_name = f"Esri 10 m Annual LULC {used_year} (independent, Sentinel-2 based)"
     except Exception as err:
         ref, ref_name = None, f"Esri LULC not available: {err}"
+    # the global maps define pasture, fallow and rangeland differently: show the other two as references as well
+    extra_refs = {}
+    if iteration >= 2:
+        for name, image in ((f"WorldCover 2021 (training label)", gee.worldcover_image()),
+                            (f"Dynamic World {ref_year} (agreement weights in training)",
+                             gee.dynamicworld_image(region, ref_year))):
+            try:
+                extra_refs[name] = gee.fetch(image, ["cls"], epsg, x0, y_top, n, np.uint8, 0)[0]
+            except Exception:
+                pass
     return dict(codes=codes, months_all=months_all, counts=counts, terrain=terrain, ref=ref,
-                ref_name=ref_name, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
+                ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
 
 
 def local_sites(iteration):
@@ -138,15 +148,17 @@ def local_data(site, month, iteration):
     if terrain_path.exists():
         with rasterio.open(terrain_path) as src:
             terrain = src.read()
-    ref, ref_name = None, "no label file"
+    ref, ref_name, extra_refs = None, "no label file", {}
     label_path = root / "labels" / f"{site}.tif"
     if label_path.exists():
         with rasterio.open(label_path) as src:
             ref = src.read(2 if iteration >= 2 else 1)
+            if iteration >= 2:
+                extra_refs = {"Dynamic World 2021 (agreement weights in training)": src.read(3)}
         ref_name = (("training label (WorldCover 2021)" if iteration >= 2 else
                      "training consensus label (WorldCover ∩ Dynamic World 2021)") + ": NOT independent, test use only")
     return dict(codes=tile[idx], months_all=[(2021, i + 1) for i in idx], counts=None, terrain=terrain,
-                ref=ref, ref_name=ref_name, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
+                ref=ref, ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
 
 
 def false_colour(codes_2hw, card):
@@ -288,6 +300,14 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
                 for p in preds]
     ref_overlay = (mapview.png_data_url(mapview.class_overlay(data["ref"], index, colors, 1.0))
                    if data["ref"] is not None else None)
+    # every reference map: (name, agreement %, majority baseline %, per-class table) and its map overlay
+    # exam brief: the case study is checked against an independent map not used for training. Esri is independent
+    # for models trained on WorldCover (+ Dynamic World agreement), not for models trained on the 3-map vote.
+    esri_name = "Esri (used in training: vote labels)" if card.get("training_labels") == "vote" else "Esri (independent)"
+    refs = ({esri_name: data["ref"]} if data["ref"] is not None else {}) | data.get("extra_refs", {})
+    ref_checks = {name: sanity_check(preds, arr, valid, names) for name, arr in refs.items()}
+    ref_overlays = {name: mapview.png_data_url(mapview.class_overlay(arr, index, colors, 1.0))
+                    for name, arr in refs.items()}
 
     # figures for the downloads and the run log
     cmap = ListedColormap(["#000000"] + colors)
@@ -312,6 +332,8 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
                 valid_share=float(valid.mean()), reference=data["ref_name"],
                 reference_agreement_pct=None if check is None else float(check[1]),
                 reference_majority_baseline_pct=None if check is None else float(check[2]),
+                all_references={name: {"agreement_pct": float(c[1]), "majority_baseline_pct": float(c[2])}
+                                for name, c in ref_checks.items()},
                 flicker_pct=flick)
     files = {name: (png_bytes(fig), "image/png") for name, fig in figures.items()}
     files.update({name: (df.to_csv().encode(), "text/csv") for name, df in tables.items()})
@@ -331,7 +353,7 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
 
     return dict(data=data, preds=preds, valid=valid, card=card, names=names, colors=colors, labels=labels,
                 pct=pct, steps=steps, total=total, flicker=flick, check=check, overlays=overlays,
-                ref_overlay=ref_overlay, bounds=bounds,
+                ref_overlay=ref_overlay, ref_checks=ref_checks, ref_overlays=ref_overlays, bounds=bounds,
                 corners=mapview.utm_corners(data["epsg"], data["x0"], data["y_top"], n),
                 files=files, log_dir=log_dir, model=model_name, weights=weight_name, place_name=place_name,
                 size_km=n * mapview.PIXEL_M / 1000)
@@ -572,8 +594,9 @@ def viewer():
         st.session_state["playing"] = not playing
         st.rerun()
     opacity = c[2].slider("Map overlay opacity", 0, 100, 65, 5, key="opacity") / 100
-    layer = c[3].radio("Overlay", ["Model, this month", "Esri reference (annual)", "None"], horizontal=True,
-                       key="overlay", disabled=False)
+    ref_names = list(r.get("ref_overlays", {}))
+    layer = c[3].selectbox("Overlay", ["Model, this month", *[f"Reference: {n}" for n in ref_names], "None"],
+                           key="overlay")
     basemap = c[4].radio("Basemap", ["Satellite", "Streets"], horizontal=True, key="basemap")
 
     left, right = st.columns([3, 2])
@@ -582,8 +605,9 @@ def viewer():
         if layer.startswith("Model"):
             layers.append(folium.raster_layers.ImageOverlay(r["overlays"][k], r["bounds"], opacity=opacity,
                                                             interactive=False))
-        elif layer.startswith("Esri") and r["ref_overlay"]:
-            layers.append(folium.raster_layers.ImageOverlay(r["ref_overlay"], r["bounds"], opacity=opacity,
+        elif layer.startswith("Reference: "):
+            layers.append(folium.raster_layers.ImageOverlay(r["ref_overlays"][layer.removeprefix("Reference: ")],
+                                                            r["bounds"], opacity=opacity,
                                                             interactive=False))
         layers.append(box_layer(r["corners"], "#ffffff", tooltip="analysed area"))
         if planned is not None and planned != r["corners"]:
@@ -593,8 +617,8 @@ def viewer():
         st.caption("The basemap is a static, recent mosaic of mixed dates (Esri World Imagery / OpenStreetMap) for "
                    "orientation only: it does not change with the month. Only the overlay and the radar image are "
                    "from the selected month.")
-        if layer.startswith("Esri") and not r["ref_overlay"]:
-            st.caption("No Esri reference map for this run.")
+        if not ref_names:
+            st.caption("No reference map for this run.")
 
     with right:
         data = r["data"]
@@ -679,6 +703,13 @@ with tab_change:
                "differ between months add up in these differences.")
 
 with tab_check:
+    if r.get("ref_checks"):
+        st.markdown("**All reference maps.** WorldCover, Dynamic World and Esri define pasture, fallow, rangeland and "
+                    "sparse vegetation differently, so they disagree with each other as well. A low agreement with one "
+                    "map and a high one with another is a definition conflict, not necessarily a model error.")
+        st.dataframe(pd.DataFrame({name: {"agreement %": c[1], "majority baseline %": c[2],
+                                          "gain over baseline pp": c[1] - c[2]}
+                                   for name, c in r["ref_checks"].items()}).T.round(1), width="stretch")
     st.write(data["ref_name"])
     if r["check"] is None:
         st.info("No reference map available.")

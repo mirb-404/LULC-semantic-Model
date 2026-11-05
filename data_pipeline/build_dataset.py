@@ -91,6 +91,9 @@ def manifest():
         "radar_years": {"all sites": config.YEAR, "training sites": list(config.EXTRA_YEARS),
                         "no later years for": sorted(config.EXTRA_YEARS_SKIP_FOCUS)},
         "tiles_per_year": tiles,
+        "esri_tiles_per_year": {str(y): len(list(config.esri_dir(y).glob("*.tif"))) if config.esri_dir(y).exists() else 0
+                                for y in (config.YEAR, *config.EXTRA_YEARS)},
+        "label_vote": "votes[_<year>]/: class where at least 2 of WorldCover, Dynamic World, Esri agree (config.vote_labels)",
         "patches": patches,
         "skipped": skipped,
         "size_gb": {**sizes, "total": folder_size_gb(data)},
@@ -122,7 +125,8 @@ def write_zip(target, files):
 def make_zips():
     data = config.DATA_DIR
     every = sorted(f for f in data.rglob("*") if f.is_file() and not f.name.endswith(".tmp.tif"))
-    first_year = {config.S1_DIR.name, config.LABEL_DIR.name, config.PATCH_DIR.name, config.TERRAIN_DIR.name}
+    first_year = {config.S1_DIR.name, config.LABEL_DIR.name, config.PATCH_DIR.name, config.TERRAIN_DIR.name,
+                  config.esri_dir(config.YEAR).name, config.vote_dir(config.YEAR).name}
     only_2021 = [f for f in every if f.relative_to(data).parts[0] in first_year or f.parent == data]
     only_2021 = [f for f in only_2021 if f.name != "train_extra_patches.csv"]
     write_zip(data.parent / f"{data.name}_2021.zip", only_2021)

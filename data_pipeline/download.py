@@ -17,6 +17,8 @@ Later years (4th iteration, training sites only, config.EXTRA_YEARS): <dataset>/
 <dataset>/labels_<year>/<site>.tif (the same WorldCover 2021 label; Dynamic World of that year for the
 agreement band). Up to config.MAX_EMPTY_MONTHS_EXTRA months without scenes are accepted (written as no data).
 Sites with `need` (4th-iteration sites) must reach a minimum WorldCover share of a class before downloading.
+Esri (5th iteration): <dataset>/esri[_<year>]/<site>.tif, the Esri 10 m Annual LULC of the same year mapped to the
+target classes, the third map of the label vote (config.vote_labels, written by make_patches.py).
 
 Labels: ESA WorldCover 2021, the 2021 per-pixel mode of Dynamic World and its mode over
 snow-free observations are mapped to the target classes and sampled with nearest neighbour onto
@@ -109,6 +111,13 @@ def label_image(region, year):
     dw_snowfree = dw_year.map(lambda img: img.updateMask(img.neq(8))).mode().remap(*to_class)
     placeholder = ee.Image(0)
     return ee.Image.cat([placeholder, wc, dw, dw_snowfree]).rename(config.LABEL_BANDS).unmask(0).toUint8()
+
+
+def esri_image(year):
+    """Esri 10 m Annual LULC of `year` (2017-2025) mapped to the target classes (0 = clouds / no data)."""
+    year = min(max(year, 2017), 2025)
+    lulc = ee.ImageCollection(config.ESRI_COLLECTION).filterDate(f"{year}-01-01", f"{year + 1}-01-01").mosaic()
+    return lulc.remap(list(config.ESRI_TO_CLASS), list(config.ESRI_TO_CLASS.values()), 0).rename("esri").unmask(0).toUint8()
 
 
 def terrain_image(region):
@@ -238,6 +247,11 @@ def download_site(site, terrain=False, year=config.YEAR):
                         label_path, epsg, x0, y_top, n, {"label_year": 2021, "agreement_year": year}, year)
         write_consensus(name, year)
 
+    esri_path = config.esri_dir(year) / f"{name}.tif"
+    if not esri_path.exists():  # third map for the label vote (5th iteration)
+        download_raster(esri_image(year), ["esri"], "uint8", 0, esri_path, epsg, x0, y_top, n,
+                        {"source": config.ESRI_COLLECTION}, year)
+
     if terrain and year == config.YEAR and not terrain_path.exists():
         download_raster(terrain_image(region), config.TERRAIN_BANDS, "int16", 0,
                         terrain_path, epsg, x0, y_top, n)
@@ -304,7 +318,7 @@ def main():
     initialize(args.project)
 
     def folders(year):
-        return ((config.s1_dir(year), config.label_dir(year))
+        return ((config.s1_dir(year), config.label_dir(year), config.esri_dir(year))
                 + ((config.TERRAIN_DIR,) if args.terrain and year == config.YEAR else ()))
 
     for year in sorted({y for _, y in tiles}):

@@ -44,6 +44,13 @@ python data_pipeline/make_patches.py
 ```
 `--years 2022` limits the run to one year; the run does 2021 first, then one year after the other, and can be restarted at any time.
 
+## 5th iteration: three-map label vote (2026-11-05)
+
+WorldCover and Dynamic World agree on only 55.6 % of Grassland, 64.3 % of Bare ground and 70.2 % of Crop fields pixels, and the maps define pasture, fallow and rangeland differently (`reports/2026-11-05 4th iteration and label disagreement.md`). A third map decides most disputes:
+- `download.py` also downloads the Esri 10 m Annual LULC of each site-year: `esri[_<year>]/<site>.tif`, mapped to the 7 classes (`config.ESRI_TO_CLASS`).
+- `make_patches.py` writes `votes[_<year>]/<site>.tif`: band 1 = class where at least 2 of WorldCover, Dynamic World and Esri agree (else 0), band 2 = that class, else WorldCover (`config.vote_labels`); and `patches/agreement.json` (agreement per class: 2 maps vs vote). Patch windows are unchanged.
+- Rerun `build_dataset.py`: only the Esri tiles are downloaded, then votes, patches, manifest and zips are rebuilt. Notebook: `Notebooks/5th_iteration_label_vote.ipynb`.
+
 ## Run on Datalab (or any remote Linux machine)
 
 Run the steps in this order, from the repository root.

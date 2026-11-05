@@ -13,6 +13,11 @@ tile are ignored: Sentinel-1B was lost after 2021) and go to train_extra_patches
 (2 = sites of the 2nd iteration, 4 = sites added in the 4th) lets the notebook train with or without the new
 sites. Normalisation statistics stay those of the 2021 training patches.
 
+5th iteration: where an Esri tile exists (esri[_<year>]/), the three-map vote of config.vote_labels is written to
+votes[_<year>]/<site>.tif (band 1 consensus = class where at least 2 of WorldCover, Dynamic World and Esri agree,
+band 2 label = that class, else WorldCover). The patch windows do not change. agreement.json compares, per class
+and split, the share of WorldCover pixels confirmed by Dynamic World (2 maps) with the share decided by the vote.
+
 Outputs in Dataset/patches/:
   <split>_patches.csv       index, site, region, focus, iteration, row, col (pixel offsets in the site tile)
   train_extra_patches.csv   index, site, year, region, focus, iteration, row, col (later years, training sites)
@@ -40,6 +45,27 @@ def load_site(name, year=config.YEAR):
     with rasterio.open(config.label_dir(year) / f"{name}.tif") as src:
         y = src.read(config.LABEL_BANDS.index(config.TRAIN_LABEL_BAND) + 1)
     return x, y
+
+
+def write_votes(name, year=config.YEAR):
+    """Writes votes[_<year>]/<name>.tif from the label and Esri tiles; returns (worldcover, consensus2, vote_consensus)
+    or None when there is no Esri tile."""
+    esri_path = config.esri_dir(year) / f"{name}.tif"
+    if not esri_path.exists():
+        return None
+    with rasterio.open(config.label_dir(year) / f"{name}.tif") as src:
+        consensus, wc, dw, dw_sf = src.read()
+        profile = src.profile
+    with rasterio.open(esri_path) as src:
+        esri = src.read(1)
+    vote_consensus, vote_label = config.vote_labels(wc, dw, dw_sf, esri)
+    out = config.vote_dir(year) / f"{name}.tif"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    profile.update(count=2)
+    with rasterio.open(out, "w", **profile) as dst:
+        dst.write(np.stack([vote_consensus, vote_label]))
+        dst.descriptions = tuple(config.VOTE_BANDS)
+    return wc, consensus, vote_consensus
 
 
 def patch_origins(x, y):
@@ -72,11 +98,19 @@ def main():
         writers[split] = csv.writer(files[split])
         writers[split].writerow(["index", "site", "region", "focus", "iteration", "row", "col"])
 
+    # per split and class: WorldCover pixels, confirmed by Dynamic World (2 maps), decided by the 3-map vote
+    agree = {split: np.zeros((3, n_classes), dtype=np.int64) for split in SPLITS}
     for site in config.SITES:
         name, split = site["name"], site["split"]
         if not ((config.S1_DIR / f"{name}.tif").exists() and (config.LABEL_DIR / f"{name}.tif").exists()):
             print(f"{name}: not downloaded, skipping")
             continue
+        votes = write_votes(name)
+        if votes is not None:
+            wc, two, three = votes
+            agree[split][0] += np.bincount(wc.ravel(), minlength=n_classes)
+            agree[split][1] += np.bincount(wc[two > 0].ravel(), minlength=n_classes)
+            agree[split][2] += np.bincount(wc[three > 0].ravel(), minlength=n_classes)
         x, y = load_site(name)
         site_counts = np.zeros(n_classes, dtype=np.int64)
         origins = list(patch_origins(x, y))
@@ -120,6 +154,7 @@ def main():
                 if not ((config.s1_dir(year) / f"{name}.tif").exists()
                         and (config.label_dir(year) / f"{name}.tif").exists()):
                     continue
+                write_votes(name, year)
                 x, y = load_site(name, year)
                 origins = list(patch_origins(x, y))
                 for r, c in origins:
@@ -161,6 +196,19 @@ def main():
                                          "share_of_labelled": round(float(cnt[k] / labelled), 4) if k else None}
                         for k in range(n_classes)}}
     (config.PATCH_DIR / "class_distribution.json").write_text(json.dumps(distribution, indent=2))
+
+    if any(a[0].sum() for a in agree.values()):
+        table = {}
+        print("\nagreement per class: WorldCover pixels confirmed by Dynamic World (2 maps) -> decided by the "
+              "3-map vote (at least 2 of WorldCover, Dynamic World, Esri agree)")
+        for split in SPLITS:
+            a = agree[split]
+            table[split] = {class_names[k]: {"two_maps_pct": round(float(a[1, k] / max(a[0, k], 1) * 100), 1),
+                                             "vote_pct": round(float(a[2, k] / max(a[0, k], 1) * 100), 1)}
+                            for k in range(1, n_classes)}
+            print(f"  {split}: " + " | ".join(f"{c} {v['two_maps_pct']:.0f}->{v['vote_pct']:.0f}%"
+                                              for c, v in table[split].items()))
+        (config.PATCH_DIR / "agreement.json").write_text(json.dumps(table, indent=2))
 
 
 if __name__ == "__main__":

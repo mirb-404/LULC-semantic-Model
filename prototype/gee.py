@@ -20,6 +20,7 @@ import mapview
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "data_pipeline"))
 import sentinel1  # noqa: E402
+import config as pipeline_config  # noqa: E402  (class mappings of data_pipeline/config.py)
 
 PIXEL_M = 10
 DB_MIN, DB_STEP, NODATA = -35.0, 0.2, 0
@@ -109,6 +110,21 @@ def esri_image(year, iteration):
     lulc = ee.ImageCollection(ESRI_COLLECTION).filterDate(f"{year}-01-01", f"{year + 1}-01-01").mosaic()
     mapping = ESRI_TO_CLASS[min(iteration, 2)]
     return lulc.remap(list(mapping), list(mapping.values()), 0).rename("esri").unmask(0).toUint8(), year
+
+
+def worldcover_image():
+    """ESA WorldCover 2021 (the training label of the 2nd iteration) mapped to the 7 classes of the 2nd iteration."""
+    m = pipeline_config.WORLDCOVER_TO_CLASS
+    return (ee.ImageCollection("ESA/WorldCover/v200").first().select("Map")
+            .remap(list(m), list(m.values()), 0).rename("cls").unmask(0).toUint8())
+
+
+def dynamicworld_image(region, year):
+    """Google Dynamic World: the most frequent class of `year` (Sentinel-2 based), mapped to the 7 classes."""
+    m = pipeline_config.DYNAMICWORLD_TO_CLASS
+    dw = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1").filterBounds(region)
+          .filterDate(f"{year}-01-01", f"{year + 1}-01-01").select("label").mode())
+    return dw.remap(list(m), list(m.values()), 0).rename("cls").unmask(0).toUint8()
 
 
 def fetch(image, bands, epsg, x0, y_top, n, dtype, fill):

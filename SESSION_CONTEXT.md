@@ -602,3 +602,60 @@ Full analysis: `reports/2026-11-05 3rd iteration experiment results.md`.
 1. Day-1 prototype runs (rural, 2021 and 2025 starts) and the urban screen recording; see `TODO.md`.
 2. Report: model comparison table from 16.2, noise discussion from 16.3.
 3. Optional (future work): seed ensemble of the 6 existing reference runs; L4 and DenseNet-121 / VGG16-BN with 5 seeds; SAR-pretrained encoder.
+
+## 17. Update 2026-11-05: 4th iteration, label disagreement finding, 5th iteration (vote)
+
+Full report: `reports/2026-11-05 4th iteration and label disagreement.md`.
+
+### 17.1 Dataset (built on Datalab with `data_pipeline/build_dataset.py`)
+
+- The old 2021 dataset was gone from Datalab and was rebuilt; val (335 / 21 sites) and test (265 / 17 sites) came out identical.
+- **2021:** 191 tiles, 153 training sites, 2440 training windows.
+- **2022-2024:** 5148 windows, 109-110 tiles per year; towns and glaciers have no later years.
+- **Size:** 10.35 GB (`Dataset_2nd_iteration.zip`), 2021 part 3.82 GB (`Dataset_2nd_iteration_2021.zip`).
+- **New sites:**
+  - 14 of 17 downloaded;
+  - skipped because WorldCover labels them Grassland: betsiboka (94 % Grassland), lake_alaotra (97 %), pilbara (97 %), mbale (5 % crop);
+  - tigray retargeted as a crop site (61 % crop).
+- **Sentinel-1 coverage:** after the loss of Sentinel-1B there are no scenes in 2022-2024 for large parts of Africa, South America, Siberia and Canada. Training tiles may miss up to 2 months (any year); val and test tiles must be complete.
+
+### 17.2 4th-iteration results (`Notebooks/4th_iteration_multiyear.ipynb`, 2 seeds)
+
+| Experiment | val | rural | rural all pixels | Crop | Grass | Bare | Man-made |
+|---|---|---|---|---|---|---|---|
+| Y0 reference | 0.735 | 0.663 | 0.585 | 0.632 | 0.632 | 0.889 | 0.780 |
+| Y3 years + new sites | 0.738 | 0.659 | 0.557 | 0.696 | 0.681 | 0.838 | 0.723 |
+
+- Overall no change beyond noise, so `Iter2_Test_1_Full` stays. The classes traded places; the train-val gap fell from 0.125 to 0.09-0.11.
+- **Class bias:** no offset improved val (Water precision 0.56, recall 0.74). Switched off in the final and 5th notebooks.
+- `Weights/Iter2_Test_1_Full` is not on the new Datalab machine (RTX PRO 6000).
+
+### 17.3 The finding
+
+- **The maps define rural land differently.**
+  - Kano farmland: model 81 % crop, Esri 95 % rangeland and 0 % crops, agreement 13 %. The model likely follows WorldCover correctly.
+  - Chilean pasture: Esri 64 % crops, model and WorldCover Grassland.
+- **WorldCover vs Dynamic World agreement:** Grassland 55.6 %, Bare ground 64.3 %, Crop fields 70.2 %. These are exactly the weak classes.
+- **Madagascar's eroded hills are Grassland in WorldCover,** so no added data with these labels can make them Bare ground.
+- The limit is in the labels, not in the architecture.
+
+### 17.4 Fix built (not yet run): three-map vote
+
+- **Pipeline:**
+  - `config.vote_labels` and `ESRI_TO_CLASS`;
+  - `download.py` downloads `esri[_<year>]/`;
+  - `make_patches.py` writes `votes[_<year>]/` and `patches/agreement.json`;
+  - the manifest and the zips include them. Tested offline on fake tiles.
+- **Notebook `Notebooks/5th_iteration_label_vote.ipynb`:**
+  - V0 WorldCover / V1 vote / V2 vote + all data, 2 seeds;
+  - scored on WorldCover, vote and tolerant labels;
+  - decision by val vote mIoU.
+- **Prototype:** the reference check shows WorldCover 2021 and Dynamic World next to Esri (table + overlay selectbox). Headless UI test passed.
+- **Caveat:** Esri in the training labels means the prototype's Esri check is not independent for a vote-trained model.
+
+### 17.5 Next steps
+
+1. Datalab: `git pull`, then `nohup python data_pipeline/build_dataset.py --workers 8 > build3.log 2>&1 &` (Esri tiles + votes only).
+2. Run `Notebooks/5th_iteration_label_vote.ipynb`; check `agreement.json` (agreement 2 maps → vote per class).
+3. If a vote configuration wins, port `labels="vote"` into `Notebooks/final_iteration.ipynb` (not yet supported there) and run it.
+4. Report: sections 3, 4 and 6 of the new report go into the critical discussion.

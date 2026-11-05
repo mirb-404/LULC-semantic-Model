@@ -443,3 +443,41 @@ def consensus_labels(wc, dw, dw_snowfree=None):
         dw = np.where((dw == SNOW) & (wc != SNOW) & (dw_snowfree > 0), dw_snowfree, dw)
     label = np.where(wc == dw, wc, 0)
     return label.astype(np.uint8)
+
+
+# ---------------------------------------------------------------- 5th iteration: three-map vote (2026-11-05)
+# The prototype runs showed that the global maps define pasture, fallow, rangeland and sparse vegetation
+# differently (Kano farmland: WorldCover cropland, Esri 95 % rangeland; Chilean pasture: WorldCover grassland,
+# Esri 64 % crops). With two maps, a disputed pixel keeps the WorldCover class at half weight. A third,
+# independent map decides most disputes: the class at least two of the three maps agree on wins.
+# Esri 10 m Annual LULC (Impact Observatory, Sentinel-2 based, 2017-2025): 1 water, 2 trees, 4 flooded vegetation,
+# 5 crops, 7 built area, 8 bare ground, 9 snow/ice, 10 clouds, 11 rangeland. Same mapping as prototype/gee.py.
+ESRI_COLLECTION = "projects/sat-io/open-datasets/landcover/ESRI_Global-LULC_10m_TS"
+ESRI_TO_CLASS = {1: 6, 2: 3, 4: 4, 5: 2, 7: 1, 8: 5, 9: 7, 11: 4}
+VOTE_BANDS = ["consensus", "label"]   # same layout as bands 1-2 of the label files, so the notebooks read both alike
+
+
+def esri_dir(year):
+    return DATA_DIR / ("esri" if year == YEAR else f"esri_{year}")
+
+
+def vote_dir(year):
+    return DATA_DIR / ("votes" if year == YEAR else f"votes_{year}")
+
+
+def vote_labels(wc, dw, dw_snowfree, esri):
+    """Majority vote of WorldCover, Dynamic World (seasonal snow corrected as in consensus_labels) and Esri.
+
+    Returns (consensus, label), both uint8 class ids (0 = none):
+      label      the class at least two maps agree on; where all three differ (or only one map has a class),
+                 the WorldCover class, as before;
+      consensus  the label where at least two maps agree, else 0 (these pixels get the disagreement weight).
+    """
+    if dw_snowfree is not None:
+        dw = np.where((dw == SNOW) & (wc != SNOW) & (dw_snowfree > 0), dw_snowfree, dw)
+    wc_dw = (wc == dw) & (wc > 0)
+    wc_es = (wc == esri) & (wc > 0)
+    dw_es = (dw == esri) & (dw > 0)
+    majority = np.where(wc_dw | wc_es, wc, np.where(dw_es, dw, 0))
+    label = np.where(majority > 0, majority, wc)
+    return majority.astype(np.uint8), label.astype(np.uint8)
