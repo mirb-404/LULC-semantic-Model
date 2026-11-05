@@ -15,7 +15,8 @@ from pathlib import Path
 
 import ee
 import numpy as np
-from pyproj import Transformer
+
+import mapview
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "data_pipeline"))
 import sentinel1  # noqa: E402
@@ -55,17 +56,9 @@ def initialize(project):
     ee.Initialize(project=project)
 
 
-def utm_epsg(lat, lon):
-    return (32600 if lat >= 0 else 32700) + int((lon + 180) // 6) + 1
-
-
 def grid(lat, lon, n):
     """UTM grid of n x n pixels (10 m) centred on lat/lon, snapped to the pixel size."""
-    epsg = utm_epsg(lat, lon)
-    x, y = Transformer.from_crs(4326, epsg, always_xy=True).transform(lon, lat)
-    half = n * PIXEL_M / 2
-    x0 = round((x - half) / PIXEL_M) * PIXEL_M
-    y_top = round((y + half) / PIXEL_M) * PIXEL_M
+    epsg, x0, y_top = mapview.utm_window(lat, lon, n)
     region = ee.Geometry.Rectangle([x0, y_top - n * PIXEL_M, x0 + n * PIXEL_M, y_top], f"EPSG:{epsg}", False)
     return epsg, x0, y_top, region
 

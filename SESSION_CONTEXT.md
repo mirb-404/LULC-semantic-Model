@@ -547,3 +547,58 @@ Details: `reports/2026-10-31 Prototype test 1 Black Forest.md`, section 10 (DEV 
 1. Prototype: load `Weights/Iter2_Test_1_Full/final_model.pt` with its `model_card.json`; repeat the Black Forest test at the original clearing with the Esri check, plus 3-4 other rural mosaics.
 2. Report: Black Forest before / after images, the comparison table (15.5), the noise result (15.3).
 3. Later: rewrite the logs into human report prose.
+
+## 16. Update 2026-11-05: 3rd-iteration experiments (encoders, training, labels)
+
+Full analysis: `reports/2026-11-05 3rd iteration experiment results.md`.
+
+### 16.1 Runs and where the weights are
+
+- Executed on Datalab, RTX A6000, 2 seeds (42, 7) per configuration, 28 runs in total.
+- Output folders under `/home/jovyan/vault/LULC-semantic-Model/Weights/`, each also as a `.zip` archive:
+  - `Iter3_Encoders/`: winner `E1_vgg16_bn_s42`, `beats_reference` true (against its own reference only); 165 min, partly sharing the GPU with the other two notebooks.
+  - `Iter3_Training_20261105_170703/`: winner `T1_sgd_s42`, `beats_reference` false; 10 min, run alone.
+  - `Iter3_Labels_20261105_163345/`: winner `L1_agreement_only_s42`, `beats_reference` false; 19 min, run alone.
+- Each folder holds `best_model.pt` + `model_card.json` (winner, with `encoder`), `runs/<run>.pt` and `<run>_history.csv` for every run, `runs.csv`, `summary.csv`, `per_class_rural_IoU.csv`, `timing.json` and plots.
+- The timestamped names come from reruns. The earlier parallel attempt may have left incomplete `Iter3_Training/` and `Iter3_Labels/` folders.
+- Not downloaded to the local `Weights/` yet.
+- Running the three notebooks at once only shared the GPU: ResNet-34 took 16 s/epoch in parallel against about 2.5 s/epoch alone. Run them one after another.
+
+### 16.2 Results (mean of 2 seeds; Δ against the pooled reference of 6 identical runs: val 0.730, rural 0.658)
+
+| Experiment | val mIoU | rural test mIoU |
+|---|---|---|
+| Reference (E0/T0/L0, 6 runs) | 0.730 (0.725-0.736) | 0.658 (0.622-0.679) |
+| E1 VGG16-BN | 0.748 (+0.018) | 0.677 (+0.019) |
+| E2 ResNet-50 | 0.725 (−0.005) | 0.680 (+0.022) |
+| E3 DenseNet-121 | 0.741 (+0.011) | 0.689 (+0.031) |
+| E4 EfficientNet-B0 | 0.742 (+0.012) | 0.644 (−0.014) |
+| E5 ResNet-34 without pretraining | 0.671 (−0.059) | 0.570 (−0.088) |
+| T1 SGD | 0.740 (+0.010) | 0.649 (−0.009) |
+| T2 CE only (no Lovász) | 0.714 (−0.016) | 0.646 (−0.012) |
+| L1 agreement pixels only | 0.752 (+0.022) | 0.681 (+0.023); all WorldCover pixels 0.538 (pooled 0.561) |
+| L2 WorldCover full weight | 0.718 (−0.012) | 0.638 (−0.020); best Water IoU 0.499 |
+| L3 label smoothing 0.2 | 0.730 (0.000) | 0.656 (−0.002) |
+| L4 soft bootstrapping 0.8 | 0.727 (−0.003) | 0.672 (+0.014); best on all WorldCover pixels 0.576 |
+
+### 16.3 Decisions and findings
+
+- **Final model unchanged: `Iter2_Test_1_Full`.** No configuration beats the pooled reference by more than the noise on both scores. The VGG16-BN rural mean (0.677) equals the delivered model (0.679).
+- **Noise was underestimated:**
+  - rural test mIoU of the identical reference varies by 0.057 (0.622-0.679);
+  - val varies by 0.011.
+  - The 0.679 of `Iter2_Test_1_Full` is a good draw; the expected level is about 0.66 ± 0.03.
+  - Each notebook comparing against its own reference was misleading. L0 was the weakest pair and inflated the label results.
+- **ImageNet pretraining:** the largest effect, −0.06 val and −0.09 rural without it.
+- **Encoder choice:** within the noise.
+- **Lovász:** a small, consistent gain.
+- **SGD vs AdamW:** no difference.
+- **L1 (agreement only):** wins on agreement pixels but loses on all WorldCover pixels (edges). This is the 1st-iteration rule that gave blob-shaped maps, so it is not adopted. It is a trade-off for the report.
+- **Water and Snow & ice:** stay at 0.40-0.50 for every encoder. The limit is radar physics and labels, not architecture.
+- **Val/test disagreement again:** EfficientNet-B0 (high val, low test, highest flicker 3.6 %) and SGD.
+
+### 16.4 Next steps
+
+1. Day-1 prototype runs (rural, 2021 and 2025 starts) and the urban screen recording; see `TODO.md`.
+2. Report: model comparison table from 16.2, noise discussion from 16.3.
+3. Optional (future work): seed ensemble of the 6 existing reference runs; L4 and DenseNet-121 / VGG16-BN with 5 seeds; SAR-pretrained encoder.

@@ -3,4 +3,9 @@ compare my output with google earth engine model
 fix the classes too many classes
 remove pca entirely
 mix and match all models and concepts learnt from lectures currently we using resnet-50 with some mods lets try something else as well
-Prof Levente's Graph based DL was very interesting i wanna see how pixel values/ input can be mapped with labels to get maybe an even better segmentation output or what it can help achieve definitely interesting
+Increase dataset to 10gb from 2021 to 2024 Google Earth engine also make the final ui with openstreet map and make a better product based ui for all relevant info
+
+
+future idea: Prof Levente's Graph based DL was very interesting i wanna see how pixel values/ input can be mapped with labels to get maybe an even better segmentation output or what it can help achieve definitely interesting,
+
+i have a question how does our dataset stretch from which region to which

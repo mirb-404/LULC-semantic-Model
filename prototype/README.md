@@ -1,14 +1,14 @@
 # Sentinel-1 LULC prototype (Streamlit)
 
-Enter a latitude/longitude and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the trained U-Net, and shows:
+Pick a place (preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (`Weights/Iter2_Test_1_Full`, loaded by default), and shows everything on one screen:
 
-- **12 monthly land use / land cover maps** with the classes of the model in use. 2nd iteration (7 classes): Man-made, Crop fields, Trees, Grassland, Bare ground, Water, Snow & ice. 1st iteration (8 classes): Built-up, Cropland, Trees, Shrub & grass, Bare / sparse, Water, Wetland & mangrove, Snow & ice;
-- the **share of each class per month** (% of the area);
-- the **month-to-month change** and the **total change** from the first to the last month, in percentage points;
-- a **sanity check** against the independent Esri 10 m Annual LULC map;
-- the Sentinel-1 input as a false-colour image.
+- a **live map** (satellite or streets) with the segmentation of the selected month drawn inside the bounding box of the analysed area; an opacity slider and an overlay switch (model, Esri reference, none);
+- the **Sentinel-1 radar input** of the same month beside the map, with the number of scenes;
+- **one month slider with a play button** that drives the map and the radar together;
+- **bar charts** of the class shares of the selected month, or of the change against the previous month;
+- an **analysis section**: summary cards (largest class, largest change, flicker, scenes per month, agreement with the Esri map vs the majority baseline), the class shares of all 12 months as stacked bars, the total and month-to-month change, the reference check, downloads (PNG, GeoTIFF, CSV, run summary) and notes on how to read the results.
 
-You choose the model yourself: `final_model.pt` from a 2nd-iteration run folder, `best_model.pt` from a 3rd-iteration experiment folder (or a 1st-iteration `<variant>_best.pt`), together with that run's `model_card.json`.
+Classes of the final model (2nd iteration): Man-made, Crop fields, Trees, Grassland, Bare ground, Water, Snow & ice. Other runs (3rd-iteration `best_model.pt`, 1st-iteration `<variant>_best.pt`) can be chosen under **Advanced** in the sidebar.
 
 ## Setup
 
@@ -75,29 +75,17 @@ The Earth Engine project ID is never sent to the browser: the app reads `EE_PROJ
 
 ## How to use
 
-1. **Model** (sidebar):
-   - *Upload files*: a weights file plus the `model_card.json` from the **same run folder**. 2nd iteration: `final_model.pt`; 1st iteration: for example `three_month_stats_best.pt`.
-   - *Local Weights folder*: pick a run folder in `../Weights/` that contains `model_card.json`, then a `.pt` file (`final_model.pt` is listed first).
+1. **Place:** choose a preset (rural test sites never used in training, Thane, Berlin), type latitude and longitude, or click the map. The dashed yellow box shows the area of the next run.
+2. **Year, start month, area** (2.56, 5.12 or 10.24 km square), then **Run**. A status box shows the steps (download, prediction per month, statistics) and the time taken.
+3. **Explore:** move the month slider or press **Play**; the map overlay, the radar image and the bar chart follow. The model runs only once per Run; the slider never reruns it. Use the opacity slider to compare the segmentation with the satellite image, and the overlay switch to show the Esri reference map.
+4. **Analysis** (below the map): summary cards, then the tabs *Year overview*, *Change*, *Reference check*, *Downloads and run log*, *How to read the results*.
 
-   **2nd iteration** (`"iteration": 2` in the model card): the card says everything: number of monthly inputs (`n_months` 0, 1 or 3), the 9 seasonal statistics, the 7 classes, and whether the monthly maps are smoothed over 3 months (`temporal_smoothing`). Weights and card must come from the same run; the app checks the input and class counts.
-
-   **1st iteration** (cards without `iteration`): the variant is detected from the first layer's channel count:
-
-   | Channels | Variant |
-   |---|---|
-   | 3 | `single_month` |
-   | 9 | `three_month` |
-   | 14 | `three_month_stats` |
-   | 15 | `three_month_pca` |
-   | 20 | `three_month_pca_stats` |
-   | 23 | `three_month_pca_stats_terrain` |
-
-   Every 1st-iteration variant of a run works with that run's model card. The card stores the normalisation and the PCA, statistics and terrain parameters.
-2. **Location and time:**
-   - *Google Earth Engine*: latitude, longitude, start year and month, and area (2.56, 5.12 or 10.24 km square).
-   - *Local dataset tile (offline test)*: a tile from the dataset of the model's iteration (`../Dataset_2nd_iteration/s1/` or `../Dataset/s1/`, year 2021). No Earth Engine is needed. The reference shown is the training label, so it is **not** an independent check.
-3. **Patch overlap:** the area is predicted in 256 x 256 px windows. More overlap gives smoother maps but takes longer.
-4. Press **Run**.
+**Advanced** (sidebar):
+- **Model:** the final model (default), another run folder in `../Weights/` with `model_card.json`, or uploaded files (weights + the `model_card.json` of the same run).
+  - **2nd/3rd iteration** (`"iteration": 2` in the card): the card defines the inputs, classes, encoder and smoothing; the app checks the input and class counts.
+  - **1st iteration** (cards without `iteration`): the variant follows from the first layer's channel count: 3 `single_month`, 9 `three_month`, 14 `three_month_stats`, 15 `three_month_pca`, 20 `three_month_pca_stats`, 23 `three_month_pca_stats_terrain`.
+- **Data source:** Google Earth Engine (any place), or a local dataset tile (`../Dataset_2nd_iteration/s1/` or `../Dataset/s1/`, year 2021, no Earth Engine needed; its reference is the training label, so **not** an independent check).
+- **Patch overlap:** the area is predicted in 256 x 256 px windows. More overlap gives smoother maps but takes longer.
 
 ## How it works
 
@@ -135,7 +123,8 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 
 | File | Content |
 |---|---|
-| `app.py` | Streamlit interface, caching, plots, downloads |
+| `app.py` | Streamlit interface: place and time controls, live map + radar viewer with month slider, analysis, downloads |
+| `mapview.py` | puts the UTM prediction grid on the web map (resampled to Web Mercator, so it lines up with the basemap), the area box, GeoTIFF export |
 | `gee.py` | Earth Engine: grid, monthly Sentinel-1 composites (2nd iteration via `../data_pipeline/sentinel1.py`), terrain, Esri reference, chunked download |
 | `pipeline.py` | model loading (variant from the model card or the channel count), input features, sliding-window inference, temporal smoothing, percentages and changes |
 | `model.py` | the U-Net with an exchangeable encoder (ResNet-34, ResNet-50, VGG-16-BN, DenseNet-121, EfficientNet-B0), identical to the 3rd-iteration notebooks; cards without `encoder` mean ResNet-34 |
@@ -147,6 +136,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 
 ## Limitations
 
+- **Basemap tiles** (Esri World Imagery, OpenStreetMap) are loaded by the browser, so the viewer's computer needs internet access; the satellite image is a recent mosaic, not the analysed month.
 - **Seasonal effects look like change.** The training label is annual, so snow, wet soil, harvest or flooding change the radar signal and can flip a pixel's class for some months. The month-to-month change mixes real change with these effects.
 - **Errors inflate the change.** If 5 % of pixels are misclassified differently in two months, the change table shows several pp of change even when nothing changed.
 - **Unfamiliar regions:** the models were trained on sites of 2021 (1st iteration: 134 training sites, city-heavy; 2nd iteration: about 130 training sites, mostly rural). Performance drops on landscapes unlike the training data. On the 1st-iteration test sites the weakest results were boreal / snow areas, shrubland and wetland.

@@ -215,6 +215,12 @@ def month_changes(pct):
     return steps, total
 
 
+def flicker(preds, valid):
+    """Share of valid pixels whose class differs from the previous month, in %, per month step (11 values)."""
+    n = max(int(valid.sum()), 1)
+    return [float(((a != b) & valid).sum() / n * 100) for a, b in zip(preds[:-1], preds[1:])]
+
+
 def annual_mode(preds, n_classes):
     """Most frequent class per pixel over the 12 months (for the comparison with an annual map)."""
     counts = np.stack([(preds == k).sum(0) for k in range(1, n_classes + 1)])
