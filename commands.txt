@@ -4,3 +4,5 @@ earthengine authenticate --auth_mode=notebook
 
 source ~/vault/LULC-semantic-Model/.venv/bin/activate
 sudo apt-get update && sudo apt-get install -y nano
+
+nohup python data_pipeline/build_dataset.py --workers 8 > build.log 2>&1 & tail -f build.log

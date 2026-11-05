@@ -325,12 +325,16 @@ RURAL_SITES = RURAL_SITES + EXTRA_RURAL_SITES + BIOME_GAP_SITES
 #    salt pans, mines and degraded highlands were never seen as bare;
 #  - small tropical fields (terraces, paddies, hill plots): 18 of the 22 earlier crop sites are large flat fields;
 #  - bare rock without settlements: bright rough rock looked like Man-made.
+# Build of 2026-11-05: WorldCover labels the eroded hills of Madagascar (betsiboka 94 % Grassland, 0.3 % bare), the
+# Lake Alaotra paddies (97 % Grassland: flooded rice is herbaceous wetland, mapped to Grassland) and the Pilbara mines
+# (97 % Grassland) as Grassland, so those sites cannot teach Bare ground or Crop fields with these labels and stay
+# skipped; mbale_hill_farms (5 % crop) too. Tigray turned out to be 61 % crop: kept as a smallholder crop site.
 # All train, at least MIN_TEST_DISTANCE_KM from every val/test site. `need` = minimum WorldCover share of a
 # class id (see CLASSES), checked before downloading; tiles that fail are skipped and listed in
 # skipped_sites.json with their class shares, so the coordinates can be moved.
 ITER4_SITES = [
     dict(name="betsiboka_eroded_hills",  lat=-17.0000, lon=46.9000,   region="africa",    focus="bare_tropical", need={5: 0.05}),
-    dict(name="tigray_degraded_highland", lat=13.9000, lon=39.4000,   region="africa",    focus="bare_tropical", need={5: 0.10}),
+    dict(name="tigray_degraded_highland", lat=13.9000, lon=39.4000,   region="africa",    focus="smallholder",   need={2: 0.30}),  # WorldCover: 61 % crop, 37 % grass, 2 % bare
     dict(name="etosha_pan_edge",         lat=-18.9000, lon=16.2000,   region="africa",    focus="bare_tropical", need={5: 0.20}),
     dict(name="pilbara_iron_mines",      lat=-22.7000, lon=118.6000,  region="oceania",   focus="bare_tropical", need={5: 0.10}),
     dict(name="carajas_mine",            lat=-6.0700,  lon=-50.1600,  region="s_america", focus="bare_tropical", need={5: 0.10}),
@@ -338,8 +342,8 @@ ITER4_SITES = [
     dict(name="burkina_central_plateau", lat=12.9000,  lon=-1.5000,   region="africa",    focus="smallholder",   need={2: 0.20}),
     dict(name="lake_alaotra_rice",       lat=-17.6000, lon=48.4000,   region="africa",    focus="smallholder",   need={2: 0.15}),
     dict(name="mbale_hill_farms",        lat=1.1000,   lon=34.2000,   region="africa",    focus="smallholder",   need={2: 0.20}),
-    dict(name="nepal_terraces",          lat=28.0000,  lon=84.2000,   region="asia",      focus="smallholder",   need={2: 0.15}),
-    dict(name="sri_lanka_dry_zone",      lat=8.3000,   lon=80.4000,   region="asia",      focus="smallholder",   need={2: 0.20}),
+    dict(name="nepal_terraces",          lat=28.0000,  lon=84.2000,   region="asia",      focus="smallholder",   need={2: 0.08}),  # WorldCover: 9.6 % crop (terraces)
+    dict(name="sri_lanka_dry_zone",      lat=8.3000,   lon=80.4000,   region="asia",      focus="smallholder",   need={2: 0.15}),  # WorldCover: 16 % crop
     dict(name="matopos_granite",         lat=-20.5500, lon=28.5000,   region="africa",    focus="rock"),
     dict(name="sierra_nevada_granite",   lat=37.8000,  lon=-119.4000, region="n_america", focus="rock",          need={5: 0.05}),
     # Pure-class tiles (one class >= 60 % of the tile): the model sees what the class alone looks like to the
