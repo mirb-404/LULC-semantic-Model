@@ -224,7 +224,9 @@ def download_site(site, terrain=False, year=config.YEAR):
                                 for m in config.MONTHS}).getInfo()
         print(f"{name} {year}: S1 scenes per month {counts}")
         empty = sum(v == 0 for v in counts.values())
-        allowed = 0 if year == config.YEAR else config.MAX_EMPTY_MONTHS_EXTRA
+        # val/test tiles must be complete (comparable scores); training tiles may miss a few months, which the
+        # model already handles (month dropout): Africa and later years often have a month without a scene
+        allowed = 0 if site["split"] != "train" else config.MAX_EMPTY_MONTHS_EXTRA
         if empty > allowed:
             raise SkipSite(f"{year}: {empty} months without Sentinel-1 IW scenes (allowed {allowed}): {counts}")
         download_raster(s1_image(region, year), config.BAND_NAMES, "uint8", config.NODATA,

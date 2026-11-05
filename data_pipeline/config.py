@@ -360,7 +360,8 @@ SITES = ([dict(s, focus="urban") for s in URBAN_SITES + CITY_EDGE_SITES
 # Dynamic World of that year disagrees) get the lower disagreement weight automatically. Val and test stay
 # 2021 only, so scores remain comparable with the 2nd and 3rd iterations. Sentinel-1B failed in December 2021:
 # later years have about half the scenes, and some months none; up to MAX_EMPTY_MONTHS_EXTRA empty months are
-# accepted (the model already trains with missing months, MONTH_DROP).
+# accepted for training tiles of any year (the model already trains with missing months, MONTH_DROP); val and
+# test tiles must have every month.
 EXTRA_YEARS = (2022, 2023, 2024)
 MAX_EMPTY_MONTHS_EXTRA = 2
 MIN_TEST_DISTANCE_KM = 30
