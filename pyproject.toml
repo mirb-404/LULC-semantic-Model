@@ -17,6 +17,9 @@ dependencies = [
     "torchvision>=0.26",
     "ipykernel",
     "streamlit>=1.66.1",
+    # prototype map viewer (prototype/app.py, prototype/mapview.py)
+    "folium>=0.20",
+    "streamlit-folium>=0.22",
 ]
 
 [tool.uv]

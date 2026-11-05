@@ -433,6 +433,9 @@ with st.sidebar:
                        f"{', 3-month smoothing' if variant['smoothing'] else ''}, on {device.type.upper()}")
             if variant["terrain"]:
                 st.warning("This variant also uses terrain (DEM, HAND): not Sentinel-1 only.")
+            if any(card.get("class_logit_bias") or []):
+                st.caption("Class bias (tuned on val): " + ", ".join(
+                    f"{n} {b:+.2f}" for n, b in zip(card["class_names"], card["class_logit_bias"]) if b))
         except Exception as err:
             st.error(f"Could not load the model: {err}")
             net = None
@@ -449,6 +452,10 @@ st.caption("12 monthly land-cover maps from radar only (Sentinel-1), for any pla
                                           if card and card.get("test_rural_mIoU") else "") if card else ""))
 
 result = st.session_state.get("result")
+if result is not None and weight_name and result["weights"] != weight_name:
+    # results are kept between reruns; a model change in the sidebar does not recompute them
+    st.warning(f"The maps below were made with **{result['weights']}**, not with the selected **{weight_name}**. "
+               "Press **Run** to compute them with the selected model.")
 with st.container(border=True):
     if use_gee:
         c = st.columns([3.2, 1.3, 1.3, 1, 1.1, 1.5, 1.1], vertical_alignment="bottom")
@@ -583,6 +590,9 @@ def viewer():
             layers.append(box_layer(planned, "#ffd92f", True, "next analysis area (press Run)"))
         show_map(center, zoom, basemap, layers)
         st.markdown(legend_html(names, colors), unsafe_allow_html=True)
+        st.caption("The basemap is a static, recent mosaic of mixed dates (Esri World Imagery / OpenStreetMap) for "
+                   "orientation only: it does not change with the month. Only the overlay and the radar image are "
+                   "from the selected month.")
         if layer.startswith("Esri") and not r["ref_overlay"]:
             st.caption("No Esri reference map for this run.")
 
@@ -621,6 +631,7 @@ if r["valid"].mean() < 0.99:
     st.warning(f"{(1 - r['valid'].mean()) * 100:.1f} % of the area has no radar data and is excluded.")
 
 st.subheader("Analysis")
+st.caption(f"Model of this result: {r['weights']} ({r['model']}) · {r['place_name']}")
 mean_share = pct.mean()
 biggest = total.abs().idxmax()
 m = st.columns(5)

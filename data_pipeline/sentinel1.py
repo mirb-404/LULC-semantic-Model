@@ -61,4 +61,7 @@ def flatten_terrain(img, slope, aspect):
 def monthly_composite(region, year, month, slope, aspect):
     """Terrain-flattened monthly gamma0 in dB, bands VV and VH."""
     linear = month_collection(region, year, month).map(lambda img: flatten_terrain(img, slope, aspect))
-    return linear.mean().log10().multiply(10)
+    # a fully masked image keeps the VV/VH bands when a month has no scene (Sentinel-1B lost after 2021):
+    # the mean is then masked everywhere and is written as no data, instead of failing on an empty image
+    empty = ee.Image.constant([0, 0]).rename(["VV", "VH"]).toDouble().updateMask(0)
+    return linear.merge(ee.ImageCollection([empty])).mean().log10().multiply(10)

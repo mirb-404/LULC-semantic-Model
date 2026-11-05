@@ -320,9 +320,80 @@ DROPPED_SITES = {"columbia_icefield", "vatnajokull", "mont_blanc_massif", "joste
 
 RURAL_SITES = RURAL_SITES + EXTRA_RURAL_SITES + BIOME_GAP_SITES
 
+# 4th iteration (2026-11-05): training sites for the confusions seen in the prototype (Madagascar highlands):
+#  - bare ground outside deserts: every earlier bare site was a sand or rock desert, so eroded laterite,
+#    salt pans, mines and degraded highlands were never seen as bare;
+#  - small tropical fields (terraces, paddies, hill plots): 18 of the 22 earlier crop sites are large flat fields;
+#  - bare rock without settlements: bright rough rock looked like Man-made.
+# All train, at least MIN_TEST_DISTANCE_KM from every val/test site. `need` = minimum WorldCover share of a
+# class id (see CLASSES), checked before downloading; tiles that fail are skipped and listed in
+# skipped_sites.json with their class shares, so the coordinates can be moved.
+ITER4_SITES = [
+    dict(name="betsiboka_eroded_hills",  lat=-17.0000, lon=46.9000,   region="africa",    focus="bare_tropical", need={5: 0.05}),
+    dict(name="tigray_degraded_highland", lat=13.9000, lon=39.4000,   region="africa",    focus="bare_tropical", need={5: 0.10}),
+    dict(name="etosha_pan_edge",         lat=-18.9000, lon=16.2000,   region="africa",    focus="bare_tropical", need={5: 0.20}),
+    dict(name="pilbara_iron_mines",      lat=-22.7000, lon=118.6000,  region="oceania",   focus="bare_tropical", need={5: 0.10}),
+    dict(name="carajas_mine",            lat=-6.0700,  lon=-50.1600,  region="s_america", focus="bare_tropical", need={5: 0.10}),
+    dict(name="deccan_dry_plateau",      lat=18.6000,  lon=75.5000,   region="asia",      focus="bare_tropical", need={2: 0.15}),
+    dict(name="burkina_central_plateau", lat=12.9000,  lon=-1.5000,   region="africa",    focus="smallholder",   need={2: 0.20}),
+    dict(name="lake_alaotra_rice",       lat=-17.6000, lon=48.4000,   region="africa",    focus="smallholder",   need={2: 0.15}),
+    dict(name="mbale_hill_farms",        lat=1.1000,   lon=34.2000,   region="africa",    focus="smallholder",   need={2: 0.20}),
+    dict(name="nepal_terraces",          lat=28.0000,  lon=84.2000,   region="asia",      focus="smallholder",   need={2: 0.15}),
+    dict(name="sri_lanka_dry_zone",      lat=8.3000,   lon=80.4000,   region="asia",      focus="smallholder",   need={2: 0.20}),
+    dict(name="matopos_granite",         lat=-20.5500, lon=28.5000,   region="africa",    focus="rock"),
+    dict(name="sierra_nevada_granite",   lat=37.8000,  lon=-119.4000, region="n_america", focus="rock",          need={5: 0.05}),
+    # Pure-class tiles (one class >= 60 % of the tile): the model sees what the class alone looks like to the
+    # radar, which the mixed tiles above then use to separate the classes at their boundaries.
+    dict(name="etosha_pan_pure",         lat=-18.7500, lon=16.3000,   region="africa",    focus="bare_pure",     need={5: 0.60}),
+    dict(name="salar_de_uyuni_pure",     lat=-20.2000, lon=-67.5000,  region="s_america", focus="bare_pure",     need={5: 0.60}),
+    dict(name="gezira_scheme_pure",      lat=14.4000,  lon=33.3000,   region="africa",    focus="crop_pure",     need={2: 0.60}),
+    dict(name="central_thailand_rice_pure", lat=14.5000, lon=100.3000, region="asia",     focus="crop_pure",     need={2: 0.60}),
+]
+ITER4_SITES = [dict(s, split="train", iteration=4) for s in ITER4_SITES]
+
 SITES = ([dict(s, focus="urban") for s in URBAN_SITES + CITY_EDGE_SITES
           if s["name"] in URBAN_KEPT or s in CITY_EDGE_SITES]
-         + [s for s in RURAL_SITES if s["name"] not in DROPPED_SITES] + MOSAIC_SITES)
+         + [s for s in RURAL_SITES if s["name"] not in DROPPED_SITES] + MOSAIC_SITES + ITER4_SITES)
+
+# 4th iteration: Sentinel-1 radar of later years for the training sites, paired with the same WorldCover 2021
+# label. Dynamic World of the same year marks agreement, so pixels whose land cover changed after 2021 (where
+# Dynamic World of that year disagrees) get the lower disagreement weight automatically. Val and test stay
+# 2021 only, so scores remain comparable with the 2nd and 3rd iterations. Sentinel-1B failed in December 2021:
+# later years have about half the scenes, and some months none; up to MAX_EMPTY_MONTHS_EXTRA empty months are
+# accepted (the model already trains with missing months, MONTH_DROP).
+EXTRA_YEARS = (2022, 2023, 2024)
+MAX_EMPTY_MONTHS_EXTRA = 2
+MIN_TEST_DISTANCE_KM = 30
+
+
+def s1_dir(year):
+    return S1_DIR if year == YEAR else DATA_DIR / f"s1_{year}"
+
+
+def label_dir(year):
+    return LABEL_DIR if year == YEAR else DATA_DIR / f"labels_{year}"
+
+
+# No later years for towns (stable, not the product goal) and glaciers (stable): about 20 % less to download.
+EXTRA_YEARS_SKIP_FOCUS = {"urban", "snow_ice"}
+
+
+def years_for(site):
+    extra = site["split"] == "train" and site["focus"] not in EXTRA_YEARS_SKIP_FOCUS
+    return (YEAR,) + (EXTRA_YEARS if extra else ())
+
+
+def distance_km(a, b):
+    lat1, lon1, lat2, lon2 = map(np.radians, (a["lat"], a["lon"], b["lat"], b["lon"]))
+    h = np.sin((lat2 - lat1) / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2
+    return float(6371 * 2 * np.arcsin(np.sqrt(h)))
+
+
+def leakage(min_km=MIN_TEST_DISTANCE_KM):
+    """Train sites closer than min_km to a val/test site: [(train, held-out, km)]."""
+    held = [s for s in SITES if s["split"] != "train"]
+    return [(s["name"], h["name"], round(distance_km(s, h), 1)) for s in SITES if s["split"] == "train"
+            for h in held if distance_km(s, h) < min_km]
 
 # 2nd iteration: 7 classes. Wetland & mangrove was dropped (WorldCover herbaceous wetland is only 30-45 %
 # correct and caused winter false alarms): mangroves count as Trees, marsh as Grassland.

@@ -13,6 +13,10 @@ orbit file, GRD border noise removal, thermal noise removal, radiometric calibra
   5. convert back to dB. No spatial speckle filter: the 3x3 focal median of the 1st iteration
      blurred field edges, roads and streams, and the monthly mean already reduces speckle.
 Output: <dataset>/s1/<site>.tif, 24 uint8 bands (VV_01, VH_01, ..., VH_12), see config.decode_db.
+Later years (4th iteration, training sites only, config.EXTRA_YEARS): <dataset>/s1_<year>/<site>.tif and
+<dataset>/labels_<year>/<site>.tif (the same WorldCover 2021 label; Dynamic World of that year for the
+agreement band). Up to config.MAX_EMPTY_MONTHS_EXTRA months without scenes are accepted (written as no data).
+Sites with `need` (4th-iteration sites) must reach a minimum WorldCover share of a class before downloading.
 
 Labels: ESA WorldCover 2021, the 2021 per-pixel mode of Dynamic World and its mode over
 snow-free observations are mapped to the target classes and sampled with nearest neighbour onto
@@ -33,8 +37,8 @@ Hydro height above nearest drainage (HAND) in 0.1 m, bilinear onto the S1 grid. 
 Output: <dataset>/terrain/<site>.tif, 3 int16 bands (elevation_m, slope_decideg, hand_dm).
 
 Rerunning skips files that exist, so an interrupted run continues where it stopped.
-Usage: python data_pipeline/download.py [--project <gee-project-id>] [--sites a b] [--workers 4]
-                                        [--terrain] [--relabel]
+Usage: python data_pipeline/download.py [--project <gee-project-id>] [--sites a b] [--years 2021 2022]
+                                        [--workers 4] [--terrain] [--relabel]
 Datalab / remote machines: see data_pipeline/README.md.
 """
 import argparse
@@ -80,9 +84,9 @@ def site_grid(site):
     return epsg, x0, y_top, config.TILE_SIZE_M // config.PIXEL_M
 
 
-def s1_image(region):
+def s1_image(region, year):
     slope, aspect = sentinel1.slope_aspect(region)
-    stack = ee.Image.cat([sentinel1.monthly_composite(region, config.YEAR, m, slope, aspect)
+    stack = ee.Image.cat([sentinel1.monthly_composite(region, year, m, slope, aspect)
                           .rename([f"VV_{m:02d}", f"VH_{m:02d}"]) for m in config.MONTHS])
     codes = stack.subtract(config.DB_MIN).divide(config.DB_STEP).round().clamp(1, 255)
     return codes.unmask(config.NODATA).toUint8()
@@ -93,11 +97,12 @@ def worldcover_classes():
     return wc.remap(list(config.WORLDCOVER_TO_CLASS), list(config.WORLDCOVER_TO_CLASS.values()), 0)
 
 
-def label_image(region):
+def label_image(region, year):
+    """WorldCover 2021 (the training label in every year) + Dynamic World of `year` (the agreement check)."""
     wc = worldcover_classes()
     dw_year = (ee.ImageCollection("GOOGLE/DYNAMICWORLD/V1")
                .filterBounds(region)
-               .filterDate(f"{config.YEAR}-01-01", f"{config.YEAR + 1}-01-01")
+               .filterDate(f"{year}-01-01", f"{year + 1}-01-01")
                .select("label"))
     to_class = (list(config.DYNAMICWORLD_TO_CLASS), list(config.DYNAMICWORLD_TO_CLASS.values()), 0)
     dw = dw_year.mode().remap(*to_class)
@@ -124,9 +129,9 @@ def worldcover_shares(region):
     return {k: round(v / total, 4) for k, v in sorted(hist.items())}
 
 
-def write_consensus(name):
+def write_consensus(name, year=config.YEAR):
     """Fill band 1 (consensus) of a label file from its WorldCover/Dynamic World bands, save stats."""
-    label_path = config.LABEL_DIR / f"{name}.tif"
+    label_path = config.label_dir(year) / f"{name}.tif"
     with rasterio.open(label_path, "r+") as dst:
         labels = dst.read()
         labels[0] = config.consensus_labels(labels[1], labels[2], labels[3] if len(labels) > 3 else None)
@@ -137,8 +142,8 @@ def write_consensus(name):
     stats = {"kept_pct": round(float(kept), 2),
              **{band: np.bincount(labels[i].ravel(), minlength=n_classes).tolist()
                 for i, band in enumerate(config.LABEL_BANDS)}}
-    (config.LABEL_DIR / f"{name}_stats.json").write_text(json.dumps(stats, indent=2))
-    print(f"{name}: {kept:.1f}% of pixels where WorldCover and Dynamic World agree")
+    (config.label_dir(year) / f"{name}_stats.json").write_text(json.dumps(stats, indent=2))
+    print(f"{name} {year}: {kept:.1f}% of pixels where WorldCover and Dynamic World {year} agree")
 
 
 def fetch_chunk(image, bands, epsg, x0, y_top, width, height):
@@ -163,7 +168,7 @@ def fetch_chunk(image, bands, epsg, x0, y_top, width, height):
             time.sleep(5 * (attempt + 1))
 
 
-def download_raster(image, bands, dtype, fill, out_path, epsg, x0, y_top, n, tags=None):
+def download_raster(image, bands, dtype, fill, out_path, epsg, x0, y_top, n, tags=None, year=config.YEAR):
     data = np.full((len(bands), n, n), fill, dtype=dtype)
     offsets = [(r, c) for r in range(0, n, CHUNK) for c in range(0, n, CHUNK)]
 
@@ -184,7 +189,7 @@ def download_raster(image, bands, dtype, fill, out_path, epsg, x0, y_top, n, tag
     with rasterio.open(tmp_path, "w", **profile) as dst:
         dst.write(data)
         dst.descriptions = tuple(bands)
-        dst.update_tags(year=config.YEAR, **(tags or {}))
+        dst.update_tags(year=year, **(tags or {}))
     tmp_path.replace(out_path)
     print(f"  {out_path.parent.name}/{out_path.name} written")
     return data
@@ -195,39 +200,46 @@ S1_TAGS = {"preprocessing": "S1_GRD IW VV+VH asc+desc; gamma0 terrain flattening
                             "no spatial filter"}
 
 
-def download_site(site, terrain=False):
+def download_site(site, terrain=False, year=config.YEAR):
     name = site["name"]
-    s1_path = config.S1_DIR / f"{name}.tif"
-    label_path = config.LABEL_DIR / f"{name}.tif"
+    s1_path = config.s1_dir(year) / f"{name}.tif"
+    label_path = config.label_dir(year) / f"{name}.tif"
     terrain_path = config.TERRAIN_DIR / f"{name}.tif"
     epsg, x0, y_top, n = site_grid(site)
     size_m = n * config.PIXEL_M
     region = ee.Geometry.Rectangle([x0, y_top - size_m, x0 + size_m, y_top], f"EPSG:{epsg}", False)
 
-    if site["focus"] == "mosaic" and not s1_path.exists():
+    if year == config.YEAR and not s1_path.exists() and (site["focus"] == "mosaic" or site.get("need")):
         shares = worldcover_shares(region)
-        if not config.is_mosaic(shares):
+        if site["focus"] == "mosaic" and not config.is_mosaic(shares):
             raise SkipSite(f"not a mosaic, WorldCover class shares {shares}")
+        short = {k: v for k, v in site.get("need", {}).items() if shares.get(k, 0) < v}
+        if short:
+            raise SkipSite(f"WorldCover shares {shares} below the required minimum {short}")
+    if year != config.YEAR and not (config.s1_dir(config.YEAR) / f"{name}.tif").exists():
+        raise SkipSite(f"no {config.YEAR} tile (later years only extend sites that exist in {config.YEAR})")
 
     if not s1_path.exists():
-        counts = ee.Dictionary({str(m): sentinel1.month_collection(region, config.YEAR, m).size()
+        counts = ee.Dictionary({str(m): sentinel1.month_collection(region, year, m).size()
                                 for m in config.MONTHS}).getInfo()
-        print(f"{name}: S1 scenes per month {counts}")
-        if min(counts.values()) == 0:
-            raise SkipSite(f"months without Sentinel-1 IW scenes: {counts}")
-        download_raster(s1_image(region), config.BAND_NAMES, "uint8", config.NODATA,
-                        s1_path, epsg, x0, y_top, n, S1_TAGS)
-        (config.S1_DIR / f"{name}_scene_counts.json").write_text(json.dumps(counts, indent=2))
+        print(f"{name} {year}: S1 scenes per month {counts}")
+        empty = sum(v == 0 for v in counts.values())
+        allowed = 0 if year == config.YEAR else config.MAX_EMPTY_MONTHS_EXTRA
+        if empty > allowed:
+            raise SkipSite(f"{year}: {empty} months without Sentinel-1 IW scenes (allowed {allowed}): {counts}")
+        download_raster(s1_image(region, year), config.BAND_NAMES, "uint8", config.NODATA,
+                        s1_path, epsg, x0, y_top, n, S1_TAGS, year)
+        (config.s1_dir(year) / f"{name}_scene_counts.json").write_text(json.dumps(counts, indent=2))
 
     if not label_path.exists():
-        download_raster(label_image(region), config.LABEL_BANDS, "uint8", 0,
-                        label_path, epsg, x0, y_top, n)
-        write_consensus(name)
+        download_raster(label_image(region, year), config.LABEL_BANDS, "uint8", 0,
+                        label_path, epsg, x0, y_top, n, {"label_year": 2021, "agreement_year": year}, year)
+        write_consensus(name, year)
 
-    if terrain and not terrain_path.exists():
+    if terrain and year == config.YEAR and not terrain_path.exists():
         download_raster(terrain_image(region), config.TERRAIN_BANDS, "int16", 0,
                         terrain_path, epsg, x0, y_top, n)
-    print(f"{name}: done")
+    print(f"{name} {year}: done")
 
 
 def project_from_env_file():
@@ -265,49 +277,65 @@ def main():
                         help="Google Cloud project registered for Earth Engine "
                              "(default: EE_PROJECT env var or Project_ID in .env)")
     parser.add_argument("--sites", nargs="*", help="subset of site names (default: all)")
+    parser.add_argument("--years", nargs="*", type=int,
+                        help=f"subset of years (default: {config.YEAR} for every site, plus "
+                             f"{', '.join(map(str, config.EXTRA_YEARS))} for training sites)")
     parser.add_argument("--workers", type=int, default=4,
-                        help="sites downloaded in parallel (each uses 4 requests at a time)")
+                        help="tiles downloaded in parallel (each uses 4 requests at a time)")
     parser.add_argument("--terrain", action="store_true", help="also download the terrain layers")
     parser.add_argument("--relabel", action="store_true",
                         help="only recompute consensus labels from existing label files (offline)")
     args = parser.parse_args()
     sites = [s for s in config.SITES if not args.sites or s["name"] in args.sites]
-    print(f"dataset: {config.DATA_DIR} | {len(sites)} sites")
+    tiles = [(s, y) for s in sites for y in config.years_for(s) if not args.years or y in args.years]
+    print(f"dataset: {config.DATA_DIR} | {len(sites)} sites, {len(tiles)} site-years")
+    for train, held, km in config.leakage():
+        print(f"warning: train site {train} is {km} km from val/test site {held}")
     if args.relabel:
-        for site in sites:
-            if (config.LABEL_DIR / f"{site['name']}.tif").exists():
-                write_consensus(site["name"])
+        for site, year in tiles:
+            if (config.label_dir(year) / f"{site['name']}.tif").exists():
+                write_consensus(site["name"], year)
         return
     if not args.project:
         parser.error("pass --project, set EE_PROJECT or add Project_ID to .env")
 
     initialize(args.project)
-    folders = (config.S1_DIR, config.LABEL_DIR) + ((config.TERRAIN_DIR,) if args.terrain else ())
-    for folder in folders:
-        folder.mkdir(parents=True, exist_ok=True)
-    todo = [s for s in sites if not all((f / f"{s['name']}.tif").exists() for f in folders)]
-    print(f"{len(sites) - len(todo)} sites already downloaded, {len(todo)} to go")
+
+    def folders(year):
+        return ((config.s1_dir(year), config.label_dir(year))
+                + ((config.TERRAIN_DIR,) if args.terrain and year == config.YEAR else ()))
+
+    for year in sorted({y for _, y in tiles}):
+        for folder in folders(year):
+            folder.mkdir(parents=True, exist_ok=True)
+    todo = [(s, y) for s, y in tiles if not all((f / f"{s['name']}.tif").exists() for f in folders(y))]
+    print(f"{len(tiles) - len(todo)} site-years already downloaded, {len(todo)} to go")
     failed, skipped = [], {}
-    with ThreadPoolExecutor(max_workers=args.workers) as pool, \
-            tqdm(total=len(todo), unit="site", desc="sites", dynamic_ncols=True) as bar:
-        jobs = {pool.submit(download_site, site, args.terrain): site["name"] for site in todo}
-        for job in as_completed(jobs):
-            name = jobs[job]
-            try:
-                job.result()
-            except SkipSite as reason:
-                tqdm.write(f"{name}: SKIPPED ({reason})")
-                skipped[name] = str(reason)
-            except Exception as err:
-                tqdm.write(f"{name}: FAILED ({err}); rerun the script to retry")
-                failed.append(name)
-            bar.update(1)
+    for year in sorted({y for _, y in todo}):  # one year after the other: 2021 is complete before later years
+        batch = [s for s, y in todo if y == year]
+        with ThreadPoolExecutor(max_workers=args.workers) as pool, \
+                tqdm(total=len(batch), unit="site", desc=str(year), dynamic_ncols=True) as bar:
+            jobs = {pool.submit(download_site, site, args.terrain, year): site["name"] for site in batch}
+            for job in as_completed(jobs):
+                key = jobs[job] if year == config.YEAR else f"{jobs[job]}_{year}"
+                try:
+                    job.result()
+                except SkipSite as reason:
+                    tqdm.write(f"{key}: SKIPPED ({reason})")
+                    skipped[key] = str(reason)
+                except Exception as err:
+                    tqdm.write(f"{key}: FAILED ({err}); rerun the script to retry")
+                    failed.append(key)
+                bar.update(1)
     skipped_path = config.DATA_DIR / "skipped_sites.json"
     earlier = json.loads(skipped_path.read_text()) if skipped_path.exists() else {}
-    earlier = {k: v for k, v in earlier.items() if k not in jobs.values()}
+    retried = {s["name"] if y == config.YEAR else f"{s['name']}_{y}" for s, y in todo}
+    earlier = {k: v for k, v in earlier.items() if k not in retried}
     skipped_path.write_text(json.dumps({**earlier, **skipped}, indent=2))
-    print(f"skipped sites (see skipped_sites.json): {sorted(skipped)}" if skipped else "no sites skipped")
-    print(f"failed sites: {sorted(failed)}" if failed else "all other sites downloaded")
+    print(f"skipped (see skipped_sites.json): {sorted(skipped)}" if skipped else "nothing skipped")
+    print(f"failed: {sorted(failed)}" if failed else "everything else downloaded")
+    if failed:
+        raise SystemExit(1)  # build_dataset.py reruns the download until nothing fails
 
 
 if __name__ == "__main__":

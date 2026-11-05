@@ -197,6 +197,11 @@ def run_inference(net, variant, card, codes_all, months_all, n_before, terrain, 
     probs = np.stack(probs)
     if variant["smoothing"]:
         probs = np.stack([probs[max(t - 1, 0):t + 2].mean(0) for t in range(12)])
+    bias = card.get("class_logit_bias")
+    if bias:  # 4th iteration: per-class offset on the log-probabilities, tuned on val (e.g. fewer false Water pixels)
+        # probs are sums over overlapping windows; the per-pixel scale does not change the argmax
+        logp = np.log(np.maximum(probs, 1e-12)) + np.asarray(bias, np.float32)[None, :, None, None]
+        return logp.argmax(1).astype(np.uint8) + 1
     return probs.argmax(1).astype(np.uint8) + 1
 
 
