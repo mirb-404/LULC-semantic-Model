@@ -1,0 +1,648 @@
+nohup: ignoring input
+[20:21:39] dataset /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration | steps ['download', 'patches', 'manifest', 'zip']
+[20:21:39] warning: train site black_forest is 28.8 km from val/test site black_forest_villages
+[20:21:39] warning: train site central_valley_ca is 19.7 km from val/test site fresno_edge
+[20:21:39] $ /home/jovyan/vault/LULC-semantic-Model/data_pipeline/download.py --workers 8 --sites tigray_degraded_highland nepal_terraces sri_lanka_dry_zone
+dataset: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration | 3 sites, 12 site-years
+warning: train site black_forest is 28.8 km from val/test site black_forest_villages
+warning: train site central_valley_ca is 19.7 km from val/test site fresno_edge
+0 site-years already downloaded, 12 to go
+2021:   0%|          | 0/3 [00:00<?, ?site/s]2021:  33%|███▎      | 1/3 [00:20<00:41, 20.80s/site]2021:  67%|██████▋   | 2/3 [00:21<00:08,  8.86s/site]2021: 100%|██████████| 3/3 [00:23<00:00,  5.89s/site]2021: 100%|██████████| 3/3 [00:23<00:00,  7.89s/site]
+nepal_terraces 2021: S1 scenes per month {'1': 11, '10': 11, '11': 8, '12': 11, '2': 8, '3': 11, '4': 10, '5': 11, '6': 9, '7': 11, '8': 11, '9': 9}
+sri_lanka_dry_zone 2021: S1 scenes per month {'1': 6, '10': 6, '11': 5, '12': 6, '2': 4, '3': 6, '4': 4, '5': 6, '6': 6, '7': 6, '8': 6, '9': 4}
+tigray_degraded_highland 2021: S1 scenes per month {'1': 5, '10': 5, '11': 5, '12': 5, '2': 4, '3': 5, '4': 6, '5': 5, '6': 5, '7': 5, '8': 4, '9': 5}
+  s1/tigray_degraded_highland.tif written
+  s1/nepal_terraces.tif written
+  s1/sri_lanka_dry_zone.tif written
+  labels/nepal_terraces.tif written
+nepal_terraces 2021: 82.2% of pixels where WorldCover and Dynamic World 2021 agree
+nepal_terraces 2021: done
+  labels/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2021: 57.1% of pixels where WorldCover and Dynamic World 2021 agree
+sri_lanka_dry_zone 2021: done
+  labels/tigray_degraded_highland.tif written
+tigray_degraded_highland 2021: 48.5% of pixels where WorldCover and Dynamic World 2021 agree
+tigray_degraded_highland 2021: done
+2022:   0%|          | 0/3 [00:00<?, ?site/s]2022:  33%|███▎      | 1/3 [00:21<00:42, 21.42s/site]2022:  67%|██████▋   | 2/3 [00:22<00:09,  9.50s/site]2022: 100%|██████████| 3/3 [00:34<00:00, 10.66s/site]2022: 100%|██████████| 3/3 [00:34<00:00, 11.54s/site]
+tigray_degraded_highland 2022: S1 scenes per month {'1': 6, '10': 4, '11': 5, '12': 5, '2': 4, '3': 5, '4': 5, '5': 6, '6': 4, '7': 6, '8': 4, '9': 5}
+nepal_terraces 2022: S1 scenes per month {'1': 10, '10': 7, '11': 8, '12': 7, '2': 10, '3': 9, '4': 10, '5': 10, '6': 10, '7': 9, '8': 8, '9': 7}
+sri_lanka_dry_zone 2022: S1 scenes per month {'1': 4, '10': 6, '11': 6, '12': 4, '2': 6, '3': 4, '4': 6, '5': 4, '6': 6, '7': 4, '8': 6, '9': 4}
+  s1_2022/tigray_degraded_highland.tif written
+  s1_2022/nepal_terraces.tif written
+  s1_2022/sri_lanka_dry_zone.tif written
+  labels_2022/tigray_degraded_highland.tif written
+tigray_degraded_highland 2022: 47.3% of pixels where WorldCover and Dynamic World 2022 agree
+tigray_degraded_highland 2022: done
+  labels_2022/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2022: 52.6% of pixels where WorldCover and Dynamic World 2022 agree
+sri_lanka_dry_zone 2022: done
+  labels_2022/nepal_terraces.tif written
+nepal_terraces 2022: 83.1% of pixels where WorldCover and Dynamic World 2022 agree
+nepal_terraces 2022: done
+2023:   0%|          | 0/3 [00:00<?, ?site/s]2023:  33%|███▎      | 1/3 [00:27<00:55, 27.92s/site]2023:  67%|██████▋   | 2/3 [00:39<00:18, 18.06s/site]2023: 100%|██████████| 3/3 [00:54<00:00, 16.75s/site]2023: 100%|██████████| 3/3 [00:54<00:00, 18.09s/site]
+nepal_terraces 2023: S1 scenes per month {'1': 8, '10': 6, '11': 8, '12': 8, '2': 6, '3': 8, '4': 7, '5': 8, '6': 7, '7': 8, '8': 8, '9': 8}
+sri_lanka_dry_zone 2023: S1 scenes per month {'1': 6, '10': 4, '11': 6, '12': 6, '2': 4, '3': 6, '4': 4, '5': 6, '6': 4, '7': 6, '8': 3, '9': 6}
+tigray_degraded_highland 2023: S1 scenes per month {'1': 5, '10': 4, '11': 5, '12': 5, '2': 3, '3': 5, '4': 5, '5': 5, '6': 5, '7': 5, '8': 6, '9': 5}
+  s1_2023/tigray_degraded_highland.tif written
+  s1_2023/sri_lanka_dry_zone.tif written
+  labels_2023/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2023: 50.6% of pixels where WorldCover and Dynamic World 2023 agree
+sri_lanka_dry_zone 2023: done
+  s1_2023/nepal_terraces.tif written
+  labels_2023/nepal_terraces.tif written
+nepal_terraces 2023: 83.5% of pixels where WorldCover and Dynamic World 2023 agree
+nepal_terraces 2023: done
+  labels_2023/tigray_degraded_highland.tif written
+tigray_degraded_highland 2023: 52.1% of pixels where WorldCover and Dynamic World 2023 agree
+tigray_degraded_highland 2023: done
+2024:   0%|          | 0/3 [00:00<?, ?site/s]2024:  33%|███▎      | 1/3 [00:09<00:19,  9.72s/site]2024:  67%|██████▋   | 2/3 [00:22<00:11, 11.23s/site]2024: 100%|██████████| 3/3 [00:31<00:00, 10.35s/site]2024: 100%|██████████| 3/3 [00:31<00:00, 10.44s/site]
+nepal_terraces 2024: S1 scenes per month {'1': 7, '10': 8, '11': 7, '12': 6, '2': 8, '3': 7, '4': 8, '5': 7, '6': 7, '7': 8, '8': 8, '9': 7}
+sri_lanka_dry_zone 2024: S1 scenes per month {'1': 4, '10': 6, '11': 4, '12': 4, '2': 6, '3': 4, '4': 6, '5': 4, '6': 4, '7': 4, '8': 6, '9': 3}
+tigray_degraded_highland 2024: S1 scenes per month {'1': 5, '10': 4, '11': 5, '12': 5, '2': 3, '3': 5, '4': 5, '5': 5, '6': 5, '7': 6, '8': 5, '9': 5}
+  s1_2024/sri_lanka_dry_zone.tif written
+  labels_2024/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2024: 56.6% of pixels where WorldCover and Dynamic World 2024 agree
+sri_lanka_dry_zone 2024: done
+  s1_2024/nepal_terraces.tif written
+  s1_2024/tigray_degraded_highland.tif written
+  labels_2024/nepal_terraces.tif written
+nepal_terraces 2024: 82.4% of pixels where WorldCover and Dynamic World 2024 agree
+nepal_terraces 2024: done
+  labels_2024/tigray_degraded_highland.tif written
+tigray_degraded_highland 2024: 43.9% of pixels where WorldCover and Dynamic World 2024 agree
+tigray_degraded_highland 2024: done
+nothing skipped
+everything else downloaded
+[20:24:07] $ /home/jovyan/vault/LULC-semantic-Model/data_pipeline/make_patches.py
+train/innsbruck: 16 patches
+train/reykjavik: 16 patches
+train/denver: 16 patches
+train/minneapolis: 16 patches
+test/anchorage: 16 patches
+train/manaus: 16 patches
+train/brasilia: 16 patches
+train/quito: 16 patches
+train/corumba: 16 patches
+test/curitiba: 16 patches
+train/addis_ababa: 16 patches
+train/dakar: 16 patches
+val/lusaka: 16 patches
+test/nairobi: 16 patches
+train/almaty: 16 patches
+train/ulaanbaatar: 16 patches
+train/khulna: 16 patches
+train/auckland: 16 patches
+val/perth: 16 patches
+test/adelaide: 16 patches
+train/krakow_edge: 16 patches
+train/des_moines_edge: 16 patches
+val/fresno_edge: 16 patches
+train/cordoba_edge: 16 patches
+train/kumasi_edge: 16 patches
+train/bamako_edge: 16 patches
+train/chiang_mai_edge: 16 patches
+train/yogyakarta_edge: 16 patches
+train/lucknow_edge: 16 patches
+train/christchurch_edge: 16 patches
+train/iowa_corn_belt: 16 patches
+train/punjab_india: 16 patches
+train/poltava_ukraine: 16 patches
+train/pampas_argentina: 16 patches
+train/nile_delta: 16 patches
+train/mato_grosso_soy: 16 patches
+train/mekong_delta_rice: 16 patches
+val/beauce_france: 16 patches
+val/kansas_pivots: 16 patches
+test/north_china_plain: 16 patches
+test/kano_farmland: 16 patches
+train/amazon_forest: 16 patches
+train/congo_forest: 16 patches
+train/black_forest: 16 patches
+train/borneo_forest: 16 patches
+val/ontario_boreal: 16 patches
+test/siberia_taiga: 16 patches
+train/sahara_algeria: 16 patches
+train/western_desert: 16 patches
+train/badain_jaran: 16 patches
+train/namib_desert: 16 patches
+val/atacama_desert: 16 patches
+test/rub_al_khali: 16 patches
+train/mongolia_steppe: 16 patches
+train/texas_shrubland: 16 patches
+val/kazakh_steppe: 16 patches
+test/serengeti: 16 patches
+train/sundarbans: 16 patches
+train/pantanal: 16 patches
+train/sudd_wetland: 16 patches
+train/inner_niger_delta: 16 patches
+val/okavango_delta: 16 patches
+test/everglades: 16 patches
+train/aletsch_glacier: 16 patches
+train/patagonia_icefield: 16 patches
+val/svalbard_glacier: 16 patches
+test/karakoram_baltoro: 9 patches
+train/sweden_taiga: 16 patches
+train/alaska_boreal: 16 patches
+train/quebec_boreal: 16 patches
+train/appalachian_forest: 16 patches
+train/olympic_rainforest: 16 patches
+train/sikhote_alin_forest: 16 patches
+train/gabon_forest: 16 patches
+train/tasmania_forest: 16 patches
+train/papua_forest: 15 patches
+train/juneau_icefield: 16 patches
+train/khumbu_himalaya: 12 patches
+train/tasman_glacier: 16 patches
+val/caucasus_elbrus: 15 patches
+train/nebraska_sandhills: 16 patches
+train/great_basin_sagebrush: 16 patches
+train/patagonia_steppe: 16 patches
+train/karoo_shrubland: 16 patches
+train/tibet_grassland: 16 patches
+train/saskatchewan_wheat: 16 patches
+train/central_valley_ca: 16 patches
+train/punjab_pakistan: 16 patches
+train/karawang_rice: 16 patches
+train/heilongjiang_maize: 16 patches
+train/australia_wheatbelt: 16 patches
+train/hungarian_plain: 16 patches
+train/hudson_bay_lowland: 16 patches
+train/danube_delta: 16 patches
+train/louisiana_marsh: 16 patches
+train/niger_delta_mangrove: 16 patches
+train/taklamakan_desert: 16 patches
+train/lake_balaton: 16 patches
+train/finnish_lakeland: 16 patches
+train/finnmark_tundra: 16 patches
+train/north_slope_alaska: 16 patches
+train/iceland_highland: 16 patches
+val/kola_tundra: 16 patches
+train/kruger_savanna: 16 patches
+train/cerrado_goias: 16 patches
+train/llanos_venezuela: 16 patches
+train/miombo_zambia: 16 patches
+train/sahel_niger: 16 patches
+val/top_end_savanna: 16 patches
+train/dehesa_spain: 16 patches
+train/california_chaparral: 16 patches
+train/chile_matorral: 16 patches
+train/cape_fynbos: 16 patches
+val/crete_maquis: 16 patches
+train/ethiopia_highland_farms: 16 patches
+train/malawi_farms: 16 patches
+train/rwanda_hills: 16 patches
+train/western_kenya_farms: 16 patches
+train/kampala: 16 patches
+train/port_au_prince: 16 patches
+train/nepal_midhills: 16 patches
+train/andes_sacred_valley: 16 patches
+train/gran_chaco: 16 patches
+train/kanha_deciduous: 16 patches
+test/black_forest_villages: 16 patches
+train/vosges_mosaic: 16 patches
+train/bavarian_forest: 16 patches
+val/harz_mosaic: 16 patches
+train/allgaeu_prealps: 16 patches
+train/swiss_jura: 16 patches
+train/bukovina_hills: 16 patches
+train/beskid_foothills: 16 patches
+train/ardennes: 16 patches
+train/massif_central: 16 patches
+val/galicia_farms: 16 patches
+train/highland_fringe: 16 patches
+train/welsh_uplands: 16 patches
+train/smaland_farm_forest: 16 patches
+test/latvia_mosaic: 16 patches
+train/tuscany_hills: 16 patches
+train/vermont_mosaic: 16 patches
+train/wisconsin_driftless: 16 patches
+val/pennsylvania_ridges: 16 patches
+train/ozark_farms: 16 patches
+train/quebec_farm_forest: 16 patches
+test/willamette_foothills: 16 patches
+train/michoacan_highlands: 16 patches
+train/serra_gaucha: 16 patches
+train/colombia_coffee: 16 patches
+test/chile_lakes: 16 patches
+val/paraguay_mosaic: 16 patches
+train/rondonia_frontier: 16 patches
+train/uganda_mosaic: 16 patches
+train/ghana_cocoa: 16 patches
+train/nigeria_middle_belt: 16 patches
+val/cameroon_highlands: 16 patches
+test/madagascar_highlands: 16 patches
+train/kzn_midlands: 16 patches
+train/kilimanjaro_slopes: 15 patches
+train/java_rice_hills: 16 patches
+train/vietnam_midlands: 16 patches
+train/isan_paddies: 16 patches
+val/sri_lanka_hills: 16 patches
+train/kerala_mosaic: 16 patches
+train/nagano_satoyama: 16 patches
+train/sichuan_hills: 16 patches
+test/yunnan_mosaic: 16 patches
+train/nepal_terai: 16 patches
+train/pontic_slopes: 16 patches
+train/georgia_mosaic: 16 patches
+train/waikato_farms: 16 patches
+val/gippsland_mosaic: 16 patches
+train/new_england_tablelands: 16 patches
+train/mecklenburg_lakes: 16 patches
+train/masuria_lakes: 16 patches
+train/brahmaputra_assam: 16 patches
+train/parana_river: 16 patches
+train/lake_kyoga_shore: 16 patches
+betsiboka_eroded_hills: not downloaded, skipping
+train/tigray_degraded_highland: 14 patches
+train/etosha_pan_edge: 16 patches
+pilbara_iron_mines: not downloaded, skipping
+train/carajas_mine: 16 patches
+train/deccan_dry_plateau: 16 patches
+train/burkina_central_plateau: 16 patches
+lake_alaotra_rice: not downloaded, skipping
+mbale_hill_farms: not downloaded, skipping
+train/nepal_terraces: 16 patches
+train/sri_lanka_dry_zone: 16 patches
+train/matopos_granite: 16 patches
+train/sierra_nevada_granite: 16 patches
+train/etosha_pan_pure: 16 patches
+train/salar_de_uyuni_pure: 16 patches
+train/gezira_scheme_pure: 16 patches
+train/central_thailand_rice_pure: 16 patches
+train 2022/iowa_corn_belt: 16 patches
+train 2023/iowa_corn_belt: 16 patches
+train 2024/iowa_corn_belt: 16 patches
+train 2022/punjab_india: 16 patches
+train 2023/punjab_india: 16 patches
+train 2024/punjab_india: 16 patches
+train 2022/poltava_ukraine: 16 patches
+train 2023/poltava_ukraine: 16 patches
+train 2024/poltava_ukraine: 16 patches
+train 2022/pampas_argentina: 16 patches
+train 2023/pampas_argentina: 16 patches
+train 2024/pampas_argentina: 16 patches
+train 2022/nile_delta: 16 patches
+train 2023/nile_delta: 16 patches
+train 2024/nile_delta: 16 patches
+train 2022/mato_grosso_soy: 16 patches
+train 2023/mato_grosso_soy: 16 patches
+train 2024/mato_grosso_soy: 16 patches
+train 2022/mekong_delta_rice: 16 patches
+train 2023/mekong_delta_rice: 16 patches
+train 2024/mekong_delta_rice: 16 patches
+train 2022/amazon_forest: 16 patches
+train 2023/amazon_forest: 16 patches
+train 2024/amazon_forest: 16 patches
+train 2022/congo_forest: 16 patches
+train 2023/congo_forest: 16 patches
+train 2024/congo_forest: 16 patches
+train 2022/black_forest: 16 patches
+train 2023/black_forest: 16 patches
+train 2024/black_forest: 16 patches
+train 2022/borneo_forest: 16 patches
+train 2023/borneo_forest: 16 patches
+train 2024/borneo_forest: 16 patches
+train 2022/badain_jaran: 16 patches
+train 2023/badain_jaran: 16 patches
+train 2024/badain_jaran: 16 patches
+train 2022/texas_shrubland: 10 patches
+train 2023/texas_shrubland: 16 patches
+train 2024/texas_shrubland: 16 patches
+train 2022/sundarbans: 16 patches
+train 2023/sundarbans: 16 patches
+train 2024/sundarbans: 16 patches
+train 2022/pantanal: 16 patches
+train 2023/pantanal: 16 patches
+train 2024/pantanal: 16 patches
+train 2022/sudd_wetland: 16 patches
+train 2023/sudd_wetland: 16 patches
+train 2024/sudd_wetland: 16 patches
+train 2022/inner_niger_delta: 16 patches
+train 2023/inner_niger_delta: 16 patches
+train 2024/inner_niger_delta: 16 patches
+train 2022/sweden_taiga: 16 patches
+train 2023/sweden_taiga: 16 patches
+train 2024/sweden_taiga: 16 patches
+train 2022/alaska_boreal: 16 patches
+train 2023/alaska_boreal: 16 patches
+train 2024/alaska_boreal: 16 patches
+train 2022/quebec_boreal: 16 patches
+train 2023/quebec_boreal: 16 patches
+train 2024/quebec_boreal: 16 patches
+train 2022/appalachian_forest: 16 patches
+train 2023/appalachian_forest: 16 patches
+train 2024/appalachian_forest: 16 patches
+train 2022/olympic_rainforest: 1 patches
+train 2023/olympic_rainforest: 16 patches
+train 2024/olympic_rainforest: 16 patches
+train 2022/gabon_forest: 16 patches
+train 2023/gabon_forest: 16 patches
+train 2024/gabon_forest: 16 patches
+train 2022/tasmania_forest: 16 patches
+train 2023/tasmania_forest: 16 patches
+train 2024/tasmania_forest: 16 patches
+train 2022/papua_forest: 15 patches
+train 2023/papua_forest: 15 patches
+train 2024/papua_forest: 15 patches
+train 2022/nebraska_sandhills: 0 patches
+train 2023/nebraska_sandhills: 16 patches
+train 2024/nebraska_sandhills: 16 patches
+train 2022/great_basin_sagebrush: 16 patches
+train 2023/great_basin_sagebrush: 16 patches
+train 2024/great_basin_sagebrush: 16 patches
+train 2022/patagonia_steppe: 16 patches
+train 2023/patagonia_steppe: 16 patches
+train 2024/patagonia_steppe: 16 patches
+train 2022/karoo_shrubland: 16 patches
+train 2023/karoo_shrubland: 16 patches
+train 2024/karoo_shrubland: 16 patches
+train 2022/tibet_grassland: 16 patches
+train 2023/tibet_grassland: 16 patches
+train 2024/tibet_grassland: 16 patches
+train 2022/saskatchewan_wheat: 16 patches
+train 2023/saskatchewan_wheat: 16 patches
+train 2024/saskatchewan_wheat: 16 patches
+train 2022/central_valley_ca: 16 patches
+train 2023/central_valley_ca: 16 patches
+train 2024/central_valley_ca: 16 patches
+train 2022/punjab_pakistan: 16 patches
+train 2023/punjab_pakistan: 16 patches
+train 2024/punjab_pakistan: 16 patches
+train 2022/karawang_rice: 16 patches
+train 2023/karawang_rice: 16 patches
+train 2024/karawang_rice: 16 patches
+train 2022/heilongjiang_maize: 16 patches
+train 2023/heilongjiang_maize: 16 patches
+train 2024/heilongjiang_maize: 16 patches
+train 2022/australia_wheatbelt: 16 patches
+train 2023/australia_wheatbelt: 16 patches
+train 2024/australia_wheatbelt: 16 patches
+train 2022/hungarian_plain: 16 patches
+train 2023/hungarian_plain: 16 patches
+train 2024/hungarian_plain: 16 patches
+train 2022/danube_delta: 16 patches
+train 2023/danube_delta: 16 patches
+train 2024/danube_delta: 16 patches
+train 2022/louisiana_marsh: 4 patches
+train 2023/louisiana_marsh: 4 patches
+train 2024/louisiana_marsh: 16 patches
+train 2022/niger_delta_mangrove: 16 patches
+train 2023/niger_delta_mangrove: 16 patches
+train 2024/niger_delta_mangrove: 16 patches
+train 2022/taklamakan_desert: 16 patches
+train 2023/taklamakan_desert: 16 patches
+train 2024/taklamakan_desert: 16 patches
+train 2022/lake_balaton: 16 patches
+train 2023/lake_balaton: 16 patches
+train 2024/lake_balaton: 16 patches
+train 2022/finnish_lakeland: 16 patches
+train 2023/finnish_lakeland: 16 patches
+train 2024/finnish_lakeland: 16 patches
+train 2022/finnmark_tundra: 16 patches
+train 2023/finnmark_tundra: 16 patches
+train 2024/finnmark_tundra: 16 patches
+train 2022/north_slope_alaska: 16 patches
+train 2023/north_slope_alaska: 16 patches
+train 2024/north_slope_alaska: 16 patches
+train 2022/iceland_highland: 16 patches
+train 2023/iceland_highland: 16 patches
+train 2024/iceland_highland: 16 patches
+train 2022/kruger_savanna: 16 patches
+train 2023/kruger_savanna: 16 patches
+train 2024/kruger_savanna: 16 patches
+train 2022/cerrado_goias: 16 patches
+train 2023/cerrado_goias: 16 patches
+train 2024/cerrado_goias: 16 patches
+train 2022/miombo_zambia: 16 patches
+train 2023/miombo_zambia: 16 patches
+train 2024/miombo_zambia: 16 patches
+train 2022/sahel_niger: 16 patches
+train 2023/sahel_niger: 16 patches
+train 2024/sahel_niger: 16 patches
+train 2022/dehesa_spain: 16 patches
+train 2023/dehesa_spain: 16 patches
+train 2024/dehesa_spain: 16 patches
+train 2022/california_chaparral: 16 patches
+train 2023/california_chaparral: 16 patches
+train 2024/california_chaparral: 16 patches
+train 2022/chile_matorral: 15 patches
+train 2023/chile_matorral: 16 patches
+train 2024/chile_matorral: 16 patches
+train 2022/cape_fynbos: 16 patches
+train 2023/cape_fynbos: 16 patches
+train 2024/cape_fynbos: 16 patches
+train 2022/ethiopia_highland_farms: 16 patches
+train 2023/ethiopia_highland_farms: 16 patches
+train 2024/ethiopia_highland_farms: 16 patches
+train 2022/malawi_farms: 16 patches
+train 2023/malawi_farms: 16 patches
+train 2024/malawi_farms: 3 patches
+train 2022/rwanda_hills: 16 patches
+train 2023/rwanda_hills: 16 patches
+train 2024/rwanda_hills: 16 patches
+train 2022/western_kenya_farms: 16 patches
+train 2023/western_kenya_farms: 16 patches
+train 2024/western_kenya_farms: 16 patches
+train 2022/nepal_midhills: 16 patches
+train 2023/nepal_midhills: 16 patches
+train 2024/nepal_midhills: 16 patches
+train 2022/andes_sacred_valley: 15 patches
+train 2023/andes_sacred_valley: 16 patches
+train 2024/andes_sacred_valley: 16 patches
+train 2022/kanha_deciduous: 16 patches
+train 2023/kanha_deciduous: 16 patches
+train 2024/kanha_deciduous: 16 patches
+train 2022/vosges_mosaic: 16 patches
+train 2023/vosges_mosaic: 16 patches
+train 2024/vosges_mosaic: 16 patches
+train 2022/bavarian_forest: 16 patches
+train 2023/bavarian_forest: 16 patches
+train 2024/bavarian_forest: 16 patches
+train 2022/allgaeu_prealps: 16 patches
+train 2023/allgaeu_prealps: 16 patches
+train 2024/allgaeu_prealps: 16 patches
+train 2022/swiss_jura: 16 patches
+train 2023/swiss_jura: 16 patches
+train 2024/swiss_jura: 16 patches
+train 2022/bukovina_hills: 16 patches
+train 2023/bukovina_hills: 16 patches
+train 2024/bukovina_hills: 16 patches
+train 2022/beskid_foothills: 16 patches
+train 2023/beskid_foothills: 16 patches
+train 2024/beskid_foothills: 16 patches
+train 2022/ardennes: 16 patches
+train 2023/ardennes: 16 patches
+train 2024/ardennes: 16 patches
+train 2022/massif_central: 16 patches
+train 2023/massif_central: 16 patches
+train 2024/massif_central: 16 patches
+train 2022/highland_fringe: 16 patches
+train 2023/highland_fringe: 16 patches
+train 2024/highland_fringe: 16 patches
+train 2022/welsh_uplands: 16 patches
+train 2023/welsh_uplands: 16 patches
+train 2024/welsh_uplands: 16 patches
+train 2022/smaland_farm_forest: 16 patches
+train 2023/smaland_farm_forest: 16 patches
+train 2024/smaland_farm_forest: 16 patches
+train 2022/tuscany_hills: 16 patches
+train 2023/tuscany_hills: 16 patches
+train 2024/tuscany_hills: 16 patches
+train 2022/vermont_mosaic: 16 patches
+train 2023/vermont_mosaic: 16 patches
+train 2024/vermont_mosaic: 16 patches
+train 2022/wisconsin_driftless: 16 patches
+train 2023/wisconsin_driftless: 16 patches
+train 2024/wisconsin_driftless: 16 patches
+train 2022/ozark_farms: 16 patches
+train 2023/ozark_farms: 16 patches
+train 2024/ozark_farms: 16 patches
+train 2022/quebec_farm_forest: 16 patches
+train 2023/quebec_farm_forest: 16 patches
+train 2024/quebec_farm_forest: 16 patches
+train 2022/michoacan_highlands: 16 patches
+train 2023/michoacan_highlands: 16 patches
+train 2024/michoacan_highlands: 16 patches
+train 2022/colombia_coffee: 14 patches
+train 2023/colombia_coffee: 14 patches
+train 2024/colombia_coffee: 14 patches
+train 2022/rondonia_frontier: 16 patches
+train 2023/rondonia_frontier: 16 patches
+train 2024/rondonia_frontier: 16 patches
+train 2022/uganda_mosaic: 16 patches
+train 2023/uganda_mosaic: 16 patches
+train 2024/uganda_mosaic: 16 patches
+train 2022/ghana_cocoa: 16 patches
+train 2023/ghana_cocoa: 16 patches
+train 2024/ghana_cocoa: 16 patches
+train 2022/nigeria_middle_belt: 16 patches
+train 2023/nigeria_middle_belt: 16 patches
+train 2024/nigeria_middle_belt: 16 patches
+train 2022/kzn_midlands: 16 patches
+train 2023/kzn_midlands: 16 patches
+train 2024/kzn_midlands: 16 patches
+train 2022/kilimanjaro_slopes: 15 patches
+train 2023/kilimanjaro_slopes: 15 patches
+train 2024/kilimanjaro_slopes: 15 patches
+train 2022/java_rice_hills: 16 patches
+train 2023/java_rice_hills: 16 patches
+train 2024/java_rice_hills: 16 patches
+train 2022/vietnam_midlands: 16 patches
+train 2023/vietnam_midlands: 16 patches
+train 2024/vietnam_midlands: 16 patches
+train 2022/isan_paddies: 16 patches
+train 2023/isan_paddies: 16 patches
+train 2024/isan_paddies: 16 patches
+train 2022/kerala_mosaic: 16 patches
+train 2023/kerala_mosaic: 16 patches
+train 2024/kerala_mosaic: 16 patches
+train 2022/nagano_satoyama: 16 patches
+train 2023/nagano_satoyama: 16 patches
+train 2024/nagano_satoyama: 16 patches
+train 2022/sichuan_hills: 16 patches
+train 2023/sichuan_hills: 16 patches
+train 2024/sichuan_hills: 16 patches
+train 2022/nepal_terai: 16 patches
+train 2023/nepal_terai: 16 patches
+train 2024/nepal_terai: 16 patches
+train 2022/pontic_slopes: 16 patches
+train 2023/pontic_slopes: 16 patches
+train 2024/pontic_slopes: 16 patches
+train 2022/georgia_mosaic: 16 patches
+train 2023/georgia_mosaic: 16 patches
+train 2024/georgia_mosaic: 16 patches
+train 2022/waikato_farms: 16 patches
+train 2023/waikato_farms: 16 patches
+train 2024/waikato_farms: 16 patches
+train 2022/new_england_tablelands: 16 patches
+train 2023/new_england_tablelands: 16 patches
+train 2024/new_england_tablelands: 16 patches
+train 2022/mecklenburg_lakes: 16 patches
+train 2023/mecklenburg_lakes: 16 patches
+train 2024/mecklenburg_lakes: 16 patches
+train 2022/masuria_lakes: 16 patches
+train 2023/masuria_lakes: 16 patches
+train 2024/masuria_lakes: 16 patches
+train 2022/brahmaputra_assam: 16 patches
+train 2023/brahmaputra_assam: 16 patches
+train 2024/brahmaputra_assam: 16 patches
+train 2023/parana_river: 16 patches
+train 2022/lake_kyoga_shore: 16 patches
+train 2023/lake_kyoga_shore: 16 patches
+train 2024/lake_kyoga_shore: 16 patches
+train 2022/tigray_degraded_highland: 14 patches
+train 2023/tigray_degraded_highland: 14 patches
+train 2024/tigray_degraded_highland: 14 patches
+train 2022/carajas_mine: 16 patches
+train 2023/carajas_mine: 16 patches
+train 2024/carajas_mine: 16 patches
+train 2022/deccan_dry_plateau: 14 patches
+train 2023/deccan_dry_plateau: 14 patches
+train 2024/deccan_dry_plateau: 14 patches
+train 2022/burkina_central_plateau: 16 patches
+train 2023/burkina_central_plateau: 16 patches
+train 2024/burkina_central_plateau: 16 patches
+train 2022/nepal_terraces: 16 patches
+train 2023/nepal_terraces: 16 patches
+train 2024/nepal_terraces: 16 patches
+train 2022/sri_lanka_dry_zone: 16 patches
+train 2023/sri_lanka_dry_zone: 16 patches
+train 2024/sri_lanka_dry_zone: 16 patches
+train 2022/sierra_nevada_granite: 16 patches
+train 2023/sierra_nevada_granite: 16 patches
+train 2024/sierra_nevada_granite: 16 patches
+train 2022/salar_de_uyuni_pure: 16 patches
+train 2023/salar_de_uyuni_pure: 16 patches
+train 2024/salar_de_uyuni_pure: 16 patches
+train 2022/central_thailand_rice_pure: 16 patches
+train 2023/central_thailand_rice_pure: 16 patches
+train 2024/central_thailand_rice_pure: 16 patches
+
+train, later years: 5148 patches (2022, 2023, 2024)
+norm stats: {'bands': ['VV', 'VH'], 'units': 'dB', 'mean': [-9.7133, -17.0316], 'std': [4.5228, 4.9623]}
+
+train: 2440 patches from 153 sites
+  Man-made                 8.4%
+  Crop fields             17.0%
+  Trees                   33.2%
+  Grassland               24.8%
+  Bare ground              9.0%
+  Water                    5.0%
+  Snow & ice               2.6%
+
+val: 335 patches from 21 sites
+  Man-made                 7.8%
+  Crop fields             13.3%
+  Trees                   28.6%
+  Grassland               31.4%
+  Bare ground             10.2%
+  Water                    4.9%
+  Snow & ice               3.8%
+
+test: 265 patches from 17 sites
+  Man-made                15.2%
+  Crop fields             16.5%
+  Trees                   28.1%
+  Grassland               28.4%
+  Bare ground              7.5%
+  Water                    2.1%
+  Snow & ice               2.3%
+[20:24:53] manifest: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration/dataset_manifest.json | tiles per year {'2021': 191, '2022': 109, '2023': 110, '2024': 109} | patches {'train': 2440, 'val': 335, 'test': 265, 'train_extra': 5148} | 10.349 GB
+[20:24:54]   Dataset_2nd_iteration_2021.zip: 200/772 files
+[20:24:54]   Dataset_2nd_iteration_2021.zip: 400/772 files
+[20:24:55]   Dataset_2nd_iteration_2021.zip: 600/772 files
+[20:24:56]   Dataset_2nd_iteration_2021.zip: 772/772 files
+[20:25:29] zip: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration_2021.zip (3.82 GB)
+[20:25:29]   Dataset_2nd_iteration.zip: 200/2085 files
+[20:25:29]   Dataset_2nd_iteration.zip: 400/2085 files
+[20:25:29]   Dataset_2nd_iteration.zip: 600/2085 files
+[20:25:29]   Dataset_2nd_iteration.zip: 800/2085 files
+[20:25:30]   Dataset_2nd_iteration.zip: 1000/2085 files
+[20:25:30]   Dataset_2nd_iteration.zip: 1200/2085 files
+[20:25:31]   Dataset_2nd_iteration.zip: 1400/2085 files
+[20:25:32]   Dataset_2nd_iteration.zip: 1600/2085 files
+[20:25:33]   Dataset_2nd_iteration.zip: 1800/2085 files
+[20:25:34]   Dataset_2nd_iteration.zip: 2000/2085 files
+[20:25:42]   Dataset_2nd_iteration.zip: 2085/2085 files
+[20:27:05] zip: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration.zip (10.35 GB)
+[20:27:05] done in 5 min
