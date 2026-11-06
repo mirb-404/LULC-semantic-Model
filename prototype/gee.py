@@ -127,6 +127,23 @@ def dynamicworld_image(region, year):
     return dw.remap(list(m), list(m.values()), 0).rename("cls").unmask(0).toUint8()
 
 
+S2_BANDS = ["vis-red", "vis-green", "vis-blue"]
+
+
+def sentinel2_rgb(region, start, end):
+    """Cloud-free Sentinel-2 true colour of [start, end) as 8-bit RGB (bands S2_BANDS), for display only.
+
+    Median of the clear pixels (Cloud Score+ cs_cdf >= 0.6) of Sentinel-2 L1C, so it covers 2015 onwards and
+    shows the land in the same period as the radar input. Not a model input.
+    """
+    clear = ee.ImageCollection("GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED")
+    s2 = (ee.ImageCollection("COPERNICUS/S2_HARMONIZED").filterBounds(region).filterDate(start, end)
+          .linkCollection(clear, ["cs_cdf"])
+          .map(lambda img: img.updateMask(img.select("cs_cdf").gte(0.6))))
+    rgb = s2.select(["B4", "B3", "B2"]).median().visualize(min=0, max=3000, gamma=1.3)
+    return rgb.unmask(0).toUint8()
+
+
 def fetch(image, bands, epsg, x0, y_top, n, dtype, fill):
     """Download an n x n pixel window as (bands, n, n), in 512 px chunks with retries."""
     data = np.full((len(bands), n, n), fill, dtype=dtype)

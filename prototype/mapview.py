@@ -76,6 +76,64 @@ def class_overlay(class_map, index, colors, opacity):
     return palette(colors, opacity)[ids]
 
 
+def rgb_overlay(rgb, index):
+    """rgb (3, n, n) uint8 -> RGBA (size, size) overlay image; outside the tile and all-zero pixels transparent."""
+    flat = rgb.reshape(3, -1)
+    pix = flat[:, np.clip(index, 0, None)].transpose(1, 2, 0)
+    alpha = ((index >= 0) & (pix.max(-1) > 0)).astype(np.uint8) * 255
+    return np.dstack([pix, alpha])
+
+
+# Esri World Imagery Wayback: every published version of the Esri satellite basemap since 2014-02.
+WAYBACK_CONFIG = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json"
+# metadata layers 4-8 = imagery of 0.3-2.4 m, the photos drawn at the zoom levels of a 2.5-10 km analysis area
+WAYBACK_METADATA_LAYERS = range(4, 9)
+
+
+def _get_json(url, timeout=15):
+    import json
+    import urllib.request
+    with urllib.request.urlopen(url, timeout=timeout) as resp:
+        return json.load(resp)
+
+
+def wayback_releases():
+    """All Wayback releases, oldest first: [(release date 'YYYY-MM-DD', folium tile URL, metadata URL)]."""
+    releases = []
+    for item in _get_json(WAYBACK_CONFIG).values():
+        date = item["itemTitle"].rsplit(" ", 1)[-1].rstrip(")")
+        url = item["itemURL"].replace("{level}", "{z}").replace("{row}", "{y}").replace("{col}", "{x}")
+        releases.append((date, url, item["metadataLayerUrl"]))
+    return sorted(releases)
+
+
+def wayback_release_for(releases, end_date):
+    """The last release published before end_date ('YYYY-MM-DD', the day after the analysis period).
+
+    Its photos were taken before end_date, so they show the land as it was during or before the analysis
+    period, never after it; the earliest release if the period is before 2014-02.
+    """
+    before = [r for r in releases if r[0] < end_date]
+    return before[-1] if before else releases[0]
+
+
+def wayback_capture(metadata_url, lat, lon):
+    """Capture date ('YYYY-MM-DD'), resolution (m) and source of the release's photo at lat/lon, or None."""
+    from datetime import datetime, timezone
+    for layer in WAYBACK_METADATA_LAYERS:
+        query = (f"{metadata_url}/{layer}/query?geometry={lon},{lat}&geometryType=esriGeometryPoint&inSR=4326"
+                 "&spatialRel=esriSpatialRelIntersects&outFields=SRC_DATE2,SRC_RES,NICE_DESC"
+                 "&returnGeometry=false&f=json")
+        features = _get_json(query).get("features") or []
+        if features:
+            a = features[0]["attributes"]
+            if a.get("SRC_DATE2") is None:
+                continue
+            date = datetime.fromtimestamp(a["SRC_DATE2"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+            return date, a.get("SRC_RES"), a.get("NICE_DESC")
+    return None
+
+
 def png_data_url(rgba):
     buf = io.BytesIO()
     imsave(buf, rgba, format="png")

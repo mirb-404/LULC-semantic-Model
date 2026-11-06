@@ -51,6 +51,7 @@ PRESETS = {  # rural test sites of Dataset_2nd_iteration (never trained on) and 
 }
 SATELLITE_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 SATELLITE_ATTR = "Esri, Maxar, Earthstar Geographics"
+BASEMAPS = ["Satellite, analysis period", "Sentinel-2, analysis period", "Satellite, today", "Streets"]
 
 st.set_page_config(page_title="Sentinel-1 Land Cover Explorer", layout="wide")
 
@@ -109,7 +110,7 @@ def gee_data(project, lat, lon, year, month, n, need_terrain, iteration):
     try:
         esri, used_year = gee.esri_image(ref_year, iteration)
         ref = gee.fetch(esri, ["esri"], epsg, x0, y_top, n, np.uint8, 0)[0]
-        ref_name = f"Esri 10 m Annual LULC {used_year} (independent, Sentinel-2 based)"
+        ref_name = f"Esri 10 m Annual LULC {used_year} (Sentinel-2 based)"
     except Exception as err:
         ref, ref_name = None, f"Esri LULC not available: {err}"
     # the global maps define pasture, fallow and rangeland differently: show the other two as references as well
@@ -122,8 +123,17 @@ def gee_data(project, lat, lon, year, month, n, need_terrain, iteration):
                 extra_refs[name] = gee.fetch(image, ["cls"], epsg, x0, y_top, n, np.uint8, 0)[0]
             except Exception:
                 pass
+    # Sentinel-2 true colour of the 12 analysis months: shows the land of the radar period (display only)
+    s2, (y0, m0), (y1, m1) = None, months_all[N_BEFORE], shift_month(*months_all[-1], 1)
+    s2_period = f"{month_label(y0, m0)} – {month_label(*months_all[-1])}"
+    try:
+        s2 = gee.fetch(gee.sentinel2_rgb(region, f"{y0}-{m0:02d}-01", f"{y1}-{m1:02d}-01"), gee.S2_BANDS,
+                       epsg, x0, y_top, n, np.uint8, 0)
+    except Exception:
+        pass
     return dict(codes=codes, months_all=months_all, counts=counts, terrain=terrain, ref=ref,
-                ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
+                ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top,
+                s2=s2, s2_period=s2_period)
 
 
 def local_sites(iteration):
@@ -158,7 +168,8 @@ def local_data(site, month, iteration):
         ref_name = (("training label (WorldCover 2021)" if iteration >= 2 else
                      "training consensus label (WorldCover ∩ Dynamic World 2021)") + ": NOT independent, test use only")
     return dict(codes=tile[idx], months_all=[(2021, i + 1) for i in idx], counts=None, terrain=terrain,
-                ref=ref, ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top)
+                ref=ref, ref_name=ref_name, extra_refs=extra_refs, lat=lat, lon=lon, epsg=epsg, x0=x0, y_top=y_top,
+                s2=None, s2_period="2021")
 
 
 def false_colour(codes_2hw, card):
@@ -298,12 +309,18 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
     index, bounds = mapview.overlay_index(data["epsg"], data["x0"], data["y_top"], n)
     overlays = [mapview.png_data_url(mapview.class_overlay(np.where(valid, p, 0), index, colors, 1.0))
                 for p in preds]
+    s2_overlay = (mapview.png_data_url(mapview.rgb_overlay(data["s2"], index))
+                  if data.get("s2") is not None else None)
     ref_overlay = (mapview.png_data_url(mapview.class_overlay(data["ref"], index, colors, 1.0))
                    if data["ref"] is not None else None)
     # every reference map: (name, agreement %, majority baseline %, per-class table) and its map overlay
     # exam brief: the case study is checked against an independent map not used for training. Esri is independent
     # for models trained on WorldCover (+ Dynamic World agreement), not for models trained on the 3-map vote.
-    esri_name = "Esri (used in training: vote labels)" if card.get("training_labels") == "vote" else "Esri (independent)"
+    vote_model = card.get("training_labels") == "vote"
+    esri_name = "Esri (used in training: vote labels)" if vote_model else "Esri (independent)"
+    if data["ref_name"].startswith("Esri 10 m"):
+        data["ref_name"] += (": used in the training vote, NOT independent" if vote_model
+                             else ": independent of the training labels")
     refs = ({esri_name: data["ref"]} if data["ref"] is not None else {}) | data.get("extra_refs", {})
     ref_checks = {name: sanity_check(preds, arr, valid, names) for name, arr in refs.items()}
     ref_overlays = {name: mapview.png_data_url(mapview.class_overlay(arr, index, colors, 1.0))
@@ -353,27 +370,51 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
 
     return dict(data=data, preds=preds, valid=valid, card=card, names=names, colors=colors, labels=labels,
                 pct=pct, steps=steps, total=total, flicker=flick, check=check, overlays=overlays,
+                s2_overlay=s2_overlay,
                 ref_overlay=ref_overlay, ref_checks=ref_checks, ref_overlays=ref_overlays, bounds=bounds,
                 corners=mapview.utm_corners(data["epsg"], data["x0"], data["y_top"], n),
                 files=files, log_dir=log_dir, model=model_name, weights=weight_name, place_name=place_name,
                 size_km=n * mapview.PIXEL_M / 1000)
 
 
-def base_map(center, zoom, basemap):
+def base_map(center, zoom, basemap, tiles=None):
+    """basemap 'Streets' = OpenStreetMap; otherwise satellite tiles (`tiles`, default today's Esri imagery)."""
     m = folium.Map(location=center, zoom_start=zoom, tiles=None, control_scale=True)
-    if basemap == "Satellite":
-        folium.TileLayer(SATELLITE_TILES, attr=SATELLITE_ATTR, name="Satellite", max_zoom=19).add_to(m)
-    else:
+    if basemap == "Streets":
         folium.TileLayer("OpenStreetMap", name="Streets").add_to(m)
+    else:
+        folium.TileLayer(tiles or SATELLITE_TILES, attr=SATELLITE_ATTR, name="Satellite", max_zoom=19).add_to(m)
     return m
 
 
-def show_map(center, zoom, basemap, layers, height=560):
+# network errors raise, and Streamlit does not cache a raised call, so a failed lookup is retried on the next rerun
+wayback_releases = st.cache_data(ttl=24 * 3600, show_spinner=False)(mapview.wayback_releases)
+wayback_capture = st.cache_data(show_spinner=False)(mapview.wayback_capture)
+
+
+def wayback_for_period(end_date, lat, lon):
+    """(tile URL, caption) of the Wayback release for an analysis period ending before end_date, or (None, why)."""
+    try:
+        date, url, metadata_url = mapview.wayback_release_for(wayback_releases(), end_date)
+    except Exception as err:
+        return None, f"Esri Wayback archive not reachable ({type(err).__name__}); showing today's imagery."
+    note = f"Esri World Imagery Wayback, version of {date}"
+    try:
+        capture = wayback_capture(metadata_url, round(lat, 4), round(lon, 4))
+    except Exception:
+        capture = None
+    if capture:
+        taken, res, source = capture
+        note += f"; photo at the box centre taken {taken}" + (f" ({res:g} m, {source})" if res else "")
+    return url, note
+
+
+def show_map(center, zoom, basemap, layers, height=560, tiles=None):
     """Draws the map with the given overlay layers; a click on the map moves the analysis area there."""
     group = folium.FeatureGroup(name="overlays")
     for layer in layers:
         layer.add_to(group)
-    out = st_folium(base_map(center, zoom, basemap), feature_group_to_add=group, key="map", height=height,
+    out = st_folium(base_map(center, zoom, basemap, tiles), feature_group_to_add=group, key="map", height=height,
                     use_container_width=True, returned_objects=["last_clicked"])
     click = (out or {}).get("last_clicked")
     if click and click != st.session_state.get("handled_click"):
@@ -597,11 +638,29 @@ def viewer():
     ref_names = list(r.get("ref_overlays", {}))
     layer = c[3].selectbox("Overlay", ["Model, this month", *[f"Reference: {n}" for n in ref_names], "None"],
                            key="overlay")
-    basemap = c[4].radio("Basemap", ["Satellite", "Streets"], horizontal=True, key="basemap")
+    basemap = c[4].selectbox("Basemap", BASEMAPS, key="basemap_view",
+                             help="Satellite photos of the analysis period avoid comparing the model with land "
+                                  "that changed later (new buildings, cleared forest, reservoirs).")
 
     left, right = st.columns([3, 2])
     with left:
+        data = r["data"]
+        tiles, basemap_note = None, "Today's Esri World Imagery (recent mosaic of mixed dates)."
+        if basemap in (BASEMAPS[0], BASEMAPS[1]):
+            y_end, m_end = shift_month(*data["months_all"][-1], 1)
+            tiles, basemap_note = wayback_for_period(f"{y_end}-{m_end:02d}-01", data["lat"], data["lon"])
         layers = []
+        if basemap == BASEMAPS[1]:
+            if r.get("s2_overlay"):
+                layers.append(folium.raster_layers.ImageOverlay(r["s2_overlay"], r["bounds"], opacity=1.0,
+                                                                interactive=False))
+                basemap_note = (f"Inside the box: Sentinel-2 cloud-free true colour, {data['s2_period']} "
+                                f"(10 m, same period as the radar). Outside: {basemap_note}")
+            else:
+                basemap_note = "No Sentinel-2 image for this run (offline dataset tile or no clear pixels). " + \
+                               basemap_note
+        if basemap == "Streets":
+            basemap_note = "OpenStreetMap (current)."
         if layer.startswith("Model"):
             layers.append(folium.raster_layers.ImageOverlay(r["overlays"][k], r["bounds"], opacity=opacity,
                                                             interactive=False))
@@ -612,11 +671,10 @@ def viewer():
         layers.append(box_layer(r["corners"], "#ffffff", tooltip="analysed area"))
         if planned is not None and planned != r["corners"]:
             layers.append(box_layer(planned, "#ffd92f", True, "next analysis area (press Run)"))
-        show_map(center, zoom, basemap, layers)
+        show_map(center, zoom, basemap, layers, tiles=tiles)
         st.markdown(legend_html(names, colors), unsafe_allow_html=True)
-        st.caption("The basemap is a static, recent mosaic of mixed dates (Esri World Imagery / OpenStreetMap) for "
-                   "orientation only: it does not change with the month. Only the overlay and the radar image are "
-                   "from the selected month.")
+        st.caption(f"Basemap: {basemap_note.rstrip('.')}. It is for orientation only and does not change with the month; "
+                   "only the overlay and the radar image are from the selected month.")
         if not ref_names:
             st.caption("No reference map for this run.")
 
