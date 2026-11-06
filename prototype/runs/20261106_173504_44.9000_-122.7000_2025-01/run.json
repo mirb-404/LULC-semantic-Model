@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-06 17:35:03",
+  "place_name": "Willamette foothills, USA (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2025,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 44.9,
+  "lon": -122.7,
+  "epsg": 32610,
+  "weights": "Iter2_Test_1_Full/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6789928942069342,
+    "test_mIoU": 0.7504549912714183
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2025",
+    "Feb 2025",
+    "Mar 2025",
+    "Apr 2025",
+    "May 2025",
+    "Jun 2025",
+    "Jul 2025",
+    "Aug 2025",
+    "Sep 2025",
+    "Oct 2025",
+    "Nov 2025",
+    "Dec 2025"
+  ],
+  "months_fetched": [
+    "Nov 2024",
+    "Dec 2024",
+    "Jan 2025",
+    "Feb 2025",
+    "Mar 2025",
+    "Apr 2025",
+    "May 2025",
+    "Jun 2025",
+    "Jul 2025",
+    "Aug 2025",
+    "Sep 2025",
+    "Oct 2025",
+    "Nov 2025",
+    "Dec 2025"
+  ],
+  "scene_counts": [
+    11,
+    10,
+    11,
+    8,
+    11,
+    12,
+    15,
+    14,
+    10,
+    10,
+    9,
+    9,
+    9,
+    10
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2025 (independent, Sentinel-2 based)",
+  "reference_agreement_pct": 57.02705383300781,
+  "reference_majority_baseline_pct": 50.13427734375,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 57.02705383300781,
+      "majority_baseline_pct": 50.13427734375
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 66.40701293945312,
+      "majority_baseline_pct": 57.601165771484375
+    },
+    "Dynamic World 2025 (agreement weights in training)": {
+      "agreement_pct": 64.45846557617188,
+      "majority_baseline_pct": 53.17573547363281
+    }
+  },
+  "flicker_pct": [
+    0.2105712890625,
+    0.273895263671875,
+    0.3253936767578125,
+    0.3559112548828125,
+    0.4146575927734375,
+    0.34637451171875,
+    0.3082275390625,
+    0.3841400146484375,
+    0.3917694091796875,
+    0.32806396484375,
+    0.2681732177734375
+  ]
+}

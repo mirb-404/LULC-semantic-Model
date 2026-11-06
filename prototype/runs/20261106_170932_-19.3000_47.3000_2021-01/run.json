@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-06 17:09:31",
+  "place_name": "Madagascar highlands (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": -19.3,
+  "lon": 47.3,
+  "epsg": 32738,
+  "weights": "Iter2_Test_1_Full/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6789928942069342,
+    "test_mIoU": 0.7504549912714183
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    2,
+    2,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2021 (independent, Sentinel-2 based)",
+  "reference_agreement_pct": 70.62606811523438,
+  "reference_majority_baseline_pct": 77.35748291015625,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 70.62606811523438,
+      "majority_baseline_pct": 77.35748291015625
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 62.00904846191406,
+      "majority_baseline_pct": 64.36767578125
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 59.22126770019531,
+      "majority_baseline_pct": 45.925140380859375
+    }
+  },
+  "flicker_pct": [
+    1.552581787109375,
+    2.25677490234375,
+    1.3278961181640625,
+    1.4698028564453125,
+    1.422119140625,
+    1.512908935546875,
+    1.62811279296875,
+    1.4606475830078125,
+    1.6094207763671875,
+    1.9588470458984375,
+    1.5323638916015625
+  ]
+}

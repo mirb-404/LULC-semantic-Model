@@ -1,0 +1,8 @@
+,model (annual mode) %,reference %,reference pixels found by model %
+Man-made,94.49,97.08,96.95
+Crop fields,0.0,0.0,0.0
+Trees,4.66,2.1,99.29
+Grassland,0.56,0.28,71.0
+Bare ground,0.0,0.0,0.0
+Water,0.29,0.54,42.67
+Snow & ice,0.0,0.0,0.0
