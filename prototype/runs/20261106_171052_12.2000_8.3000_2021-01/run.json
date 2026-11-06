@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-06 17:10:51",
+  "place_name": "Kano farmland, Nigeria (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 12.2,
+  "lon": 8.3,
+  "epsg": 32632,
+  "weights": "Iter2_Test_1_Full/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6789928942069342,
+    "test_mIoU": 0.7504549912714183
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    3,
+    2
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2021 (independent, Sentinel-2 based)",
+  "reference_agreement_pct": 13.129425048828125,
+  "reference_majority_baseline_pct": 94.81277465820312,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 13.129425048828125,
+      "majority_baseline_pct": 94.81277465820312
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 91.11976623535156,
+      "majority_baseline_pct": 84.76600646972656
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 31.29119873046875,
+      "majority_baseline_pct": 56.63948059082031
+    }
+  },
+  "flicker_pct": [
+    0.389862060546875,
+    0.6252288818359375,
+    0.594329833984375,
+    0.647735595703125,
+    0.5706787109375,
+    1.1058807373046875,
+    1.769256591796875,
+    0.8022308349609375,
+    0.8975982666015625,
+    1.2485504150390625,
+    0.53863525390625
+  ]
+}
