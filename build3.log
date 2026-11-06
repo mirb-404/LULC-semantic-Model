@@ -1,0 +1,1735 @@
+[22:31:21] dataset /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration | steps ['download', 'patches', 'manifest', 'zip']
+[22:31:21] warning: train site black_forest is 28.8 km from val/test site black_forest_villages
+[22:31:21] warning: train site central_valley_ca is 19.7 km from val/test site fresno_edge
+[22:31:21] $ /home/jovyan/vault/LULC-semantic-Model/data_pipeline/download.py --workers 8
+dataset: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration | 195 sites, 576 site-years
+warning: train site black_forest is 28.8 km from val/test site black_forest_villages
+warning: train site central_valley_ca is 19.7 km from val/test site fresno_edge
+0 site-years already downloaded, 576 to go
+2021:   0%|          | 0/195 [00:00<?, ?site/s]2021:   1%|          | 1/195 [00:01<03:41,  1.14s/site]2021:   1%|          | 2/195 [00:01<01:51,  1.73site/s]2021:   2%|▏         | 4/195 [00:01<00:57,  3.32site/s]2021:   4%|▎         | 7/195 [00:01<00:28,  6.62site/s]2021:   5%|▍         | 9/195 [00:02<00:45,  4.13site/s]2021:   5%|▌         | 10/195 [00:02<00:39,  4.67site/s]2021:   6%|▌         | 11/195 [00:02<00:37,  4.95site/s]2021:   7%|▋         | 13/195 [00:02<00:29,  6.22site/s]2021:   7%|▋         | 14/195 [00:03<00:27,  6.50site/s]2021:   8%|▊         | 16/195 [00:03<00:26,  6.88site/s]2021:   9%|▊         | 17/195 [00:04<00:46,  3.79site/s]2021:  10%|▉         | 19/195 [00:04<00:33,  5.21site/s]2021:  11%|█         | 21/195 [00:04<00:24,  7.01site/s]2021:  12%|█▏        | 23/195 [00:04<00:26,  6.49site/s]2021:  13%|█▎        | 25/195 [00:05<00:28,  5.90site/s]2021:  13%|█▎        | 26/195 [00:05<00:34,  4.84site/s]2021:  15%|█▍        | 29/195 [00:05<00:23,  7.20site/s]2021:  16%|█▌        | 31/195 [00:06<00:26,  6.18site/s]2021:  16%|█▋        | 32/195 [00:06<00:31,  5.25site/s]2021:  17%|█▋        | 33/195 [00:06<00:28,  5.63site/s]2021:  17%|█▋        | 34/195 [00:06<00:36,  4.38site/s]2021:  19%|█▉        | 37/195 [00:07<00:22,  7.11site/s]2021:  20%|██        | 39/195 [00:07<00:21,  7.41site/s]2021:  21%|██        | 41/195 [00:07<00:27,  5.66site/s]2021:  22%|██▏       | 42/195 [00:07<00:25,  5.98site/s]2021:  22%|██▏       | 43/195 [00:08<00:30,  4.93site/s]2021:  23%|██▎       | 45/195 [00:08<00:22,  6.79site/s]2021:  24%|██▍       | 47/195 [00:08<00:21,  6.81site/s]2021:  25%|██▌       | 49/195 [00:08<00:19,  7.64site/s]2021:  26%|██▌       | 50/195 [00:09<00:26,  5.40site/s]2021:  26%|██▌       | 51/195 [00:09<00:30,  4.68site/s]2021:  27%|██▋       | 52/195 [00:09<00:27,  5.21site/s]2021:  28%|██▊       | 55/195 [00:09<00:19,  7.31site/s]2021:  29%|██▊       | 56/195 [00:10<00:19,  7.19site/s]2021:  29%|██▉       | 57/195 [00:10<00:25,  5.46site/s]2021:  30%|██▉       | 58/195 [00:10<00:33,  4.14site/s]2021:  31%|███       | 60/195 [00:11<00:25,  5.26site/s]2021:  31%|███▏      | 61/195 [00:11<00:25,  5.32site/s]2021:  32%|███▏      | 63/195 [00:11<00:18,  7.07site/s]2021:  33%|███▎      | 64/195 [00:11<00:20,  6.47site/s]2021:  33%|███▎      | 65/195 [00:11<00:25,  5.20site/s]2021:  34%|███▍      | 66/195 [00:12<00:29,  4.44site/s]2021:  35%|███▍      | 68/195 [00:12<00:22,  5.69site/s]2021:  36%|███▌      | 70/195 [00:12<00:16,  7.55site/s]2021:  36%|███▋      | 71/195 [00:12<00:17,  7.19site/s]2021:  37%|███▋      | 72/195 [00:13<00:18,  6.52site/s]2021:  37%|███▋      | 73/195 [00:13<00:24,  4.88site/s]2021:  38%|███▊      | 74/195 [00:13<00:25,  4.71site/s]2021:  38%|███▊      | 75/195 [00:13<00:24,  4.98site/s]2021:  39%|███▉      | 77/195 [00:13<00:17,  6.91site/s]2021:  40%|████      | 78/195 [00:14<00:18,  6.49site/s]2021:  41%|████      | 80/195 [00:14<00:25,  4.56site/s]2021:  42%|████▏     | 82/195 [00:14<00:19,  5.68site/s]2021:  43%|████▎     | 83/195 [00:15<00:22,  5.08site/s]2021:  44%|████▍     | 86/195 [00:15<00:17,  6.20site/s]2021:  45%|████▌     | 88/195 [00:15<00:14,  7.52site/s]2021:  46%|████▌     | 90/195 [00:15<00:11,  9.13site/s]2021:  47%|████▋     | 92/195 [00:16<00:19,  5.20site/s]2021:  49%|████▊     | 95/195 [00:16<00:15,  6.32site/s]2021:  50%|████▉     | 97/195 [00:17<00:14,  6.81site/s]2021:  51%|█████     | 99/195 [00:17<00:19,  4.95site/s]2021:  51%|█████▏    | 100/195 [00:17<00:17,  5.30site/s]2021:  52%|█████▏    | 101/195 [00:18<00:17,  5.28site/s]2021:  53%|█████▎    | 104/195 [00:18<00:13,  6.72site/s]2021:  54%|█████▍    | 105/195 [00:18<00:13,  6.89site/s]2021:  55%|█████▍    | 107/195 [00:19<00:17,  4.91site/s]2021:  56%|█████▌    | 109/195 [00:19<00:16,  5.30site/s]2021:  57%|█████▋    | 111/195 [00:19<00:13,  6.44site/s]2021:  57%|█████▋    | 112/195 [00:19<00:12,  6.88site/s]2021:  58%|█████▊    | 114/195 [00:20<00:11,  7.22site/s]2021:  59%|█████▉    | 115/195 [00:20<00:17,  4.52site/s]2021:  60%|██████    | 117/195 [00:20<00:14,  5.50site/s]2021:  61%|██████    | 119/195 [00:21<00:12,  6.10site/s]2021:  63%|██████▎   | 122/195 [00:21<00:11,  6.30site/s]2021:  63%|██████▎   | 123/195 [00:21<00:14,  4.96site/s]2021:  65%|██████▌   | 127/195 [00:22<00:09,  7.29site/s]2021:  66%|██████▌   | 128/195 [00:22<00:09,  7.10site/s]2021:  66%|██████▌   | 129/195 [00:22<00:08,  7.43site/s]2021:  67%|██████▋   | 130/195 [00:22<00:08,  7.54site/s]2021:  67%|██████▋   | 131/195 [00:22<00:11,  5.33site/s]2021:  68%|██████▊   | 132/195 [00:23<00:13,  4.51site/s]2021:  69%|██████▊   | 134/195 [00:23<00:12,  5.06site/s]2021:  70%|██████▉   | 136/195 [00:23<00:09,  6.54site/s]2021:  71%|███████   | 138/195 [00:23<00:06,  8.32site/s]2021:  72%|███████▏  | 140/195 [00:24<00:09,  5.59site/s]2021:  73%|███████▎  | 142/195 [00:24<00:08,  6.02site/s]2021:  73%|███████▎  | 143/195 [00:24<00:08,  6.13site/s]2021:  74%|███████▍  | 144/195 [00:25<00:08,  5.73site/s]2021:  75%|███████▌  | 147/195 [00:25<00:09,  5.20site/s]2021:  77%|███████▋  | 150/195 [00:26<00:07,  6.39site/s]2021:  78%|███████▊  | 153/195 [00:26<00:05,  7.01site/s]2021:  79%|███████▉  | 154/195 [00:26<00:05,  7.30site/s]2021:  79%|███████▉  | 155/195 [00:26<00:06,  6.46site/s]2021:  80%|████████  | 156/195 [00:27<00:07,  5.48site/s]2021:  81%|████████  | 158/195 [00:27<00:06,  5.96site/s]2021:  82%|████████▏ | 159/195 [00:27<00:06,  5.85site/s]2021:  83%|████████▎ | 161/195 [00:27<00:05,  6.36site/s]2021:  83%|████████▎ | 162/195 [00:28<00:05,  6.14site/s]2021:  84%|████████▎ | 163/195 [00:28<00:05,  6.01site/s]2021:  84%|████████▍ | 164/195 [00:28<00:07,  3.95site/s]2021:  85%|████████▍ | 165/195 [00:28<00:06,  4.59site/s]2021:  86%|████████▌ | 167/195 [00:28<00:04,  6.25site/s]2021:  87%|████████▋ | 169/195 [00:29<00:03,  7.06site/s]                                                         2021:  88%|████████▊ | 171/195 [00:29<00:03,  7.06site/s]2021:  88%|████████▊ | 172/195 [00:29<00:02,  8.88site/s]2021:  89%|████████▊ | 173/195 [00:30<00:04,  5.13site/s]2021:  89%|████████▉ | 174/195 [00:30<00:03,  5.61site/s]2021:  90%|████████▉ | 175/195 [00:30<00:03,  5.61site/s]2021:  91%|█████████▏| 178/195 [00:30<00:02,  8.07site/s]2021:  92%|█████████▏| 179/195 [00:30<00:01,  8.29site/s]                                                         2021:  92%|█████████▏| 179/195 [00:30<00:01,  8.29site/s]2021:  93%|█████████▎| 181/195 [00:30<00:01,  8.51site/s]                                                         2021:  93%|█████████▎| 181/195 [00:30<00:01,  8.51site/s]                                                         2021:  93%|█████████▎| 182/195 [00:30<00:01,  8.51site/s]2021:  94%|█████████▍| 184/195 [00:31<00:01,  7.66site/s]2021:  95%|█████████▍| 185/195 [00:31<00:01,  6.02site/s]2021:  96%|█████████▌| 187/195 [00:31<00:01,  7.48site/s]2021:  96%|█████████▋| 188/195 [00:31<00:00,  7.19site/s]2021:  97%|█████████▋| 189/195 [00:32<00:00,  6.92site/s]2021:  98%|█████████▊| 191/195 [00:32<00:00,  8.56site/s]2021:  98%|█████████▊| 192/195 [00:32<00:00,  5.42site/s]2021:  99%|█████████▉| 194/195 [00:33<00:00,  5.44site/s]2021: 100%|██████████| 195/195 [00:33<00:00,  5.74site/s]2021: 100%|██████████| 195/195 [00:33<00:00,  5.88site/s]
+  esri/innsbruck.tif written
+innsbruck 2021: done
+  esri/minneapolis.tif written
+minneapolis 2021: done
+  esri/denver.tif written
+denver 2021: done
+  esri/brasilia.tif written
+brasilia 2021: done
+  esri/quito.tif written
+quito 2021: done
+  esri/manaus.tif written
+manaus 2021: done
+  esri/anchorage.tif written
+anchorage 2021: done
+  esri/reykjavik.tif written
+reykjavik 2021: done
+  esri/curitiba.tif written
+curitiba 2021: done
+  esri/corumba.tif written
+corumba 2021: done
+  esri/addis_ababa.tif written
+addis_ababa 2021: done
+  esri/lusaka.tif written
+lusaka 2021: done
+  esri/nairobi.tif written
+nairobi 2021: done
+  esri/dakar.tif written
+dakar 2021: done
+  esri/almaty.tif written
+almaty 2021: done
+  esri/ulaanbaatar.tif written
+ulaanbaatar 2021: done
+  esri/auckland.tif written
+auckland 2021: done
+  esri/perth.tif written
+perth 2021: done
+  esri/adelaide.tif written
+adelaide 2021: done
+  esri/krakow_edge.tif written
+krakow_edge 2021: done
+  esri/khulna.tif written
+khulna 2021: done
+  esri/fresno_edge.tif written
+fresno_edge 2021: done
+  esri/cordoba_edge.tif written
+cordoba_edge 2021: done
+  esri/des_moines_edge.tif written
+des_moines_edge 2021: done
+  esri/bamako_edge.tif written
+bamako_edge 2021: done
+  esri/kumasi_edge.tif written
+kumasi_edge 2021: done
+  esri/yogyakarta_edge.tif written
+yogyakarta_edge 2021: done
+  esri/chiang_mai_edge.tif written
+chiang_mai_edge 2021: done
+  esri/lucknow_edge.tif written
+lucknow_edge 2021: done
+  esri/christchurch_edge.tif written
+christchurch_edge 2021: done
+  esri/iowa_corn_belt.tif written
+iowa_corn_belt 2021: done
+  esri/punjab_india.tif written
+punjab_india 2021: done
+  esri/poltava_ukraine.tif written
+poltava_ukraine 2021: done
+  esri/nile_delta.tif written
+nile_delta 2021: done
+  esri/pampas_argentina.tif written
+pampas_argentina 2021: done
+  esri/mato_grosso_soy.tif written
+mato_grosso_soy 2021: done
+  esri/beauce_france.tif written
+beauce_france 2021: done
+  esri/mekong_delta_rice.tif written
+mekong_delta_rice 2021: done
+  esri/kansas_pivots.tif written
+kansas_pivots 2021: done
+  esri/kano_farmland.tif written
+kano_farmland 2021: done
+  esri/north_china_plain.tif written
+north_china_plain 2021: done
+  esri/black_forest.tif written
+black_forest 2021: done
+  esri/amazon_forest.tif written
+amazon_forest 2021: done
+  esri/congo_forest.tif written
+congo_forest 2021: done
+  esri/ontario_boreal.tif written
+ontario_boreal 2021: done
+  esri/borneo_forest.tif written
+borneo_forest 2021: done
+  esri/siberia_taiga.tif written
+siberia_taiga 2021: done
+  esri/sahara_algeria.tif written
+sahara_algeria 2021: done
+  esri/western_desert.tif written
+western_desert 2021: done
+  esri/badain_jaran.tif written
+badain_jaran 2021: done
+  esri/mongolia_steppe.tif written
+mongolia_steppe 2021: done
+  esri/rub_al_khali.tif written
+rub_al_khali 2021: done
+  esri/atacama_desert.tif written
+atacama_desert 2021: done
+  esri/namib_desert.tif written
+namib_desert 2021: done
+  esri/kazakh_steppe.tif written
+kazakh_steppe 2021: done
+  esri/texas_shrubland.tif written
+texas_shrubland 2021: done
+  esri/serengeti.tif written
+serengeti 2021: done
+  esri/sundarbans.tif written
+sundarbans 2021: done
+  esri/pantanal.tif written
+pantanal 2021: done
+  esri/okavango_delta.tif written
+okavango_delta 2021: done
+  esri/inner_niger_delta.tif written
+inner_niger_delta 2021: done
+  esri/sudd_wetland.tif written
+sudd_wetland 2021: done
+  esri/everglades.tif written
+everglades 2021: done
+  esri/aletsch_glacier.tif written
+aletsch_glacier 2021: done
+  esri/patagonia_icefield.tif written
+patagonia_icefield 2021: done
+  esri/karakoram_baltoro.tif written
+karakoram_baltoro 2021: done
+  esri/svalbard_glacier.tif written
+svalbard_glacier 2021: done
+  esri/olympic_rainforest.tif written
+olympic_rainforest 2021: done
+  esri/sweden_taiga.tif written
+sweden_taiga 2021: done
+  esri/alaska_boreal.tif written
+alaska_boreal 2021: done
+  esri/quebec_boreal.tif written
+quebec_boreal 2021: done
+  esri/appalachian_forest.tif written
+appalachian_forest 2021: done
+  esri/sikhote_alin_forest.tif written
+sikhote_alin_forest 2021: done
+  esri/gabon_forest.tif written
+gabon_forest 2021: done
+  esri/papua_forest.tif written
+papua_forest 2021: done
+  esri/tasmania_forest.tif written
+tasmania_forest 2021: done
+  esri/juneau_icefield.tif written
+juneau_icefield 2021: done
+  esri/khumbu_himalaya.tif written
+khumbu_himalaya 2021: done
+  esri/tasman_glacier.tif written
+tasman_glacier 2021: done
+  esri/nebraska_sandhills.tif written
+nebraska_sandhills 2021: done
+  esri/caucasus_elbrus.tif written
+caucasus_elbrus 2021: done
+  esri/great_basin_sagebrush.tif written
+great_basin_sagebrush 2021: done
+  esri/karoo_shrubland.tif written
+karoo_shrubland 2021: done
+  esri/patagonia_steppe.tif written
+patagonia_steppe 2021: done
+  esri/tibet_grassland.tif written
+tibet_grassland 2021: done
+  esri/central_valley_ca.tif written
+central_valley_ca 2021: done
+  esri/saskatchewan_wheat.tif written
+saskatchewan_wheat 2021: done
+  esri/karawang_rice.tif written
+karawang_rice 2021: done
+  esri/punjab_pakistan.tif written
+punjab_pakistan 2021: done
+  esri/heilongjiang_maize.tif written
+heilongjiang_maize 2021: done
+  esri/hungarian_plain.tif written
+hungarian_plain 2021: done
+  esri/australia_wheatbelt.tif written
+australia_wheatbelt 2021: done
+  esri/danube_delta.tif written
+danube_delta 2021: done
+  esri/hudson_bay_lowland.tif written
+hudson_bay_lowland 2021: done
+  esri/taklamakan_desert.tif written
+taklamakan_desert 2021: done
+  esri/niger_delta_mangrove.tif written
+niger_delta_mangrove 2021: done
+  esri/louisiana_marsh.tif written
+louisiana_marsh 2021: done
+  esri/lake_balaton.tif written
+lake_balaton 2021: done
+  esri/finnish_lakeland.tif written
+finnish_lakeland 2021: done
+  esri/finnmark_tundra.tif written
+finnmark_tundra 2021: done
+  esri/kola_tundra.tif written
+kola_tundra 2021: done
+  esri/kruger_savanna.tif written
+kruger_savanna 2021: done
+  esri/north_slope_alaska.tif written
+north_slope_alaska 2021: done
+  esri/llanos_venezuela.tif written
+llanos_venezuela 2021: done
+  esri/iceland_highland.tif written
+iceland_highland 2021: done
+  esri/cerrado_goias.tif written
+cerrado_goias 2021: done
+  esri/miombo_zambia.tif written
+miombo_zambia 2021: done
+  esri/sahel_niger.tif written
+sahel_niger 2021: done
+  esri/top_end_savanna.tif written
+top_end_savanna 2021: done
+  esri/california_chaparral.tif written
+california_chaparral 2021: done
+  esri/dehesa_spain.tif written
+dehesa_spain 2021: done
+  esri/chile_matorral.tif written
+chile_matorral 2021: done
+  esri/cape_fynbos.tif written
+cape_fynbos 2021: done
+  esri/crete_maquis.tif written
+crete_maquis 2021: done
+  esri/malawi_farms.tif written
+malawi_farms 2021: done
+  esri/ethiopia_highland_farms.tif written
+ethiopia_highland_farms 2021: done
+  esri/rwanda_hills.tif written
+rwanda_hills 2021: done
+  esri/western_kenya_farms.tif written
+western_kenya_farms 2021: done
+  esri/andes_sacred_valley.tif written
+andes_sacred_valley 2021: done
+  esri/kampala.tif written
+kampala 2021: done
+  esri/port_au_prince.tif written
+port_au_prince 2021: done
+  esri/nepal_midhills.tif written
+nepal_midhills 2021: done
+  esri/gran_chaco.tif written
+gran_chaco 2021: done
+  esri/kanha_deciduous.tif written
+kanha_deciduous 2021: done
+  esri/black_forest_villages.tif written
+black_forest_villages 2021: done
+  esri/harz_mosaic.tif written
+harz_mosaic 2021: done
+  esri/vosges_mosaic.tif written
+vosges_mosaic 2021: done
+  esri/swiss_jura.tif written
+swiss_jura 2021: done
+  esri/bavarian_forest.tif written
+bavarian_forest 2021: done
+  esri/allgaeu_prealps.tif written
+allgaeu_prealps 2021: done
+  esri/ardennes.tif written
+ardennes 2021: done
+  esri/beskid_foothills.tif written
+beskid_foothills 2021: done
+  esri/bukovina_hills.tif written
+bukovina_hills 2021: done
+  esri/massif_central.tif written
+massif_central 2021: done
+  esri/galicia_farms.tif written
+galicia_farms 2021: done
+  esri/smaland_farm_forest.tif written
+smaland_farm_forest 2021: done
+  esri/highland_fringe.tif written
+highland_fringe 2021: done
+  esri/welsh_uplands.tif written
+welsh_uplands 2021: done
+  esri/latvia_mosaic.tif written
+latvia_mosaic 2021: done
+  esri/tuscany_hills.tif written
+tuscany_hills 2021: done
+  esri/wisconsin_driftless.tif written
+wisconsin_driftless 2021: done
+  esri/vermont_mosaic.tif written
+vermont_mosaic 2021: done
+  esri/pennsylvania_ridges.tif written
+pennsylvania_ridges 2021: done
+  esri/ozark_farms.tif written
+ozark_farms 2021: done
+  esri/quebec_farm_forest.tif written
+quebec_farm_forest 2021: done
+  esri/willamette_foothills.tif written
+willamette_foothills 2021: done
+  esri/colombia_coffee.tif written
+colombia_coffee 2021: done
+  esri/michoacan_highlands.tif written
+michoacan_highlands 2021: done
+  esri/paraguay_mosaic.tif written
+paraguay_mosaic 2021: done
+  esri/uganda_mosaic.tif written
+uganda_mosaic 2021: done
+  esri/serra_gaucha.tif written
+serra_gaucha 2021: done
+  esri/chile_lakes.tif written
+chile_lakes 2021: done
+  esri/rondonia_frontier.tif written
+rondonia_frontier 2021: done
+  esri/ghana_cocoa.tif written
+ghana_cocoa 2021: done
+  esri/madagascar_highlands.tif written
+madagascar_highlands 2021: done
+  esri/nigeria_middle_belt.tif written
+nigeria_middle_belt 2021: done
+  esri/cameroon_highlands.tif written
+cameroon_highlands 2021: done
+  esri/kzn_midlands.tif written
+kzn_midlands 2021: done
+  esri/java_rice_hills.tif written
+java_rice_hills 2021: done
+  esri/kilimanjaro_slopes.tif written
+kilimanjaro_slopes 2021: done
+  esri/vietnam_midlands.tif written
+vietnam_midlands 2021: done
+  esri/isan_paddies.tif written
+isan_paddies 2021: done
+  esri/sri_lanka_hills.tif written
+sri_lanka_hills 2021: done
+  esri/nagano_satoyama.tif written
+nagano_satoyama 2021: done
+  esri/kerala_mosaic.tif written
+kerala_mosaic 2021: done
+  esri/sichuan_hills.tif written
+sichuan_hills 2021: done
+  esri/nepal_terai.tif written
+nepal_terai 2021: done
+  esri/yunnan_mosaic.tif written
+yunnan_mosaic 2021: done
+  esri/pontic_slopes.tif written
+pontic_slopes 2021: done
+  esri/georgia_mosaic.tif written
+georgia_mosaic 2021: done
+  esri/waikato_farms.tif written
+waikato_farms 2021: done
+betsiboka_eroded_hills: SKIPPED (WorldCover shares {1: 0.0, 2: 0.0008, 3: 0.059, 4: 0.9371, 5: 0.003} below the required minimum {5: 0.05})
+  esri/gippsland_mosaic.tif written
+gippsland_mosaic 2021: done
+  esri/new_england_tablelands.tif written
+new_england_tablelands 2021: done
+  esri/mecklenburg_lakes.tif written
+mecklenburg_lakes 2021: done
+  esri/masuria_lakes.tif written
+masuria_lakes 2021: done
+  esri/brahmaputra_assam.tif written
+brahmaputra_assam 2021: done
+  esri/parana_river.tif written
+parana_river 2021: done
+  esri/lake_kyoga_shore.tif written
+lake_kyoga_shore 2021: done
+lake_alaotra_rice: SKIPPED (WorldCover shares {2: 0.0019, 3: 0.0046, 4: 0.9742, 6: 0.0192} below the required minimum {2: 0.15})
+  esri/tigray_degraded_highland.tif written
+tigray_degraded_highland 2021: done
+mbale_hill_farms: SKIPPED (WorldCover shares {1: 0.1254, 2: 0.0496, 3: 0.3271, 4: 0.497, 5: 0.0007, 6: 0.0002} below the required minimum {2: 0.2})
+pilbara_iron_mines: SKIPPED (WorldCover shares {3: 0.027, 4: 0.9729, 5: 0.0001} below the required minimum {5: 0.1})
+  esri/etosha_pan_edge.tif written
+etosha_pan_edge 2021: done
+  esri/carajas_mine.tif written
+carajas_mine 2021: done
+  esri/deccan_dry_plateau.tif written
+deccan_dry_plateau 2021: done
+  esri/burkina_central_plateau.tif written
+burkina_central_plateau 2021: done
+  esri/sierra_nevada_granite.tif written
+sierra_nevada_granite 2021: done
+  esri/nepal_terraces.tif written
+nepal_terraces 2021: done
+  esri/matopos_granite.tif written
+matopos_granite 2021: done
+  esri/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2021: done
+  esri/etosha_pan_pure.tif written
+etosha_pan_pure 2021: done
+  esri/gezira_scheme_pure.tif written
+gezira_scheme_pure 2021: done
+  esri/salar_de_uyuni_pure.tif written
+salar_de_uyuni_pure 2021: done
+  esri/central_thailand_rice_pure.tif written
+central_thailand_rice_pure 2021: done
+2022:   0%|          | 0/127 [00:00<?, ?site/s]2022:   1%|          | 1/127 [00:01<02:09,  1.03s/site]2022:   2%|▏         | 3/127 [00:01<00:42,  2.94site/s]2022:   5%|▍         | 6/127 [00:01<00:20,  5.79site/s]                                                       2022:   6%|▌         | 7/127 [00:01<00:20,  5.79site/s]2022:   7%|▋         | 9/127 [00:01<00:14,  7.91site/s]                                                       2022:   7%|▋         | 9/127 [00:02<00:14,  7.91site/s]                                                       2022:   8%|▊         | 10/127 [00:02<00:14,  7.91site/s]2022:   9%|▊         | 11/127 [00:02<00:20,  5.59site/s]                                                        2022:   9%|▊         | 11/127 [00:02<00:20,  5.59site/s]2022:  10%|█         | 13/127 [00:02<00:16,  6.99site/s]2022:  12%|█▏        | 15/127 [00:03<00:22,  4.95site/s]2022:  14%|█▍        | 18/127 [00:03<00:19,  5.59site/s]2022:  15%|█▍        | 19/127 [00:03<00:19,  5.63site/s]2022:  17%|█▋        | 22/127 [00:03<00:13,  7.98site/s]                                                        2022:  17%|█▋        | 22/127 [00:03<00:13,  7.98site/s]2022:  19%|█▉        | 24/127 [00:04<00:17,  5.86site/s]2022:  20%|██        | 26/127 [00:04<00:15,  6.38site/s]2022:  21%|██▏       | 27/127 [00:04<00:16,  6.05site/s]2022:  22%|██▏       | 28/127 [00:04<00:16,  6.14site/s]2022:  24%|██▎       | 30/127 [00:05<00:16,  6.03site/s]2022:  25%|██▌       | 32/127 [00:05<00:12,  7.75site/s]2022:  27%|██▋       | 34/127 [00:06<00:17,  5.34site/s]2022:  28%|██▊       | 35/127 [00:06<00:17,  5.21site/s]2022:  29%|██▉       | 37/127 [00:06<00:13,  6.48site/s]                                                        2022:  29%|██▉       | 37/127 [00:06<00:13,  6.48site/s]2022:  31%|███       | 39/127 [00:06<00:14,  6.11site/s]2022:  32%|███▏      | 41/127 [00:07<00:13,  6.22site/s]2022:  33%|███▎      | 42/127 [00:07<00:14,  5.97site/s]2022:  35%|███▍      | 44/127 [00:07<00:14,  5.91site/s]2022:  37%|███▋      | 47/127 [00:08<00:13,  5.89site/s]2022:  39%|███▊      | 49/127 [00:08<00:13,  5.88site/s]2022:  40%|████      | 51/127 [00:08<00:13,  5.83site/s]                                                        2022:  40%|████      | 51/127 [00:08<00:13,  5.83site/s]2022:  41%|████      | 52/127 [00:08<00:12,  6.05site/s]2022:  43%|████▎     | 54/127 [00:09<00:09,  7.68site/s]2022:  43%|████▎     | 55/127 [00:09<00:09,  7.92site/s]2022:  45%|████▍     | 57/127 [00:09<00:13,  5.20site/s]2022:  46%|████▌     | 58/127 [00:09<00:12,  5.38site/s]2022:  47%|████▋     | 60/127 [00:10<00:13,  4.92site/s]2022:  49%|████▉     | 62/127 [00:10<00:10,  6.30site/s]                                                        2022:  50%|████▉     | 63/127 [00:10<00:10,  6.30site/s]2022:  51%|█████     | 65/127 [00:10<00:07,  8.50site/s]2022:  53%|█████▎    | 67/127 [00:11<00:11,  5.33site/s]2022:  55%|█████▌    | 70/127 [00:11<00:09,  5.76site/s]2022:  57%|█████▋    | 72/127 [00:12<00:08,  6.64site/s]2022:  58%|█████▊    | 74/127 [00:12<00:07,  6.90site/s]2022:  59%|█████▉    | 75/127 [00:12<00:07,  6.97site/s]2022:  60%|█████▉    | 76/127 [00:12<00:08,  6.07site/s]2022:  61%|██████    | 77/127 [00:12<00:08,  6.09site/s]2022:  61%|██████▏   | 78/127 [00:13<00:10,  4.84site/s]2022:  64%|██████▍   | 81/127 [00:13<00:05,  7.74site/s]                                                        2022:  64%|██████▍   | 81/127 [00:13<00:05,  7.74site/s]2022:  65%|██████▌   | 83/127 [00:13<00:05,  7.40site/s]2022:  66%|██████▌   | 84/127 [00:14<00:08,  5.15site/s]2022:  68%|██████▊   | 86/127 [00:14<00:07,  5.86site/s]2022:  69%|██████▊   | 87/127 [00:14<00:07,  5.46site/s]2022:  71%|███████   | 90/127 [00:14<00:04,  7.63site/s]2022:  72%|███████▏  | 91/127 [00:14<00:04,  7.91site/s]2022:  72%|███████▏  | 92/127 [00:15<00:07,  4.73site/s]2022:  73%|███████▎  | 93/127 [00:15<00:07,  4.55site/s]2022:  76%|███████▌  | 96/127 [00:16<00:04,  6.53site/s]2022:  78%|███████▊  | 99/127 [00:16<00:05,  5.29site/s]2022:  80%|████████  | 102/127 [00:17<00:03,  6.47site/s]                                                         2022:  81%|████████  | 103/127 [00:17<00:03,  6.47site/s]2022:  83%|████████▎ | 105/127 [00:17<00:02,  7.38site/s]2022:  83%|████████▎ | 106/127 [00:17<00:02,  7.32site/s]                                                         2022:  83%|████████▎ | 106/127 [00:17<00:02,  7.32site/s]                                                         2022:  85%|████████▌ | 108/127 [00:17<00:02,  7.32site/s]2022:  86%|████████▌ | 109/127 [00:17<00:01,  9.68site/s]                                                         2022:  87%|████████▋ | 110/127 [00:17<00:01,  9.68site/s]2022:  87%|████████▋ | 111/127 [00:17<00:01,  9.28site/s]                                                         2022:  87%|████████▋ | 111/127 [00:17<00:01,  9.28site/s]2022:  90%|████████▉ | 114/127 [00:17<00:01, 12.19site/s]                                                         2022:  90%|████████▉ | 114/127 [00:18<00:01, 12.19site/s]                                                         2022:  91%|█████████ | 115/127 [00:18<00:00, 12.19site/s]2022:  91%|█████████▏| 116/127 [00:18<00:00, 11.54site/s]                                                         2022:  92%|█████████▏| 117/127 [00:18<00:00, 11.54site/s]2022:  93%|█████████▎| 118/127 [00:18<00:00, 10.36site/s]                                                         2022:  93%|█████████▎| 118/127 [00:18<00:00, 10.36site/s]2022:  94%|█████████▍| 120/127 [00:18<00:00,  8.86site/s]2022:  96%|█████████▌| 122/127 [00:18<00:00,  9.13site/s]2022:  98%|█████████▊| 124/127 [00:19<00:00,  7.71site/s]2022:  98%|█████████▊| 125/127 [00:19<00:00,  7.32site/s]2022: 100%|██████████| 127/127 [00:19<00:00,  7.48site/s]2022: 100%|██████████| 127/127 [00:19<00:00,  6.44site/s]
+  esri_2022/mekong_delta_rice.tif written
+mekong_delta_rice 2022: done
+  esri_2022/amazon_forest.tif written
+amazon_forest 2022: done
+  esri_2022/pampas_argentina.tif written
+pampas_argentina 2022: done
+  esri_2022/mato_grosso_soy.tif written
+mato_grosso_soy 2022: done
+  esri_2022/nile_delta.tif written
+nile_delta 2022: done
+  esri_2022/iowa_corn_belt.tif written
+iowa_corn_belt 2022: done
+  esri_2022/punjab_india.tif written
+punjab_india 2022: done
+sahara_algeria 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+sahara_algeria_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/poltava_ukraine.tif written
+poltava_ukraine 2022: done
+western_desert 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+western_desert_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+namib_desert 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+namib_desert_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+mongolia_steppe 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 6, '5': 0, '6': 2, '7': 4, '8': 2, '9': 2}
+mongolia_steppe_2022: SKIPPED (2022: 7 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 6, '5': 0, '6': 2, '7': 4, '8': 2, '9': 2})
+  esri_2022/congo_forest.tif written
+congo_forest 2022: done
+  esri_2022/black_forest.tif written
+black_forest 2022: done
+  esri_2022/borneo_forest.tif written
+borneo_forest 2022: done
+  esri_2022/badain_jaran.tif written
+badain_jaran 2022: done
+  esri_2022/texas_shrubland.tif written
+texas_shrubland 2022: done
+  esri_2022/sudd_wetland.tif written
+sudd_wetland 2022: done
+  esri_2022/sweden_taiga.tif written
+sweden_taiga 2022: done
+  esri_2022/pantanal.tif written
+pantanal 2022: done
+  esri_2022/inner_niger_delta.tif written
+inner_niger_delta 2022: done
+  esri_2022/sundarbans.tif written
+sundarbans 2022: done
+sikhote_alin_forest 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 1, '9': 2}
+sikhote_alin_forest_2022: SKIPPED (2022: 10 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 1, '9': 2})
+  esri_2022/alaska_boreal.tif written
+alaska_boreal 2022: done
+  esri_2022/appalachian_forest.tif written
+appalachian_forest 2022: done
+  esri_2022/quebec_boreal.tif written
+quebec_boreal 2022: done
+  esri_2022/olympic_rainforest.tif written
+olympic_rainforest 2022: done
+  esri_2022/gabon_forest.tif written
+gabon_forest 2022: done
+  esri_2022/tasmania_forest.tif written
+tasmania_forest 2022: done
+  esri_2022/patagonia_steppe.tif written
+patagonia_steppe 2022: done
+  esri_2022/papua_forest.tif written
+papua_forest 2022: done
+  esri_2022/nebraska_sandhills.tif written
+nebraska_sandhills 2022: done
+  esri_2022/great_basin_sagebrush.tif written
+great_basin_sagebrush 2022: done
+  esri_2022/karoo_shrubland.tif written
+karoo_shrubland 2022: done
+  esri_2022/saskatchewan_wheat.tif written
+saskatchewan_wheat 2022: done
+  esri_2022/tibet_grassland.tif written
+tibet_grassland 2022: done
+  esri_2022/central_valley_ca.tif written
+central_valley_ca 2022: done
+hudson_bay_lowland 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+hudson_bay_lowland_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/punjab_pakistan.tif written
+punjab_pakistan 2022: done
+  esri_2022/heilongjiang_maize.tif written
+heilongjiang_maize 2022: done
+  esri_2022/karawang_rice.tif written
+karawang_rice 2022: done
+  esri_2022/australia_wheatbelt.tif written
+australia_wheatbelt 2022: done
+  esri_2022/hungarian_plain.tif written
+hungarian_plain 2022: done
+  esri_2022/niger_delta_mangrove.tif written
+niger_delta_mangrove 2022: done
+  esri_2022/louisiana_marsh.tif written
+louisiana_marsh 2022: done
+  esri_2022/danube_delta.tif written
+danube_delta 2022: done
+  esri_2022/finnish_lakeland.tif written
+finnish_lakeland 2022: done
+  esri_2022/taklamakan_desert.tif written
+taklamakan_desert 2022: done
+  esri_2022/finnmark_tundra.tif written
+finnmark_tundra 2022: done
+  esri_2022/lake_balaton.tif written
+lake_balaton 2022: done
+  esri_2022/north_slope_alaska.tif written
+north_slope_alaska 2022: done
+llanos_venezuela 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+llanos_venezuela_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/iceland_highland.tif written
+iceland_highland 2022: done
+  esri_2022/cerrado_goias.tif written
+cerrado_goias 2022: done
+  esri_2022/kruger_savanna.tif written
+kruger_savanna 2022: done
+  esri_2022/miombo_zambia.tif written
+miombo_zambia 2022: done
+  esri_2022/sahel_niger.tif written
+sahel_niger 2022: done
+  esri_2022/dehesa_spain.tif written
+dehesa_spain 2022: done
+  esri_2022/california_chaparral.tif written
+california_chaparral 2022: done
+  esri_2022/chile_matorral.tif written
+chile_matorral 2022: done
+  esri_2022/ethiopia_highland_farms.tif written
+ethiopia_highland_farms 2022: done
+  esri_2022/rwanda_hills.tif written
+rwanda_hills 2022: done
+  esri_2022/cape_fynbos.tif written
+cape_fynbos 2022: done
+gran_chaco 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+gran_chaco_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/malawi_farms.tif written
+malawi_farms 2022: done
+  esri_2022/western_kenya_farms.tif written
+western_kenya_farms 2022: done
+  esri_2022/vosges_mosaic.tif written
+vosges_mosaic 2022: done
+  esri_2022/andes_sacred_valley.tif written
+andes_sacred_valley 2022: done
+  esri_2022/nepal_midhills.tif written
+nepal_midhills 2022: done
+  esri_2022/bavarian_forest.tif written
+bavarian_forest 2022: done
+  esri_2022/allgaeu_prealps.tif written
+allgaeu_prealps 2022: done
+  esri_2022/kanha_deciduous.tif written
+kanha_deciduous 2022: done
+  esri_2022/swiss_jura.tif written
+swiss_jura 2022: done
+  esri_2022/beskid_foothills.tif written
+beskid_foothills 2022: done
+  esri_2022/bukovina_hills.tif written
+bukovina_hills 2022: done
+  esri_2022/massif_central.tif written
+massif_central 2022: done
+  esri_2022/ardennes.tif written
+ardennes 2022: done
+  esri_2022/highland_fringe.tif written
+highland_fringe 2022: done
+  esri_2022/tuscany_hills.tif written
+tuscany_hills 2022: done
+  esri_2022/welsh_uplands.tif written
+welsh_uplands 2022: done
+  esri_2022/smaland_farm_forest.tif written
+smaland_farm_forest 2022: done
+serra_gaucha 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+serra_gaucha_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/vermont_mosaic.tif written
+vermont_mosaic 2022: done
+  esri_2022/quebec_farm_forest.tif written
+quebec_farm_forest 2022: done
+  esri_2022/ozark_farms.tif written
+ozark_farms 2022: done
+  esri_2022/wisconsin_driftless.tif written
+wisconsin_driftless 2022: done
+  esri_2022/michoacan_highlands.tif written
+michoacan_highlands 2022: done
+  esri_2022/rondonia_frontier.tif written
+rondonia_frontier 2022: done
+  esri_2022/uganda_mosaic.tif written
+uganda_mosaic 2022: done
+  esri_2022/colombia_coffee.tif written
+colombia_coffee 2022: done
+  esri_2022/ghana_cocoa.tif written
+ghana_cocoa 2022: done
+  esri_2022/nigeria_middle_belt.tif written
+nigeria_middle_belt 2022: done
+  esri_2022/kerala_mosaic.tif written
+kerala_mosaic 2022: done
+  esri_2022/kilimanjaro_slopes.tif written
+kilimanjaro_slopes 2022: done
+  esri_2022/kzn_midlands.tif written
+kzn_midlands 2022: done
+  esri_2022/isan_paddies.tif written
+isan_paddies 2022: done
+  esri_2022/java_rice_hills.tif written
+java_rice_hills 2022: done
+  esri_2022/vietnam_midlands.tif written
+vietnam_midlands 2022: done
+  esri_2022/nepal_terai.tif written
+nepal_terai 2022: done
+  esri_2022/nagano_satoyama.tif written
+nagano_satoyama 2022: done
+  esri_2022/sichuan_hills.tif written
+sichuan_hills 2022: done
+  esri_2022/georgia_mosaic.tif written
+georgia_mosaic 2022: done
+  esri_2022/pontic_slopes.tif written
+pontic_slopes 2022: done
+betsiboka_eroded_hills_2022: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2022/mecklenburg_lakes.tif written
+mecklenburg_lakes 2022: done
+  esri_2022/new_england_tablelands.tif written
+new_england_tablelands 2022: done
+pilbara_iron_mines_2022: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2022/waikato_farms.tif written
+waikato_farms 2022: done
+parana_river 2022: S1 scenes per month {'1': 2, '10': 2, '11': 3, '12': 2, '2': 3, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 2, '9': 3}
+parana_river_2022: SKIPPED (2022: 5 months without Sentinel-1 IW scenes (allowed 2): {'1': 2, '10': 2, '11': 3, '12': 2, '2': 3, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 2, '9': 3})
+  esri_2022/lake_kyoga_shore.tif written
+lake_kyoga_shore 2022: done
+lake_alaotra_rice_2022: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+mbale_hill_farms_2022: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2022/tigray_degraded_highland.tif written
+tigray_degraded_highland 2022: done
+  esri_2022/masuria_lakes.tif written
+masuria_lakes 2022: done
+etosha_pan_edge 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_edge_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+matopos_granite 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+matopos_granite_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2022/brahmaputra_assam.tif written
+brahmaputra_assam 2022: done
+etosha_pan_pure 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_pure_2022: SKIPPED (2022: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+gezira_scheme_pure 2022: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 1, '9': 0}
+gezira_scheme_pure_2022: SKIPPED (2022: 11 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 1, '9': 0})
+  esri_2022/carajas_mine.tif written
+carajas_mine 2022: done
+  esri_2022/burkina_central_plateau.tif written
+burkina_central_plateau 2022: done
+  esri_2022/deccan_dry_plateau.tif written
+deccan_dry_plateau 2022: done
+  esri_2022/nepal_terraces.tif written
+nepal_terraces 2022: done
+  esri_2022/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2022: done
+  esri_2022/sierra_nevada_granite.tif written
+sierra_nevada_granite 2022: done
+  esri_2022/central_thailand_rice_pure.tif written
+central_thailand_rice_pure 2022: done
+  esri_2022/salar_de_uyuni_pure.tif written
+salar_de_uyuni_pure 2022: done
+2023:   0%|          | 0/127 [00:00<?, ?site/s]2023:   1%|          | 1/127 [00:00<01:57,  1.07site/s]2023:   2%|▏         | 2/127 [00:01<01:11,  1.75site/s]2023:   5%|▍         | 6/127 [00:01<00:19,  6.11site/s]                                                       2023:   6%|▌         | 7/127 [00:01<00:19,  6.11site/s]2023:   6%|▋         | 8/127 [00:01<00:15,  7.86site/s]                                                       2023:   7%|▋         | 9/127 [00:01<00:15,  7.86site/s]                                                       2023:   8%|▊         | 10/127 [00:01<00:14,  7.86site/s]2023:   9%|▊         | 11/127 [00:01<00:12,  9.57site/s]                                                        2023:   9%|▉         | 12/127 [00:02<00:12,  9.57site/s]2023:  10%|█         | 13/127 [00:02<00:14,  7.87site/s]2023:  12%|█▏        | 15/127 [00:02<00:20,  5.46site/s]2023:  13%|█▎        | 17/127 [00:02<00:17,  6.28site/s]2023:  15%|█▍        | 19/127 [00:03<00:13,  7.84site/s]2023:  17%|█▋        | 21/127 [00:03<00:13,  7.85site/s]                                                        2023:  17%|█▋        | 21/127 [00:03<00:13,  7.85site/s]2023:  18%|█▊        | 23/127 [00:04<00:21,  4.85site/s]2023:  20%|█▉        | 25/127 [00:04<00:16,  6.14site/s]2023:  21%|██▏       | 27/127 [00:04<00:14,  6.84site/s]2023:  24%|██▎       | 30/127 [00:04<00:14,  6.66site/s]2023:  24%|██▍       | 31/127 [00:05<00:20,  4.80site/s]2023:  26%|██▌       | 33/127 [00:05<00:15,  5.97site/s]2023:  28%|██▊       | 36/127 [00:05<00:10,  8.45site/s]2023:  30%|██▉       | 38/127 [00:06<00:14,  6.27site/s]                                                        2023:  30%|██▉       | 38/127 [00:06<00:14,  6.27site/s]2023:  31%|███▏      | 40/127 [00:06<00:15,  5.66site/s]2023:  32%|███▏      | 41/127 [00:06<00:14,  6.01site/s]2023:  33%|███▎      | 42/127 [00:06<00:13,  6.20site/s]2023:  35%|███▍      | 44/127 [00:07<00:10,  8.16site/s]2023:  36%|███▌      | 46/127 [00:07<00:12,  6.44site/s]2023:  37%|███▋      | 47/127 [00:07<00:12,  6.50site/s]                                                        2023:  38%|███▊      | 48/127 [00:07<00:12,  6.50site/s]2023:  39%|███▊      | 49/127 [00:07<00:10,  7.41site/s]2023:  39%|███▉      | 50/127 [00:08<00:13,  5.79site/s]2023:  40%|████      | 51/127 [00:08<00:13,  5.74site/s]2023:  43%|████▎     | 54/127 [00:08<00:11,  6.42site/s]2023:  44%|████▍     | 56/127 [00:09<00:10,  6.83site/s]2023:  46%|████▋     | 59/127 [00:09<00:11,  5.76site/s]2023:  48%|████▊     | 61/127 [00:09<00:09,  7.12site/s]                                                        2023:  48%|████▊     | 61/127 [00:09<00:09,  7.12site/s]2023:  49%|████▉     | 62/127 [00:09<00:09,  7.12site/s]2023:  50%|████▉     | 63/127 [00:10<00:10,  6.10site/s]2023:  51%|█████     | 65/127 [00:10<00:09,  6.89site/s]2023:  54%|█████▎    | 68/127 [00:10<00:07,  8.37site/s]2023:  54%|█████▍    | 69/127 [00:11<00:09,  5.81site/s]2023:  55%|█████▌    | 70/127 [00:11<00:09,  5.87site/s]2023:  56%|█████▌    | 71/127 [00:11<00:10,  5.19site/s]2023:  57%|█████▋    | 72/127 [00:11<00:09,  5.86site/s]2023:  58%|█████▊    | 74/127 [00:11<00:07,  7.48site/s]2023:  60%|█████▉    | 76/127 [00:12<00:06,  7.41site/s]2023:  61%|██████    | 77/127 [00:12<00:09,  5.23site/s]2023:  61%|██████▏   | 78/127 [00:12<00:10,  4.89site/s]2023:  63%|██████▎   | 80/127 [00:13<00:08,  5.26site/s]                                                        2023:  65%|██████▌   | 83/127 [00:13<00:08,  5.26site/s]2023:  66%|██████▌   | 84/127 [00:13<00:06,  6.99site/s]2023:  68%|██████▊   | 86/127 [00:13<00:05,  8.17site/s]2023:  69%|██████▊   | 87/127 [00:13<00:05,  7.04site/s]2023:  69%|██████▉   | 88/127 [00:14<00:08,  4.41site/s]2023:  72%|███████▏  | 91/127 [00:14<00:05,  6.32site/s]2023:  72%|███████▏  | 92/127 [00:14<00:05,  6.49site/s]2023:  73%|███████▎  | 93/127 [00:14<00:04,  6.84site/s]2023:  74%|███████▍  | 94/127 [00:15<00:05,  5.93site/s]2023:  76%|███████▌  | 96/127 [00:15<00:06,  4.84site/s]2023:  76%|███████▋  | 97/127 [00:15<00:06,  4.89site/s]2023:  78%|███████▊  | 99/127 [00:16<00:04,  5.69site/s]2023:  80%|███████▉  | 101/127 [00:16<00:04,  5.62site/s]                                                         2023:  81%|████████  | 103/127 [00:16<00:04,  5.62site/s]2023:  83%|████████▎ | 105/127 [00:16<00:02,  8.21site/s]2023:  83%|████████▎ | 106/127 [00:17<00:03,  5.89site/s]                                                         2023:  83%|████████▎ | 106/127 [00:17<00:03,  5.89site/s]2023:  86%|████████▌ | 109/127 [00:17<00:02,  7.04site/s]                                                         2023:  87%|████████▋ | 110/127 [00:17<00:02,  7.04site/s]                                                         2023:  87%|████████▋ | 111/127 [00:17<00:02,  7.04site/s]                                                         2023:  88%|████████▊ | 112/127 [00:17<00:02,  7.04site/s]2023:  90%|████████▉ | 114/127 [00:17<00:01, 10.59site/s]                                                         2023:  91%|█████████ | 115/127 [00:17<00:01, 10.59site/s]2023:  91%|█████████▏| 116/127 [00:17<00:01, 10.48site/s]                                                         2023:  92%|█████████▏| 117/127 [00:18<00:00, 10.48site/s]2023:  93%|█████████▎| 118/127 [00:18<00:00, 10.73site/s]                                                         2023:  94%|█████████▎| 119/127 [00:18<00:00, 10.73site/s]2023:  94%|█████████▍| 120/127 [00:18<00:00, 10.16site/s]2023:  96%|█████████▌| 122/127 [00:18<00:00,  9.38site/s]2023:  97%|█████████▋| 123/127 [00:18<00:00,  7.02site/s]2023:  98%|█████████▊| 125/127 [00:18<00:00,  8.80site/s]2023: 100%|██████████| 127/127 [00:19<00:00,  4.53site/s]2023: 100%|██████████| 127/127 [00:19<00:00,  6.38site/s]
+  esri_2023/nile_delta.tif written
+nile_delta 2023: done
+  esri_2023/iowa_corn_belt.tif written
+iowa_corn_belt 2023: done
+  esri_2023/poltava_ukraine.tif written
+poltava_ukraine 2023: done
+  esri_2023/punjab_india.tif written
+punjab_india 2023: done
+  esri_2023/mato_grosso_soy.tif written
+mato_grosso_soy 2023: done
+  esri_2023/amazon_forest.tif written
+amazon_forest 2023: done
+  esri_2023/mekong_delta_rice.tif written
+mekong_delta_rice 2023: done
+western_desert 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+  esri_2023/pampas_argentina.tif written
+pampas_argentina 2023: done
+western_desert_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+namib_desert 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+namib_desert_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+mongolia_steppe 2023: S1 scenes per month {'1': 6, '10': 0, '11': 0, '12': 2, '2': 4, '3': 4, '4': 0, '5': 4, '6': 0, '7': 0, '8': 0, '9': 2}
+mongolia_steppe_2023: SKIPPED (2023: 6 months without Sentinel-1 IW scenes (allowed 2): {'1': 6, '10': 0, '11': 0, '12': 2, '2': 4, '3': 4, '4': 0, '5': 4, '6': 0, '7': 0, '8': 0, '9': 2})
+  esri_2023/congo_forest.tif written
+congo_forest 2023: done
+sahara_algeria 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+sahara_algeria_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/black_forest.tif written
+black_forest 2023: done
+  esri_2023/badain_jaran.tif written
+badain_jaran 2023: done
+  esri_2023/borneo_forest.tif written
+borneo_forest 2023: done
+  esri_2023/texas_shrubland.tif written
+texas_shrubland 2023: done
+  esri_2023/sundarbans.tif written
+sundarbans 2023: done
+  esri_2023/pantanal.tif written
+pantanal 2023: done
+  esri_2023/sudd_wetland.tif written
+sudd_wetland 2023: done
+  esri_2023/inner_niger_delta.tif written
+inner_niger_delta 2023: done
+sikhote_alin_forest 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+sikhote_alin_forest_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/alaska_boreal.tif written
+alaska_boreal 2023: done
+  esri_2023/sweden_taiga.tif written
+sweden_taiga 2023: done
+  esri_2023/quebec_boreal.tif written
+quebec_boreal 2023: done
+  esri_2023/gabon_forest.tif written
+gabon_forest 2023: done
+  esri_2023/olympic_rainforest.tif written
+olympic_rainforest 2023: done
+  esri_2023/appalachian_forest.tif written
+appalachian_forest 2023: done
+  esri_2023/tasmania_forest.tif written
+tasmania_forest 2023: done
+  esri_2023/papua_forest.tif written
+papua_forest 2023: done
+  esri_2023/nebraska_sandhills.tif written
+nebraska_sandhills 2023: done
+  esri_2023/great_basin_sagebrush.tif written
+great_basin_sagebrush 2023: done
+  esri_2023/central_valley_ca.tif written
+central_valley_ca 2023: done
+  esri_2023/karoo_shrubland.tif written
+karoo_shrubland 2023: done
+  esri_2023/tibet_grassland.tif written
+tibet_grassland 2023: done
+  esri_2023/saskatchewan_wheat.tif written
+saskatchewan_wheat 2023: done
+  esri_2023/patagonia_steppe.tif written
+patagonia_steppe 2023: done
+  esri_2023/punjab_pakistan.tif written
+punjab_pakistan 2023: done
+hudson_bay_lowland 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+hudson_bay_lowland_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/heilongjiang_maize.tif written
+heilongjiang_maize 2023: done
+  esri_2023/karawang_rice.tif written
+karawang_rice 2023: done
+  esri_2023/hungarian_plain.tif written
+hungarian_plain 2023: done
+  esri_2023/danube_delta.tif written
+danube_delta 2023: done
+  esri_2023/australia_wheatbelt.tif written
+australia_wheatbelt 2023: done
+  esri_2023/louisiana_marsh.tif written
+louisiana_marsh 2023: done
+  esri_2023/niger_delta_mangrove.tif written
+niger_delta_mangrove 2023: done
+  esri_2023/lake_balaton.tif written
+lake_balaton 2023: done
+  esri_2023/taklamakan_desert.tif written
+taklamakan_desert 2023: done
+llanos_venezuela 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+llanos_venezuela_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/finnish_lakeland.tif written
+finnish_lakeland 2023: done
+  esri_2023/finnmark_tundra.tif written
+finnmark_tundra 2023: done
+  esri_2023/north_slope_alaska.tif written
+north_slope_alaska 2023: done
+  esri_2023/iceland_highland.tif written
+iceland_highland 2023: done
+  esri_2023/kruger_savanna.tif written
+kruger_savanna 2023: done
+  esri_2023/cerrado_goias.tif written
+cerrado_goias 2023: done
+  esri_2023/miombo_zambia.tif written
+miombo_zambia 2023: done
+  esri_2023/sahel_niger.tif written
+sahel_niger 2023: done
+  esri_2023/dehesa_spain.tif written
+dehesa_spain 2023: done
+  esri_2023/cape_fynbos.tif written
+cape_fynbos 2023: done
+  esri_2023/california_chaparral.tif written
+california_chaparral 2023: done
+  esri_2023/chile_matorral.tif written
+chile_matorral 2023: done
+gran_chaco 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+gran_chaco_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/ethiopia_highland_farms.tif written
+ethiopia_highland_farms 2023: done
+  esri_2023/western_kenya_farms.tif written
+western_kenya_farms 2023: done
+  esri_2023/malawi_farms.tif written
+malawi_farms 2023: done
+  esri_2023/rwanda_hills.tif written
+rwanda_hills 2023: done
+  esri_2023/nepal_midhills.tif written
+nepal_midhills 2023: done
+  esri_2023/kanha_deciduous.tif written
+kanha_deciduous 2023: done
+  esri_2023/andes_sacred_valley.tif written
+andes_sacred_valley 2023: done
+  esri_2023/vosges_mosaic.tif written
+vosges_mosaic 2023: done
+  esri_2023/allgaeu_prealps.tif written
+allgaeu_prealps 2023: done
+  esri_2023/bukovina_hills.tif written
+bukovina_hills 2023: done
+  esri_2023/bavarian_forest.tif written
+bavarian_forest 2023: done
+  esri_2023/swiss_jura.tif written
+swiss_jura 2023: done
+  esri_2023/beskid_foothills.tif written
+beskid_foothills 2023: done
+  esri_2023/ardennes.tif written
+ardennes 2023: done
+  esri_2023/massif_central.tif written
+massif_central 2023: done
+  esri_2023/highland_fringe.tif written
+highland_fringe 2023: done
+  esri_2023/welsh_uplands.tif written
+welsh_uplands 2023: done
+  esri_2023/vermont_mosaic.tif written
+vermont_mosaic 2023: done
+  esri_2023/smaland_farm_forest.tif written
+smaland_farm_forest 2023: done
+  esri_2023/tuscany_hills.tif written
+tuscany_hills 2023: done
+  esri_2023/wisconsin_driftless.tif written
+wisconsin_driftless 2023: done
+serra_gaucha 2023: S1 scenes per month {'1': 0, '10': 0, '11': 1, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 2}
+serra_gaucha_2023: SKIPPED (2023: 10 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 1, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 2})
+  esri_2023/ozark_farms.tif written
+ozark_farms 2023: done
+  esri_2023/michoacan_highlands.tif written
+michoacan_highlands 2023: done
+  esri_2023/quebec_farm_forest.tif written
+quebec_farm_forest 2023: done
+  esri_2023/uganda_mosaic.tif written
+uganda_mosaic 2023: done
+  esri_2023/rondonia_frontier.tif written
+rondonia_frontier 2023: done
+  esri_2023/colombia_coffee.tif written
+colombia_coffee 2023: done
+  esri_2023/ghana_cocoa.tif written
+ghana_cocoa 2023: done
+  esri_2023/nigeria_middle_belt.tif written
+nigeria_middle_belt 2023: done
+  esri_2023/kilimanjaro_slopes.tif written
+kilimanjaro_slopes 2023: done
+  esri_2023/kzn_midlands.tif written
+kzn_midlands 2023: done
+  esri_2023/java_rice_hills.tif written
+java_rice_hills 2023: done
+  esri_2023/isan_paddies.tif written
+isan_paddies 2023: done
+  esri_2023/vietnam_midlands.tif written
+vietnam_midlands 2023: done
+  esri_2023/kerala_mosaic.tif written
+kerala_mosaic 2023: done
+  esri_2023/nagano_satoyama.tif written
+nagano_satoyama 2023: done
+  esri_2023/sichuan_hills.tif written
+sichuan_hills 2023: done
+  esri_2023/pontic_slopes.tif written
+pontic_slopes 2023: done
+  esri_2023/georgia_mosaic.tif written
+georgia_mosaic 2023: done
+  esri_2023/nepal_terai.tif written
+nepal_terai 2023: done
+betsiboka_eroded_hills_2023: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2023/waikato_farms.tif written
+waikato_farms 2023: done
+  esri_2023/mecklenburg_lakes.tif written
+mecklenburg_lakes 2023: done
+pilbara_iron_mines_2023: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2023/new_england_tablelands.tif written
+new_england_tablelands 2023: done
+  esri_2023/brahmaputra_assam.tif written
+brahmaputra_assam 2023: done
+  esri_2023/masuria_lakes.tif written
+masuria_lakes 2023: done
+lake_alaotra_rice_2023: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+mbale_hill_farms_2023: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+etosha_pan_edge 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_edge_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/lake_kyoga_shore.tif written
+lake_kyoga_shore 2023: done
+  esri_2023/tigray_degraded_highland.tif written
+tigray_degraded_highland 2023: done
+matopos_granite 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+matopos_granite_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/parana_river.tif written
+parana_river 2023: done
+etosha_pan_pure 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_pure_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/deccan_dry_plateau.tif written
+deccan_dry_plateau 2023: done
+gezira_scheme_pure 2023: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+gezira_scheme_pure_2023: SKIPPED (2023: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2023/burkina_central_plateau.tif written
+burkina_central_plateau 2023: done
+  esri_2023/carajas_mine.tif written
+carajas_mine 2023: done
+  esri_2023/nepal_terraces.tif written
+nepal_terraces 2023: done
+  esri_2023/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2023: done
+  esri_2023/sierra_nevada_granite.tif written
+sierra_nevada_granite 2023: done
+  esri_2023/salar_de_uyuni_pure.tif written
+salar_de_uyuni_pure 2023: done
+  esri_2023/central_thailand_rice_pure.tif written
+central_thailand_rice_pure 2023: done
+2024:   0%|          | 0/127 [00:00<?, ?site/s]2024:   1%|          | 1/127 [00:01<02:14,  1.06s/site]2024:   2%|▏         | 2/127 [00:01<01:04,  1.92site/s]2024:   3%|▎         | 4/127 [00:01<00:30,  4.02site/s]2024:   6%|▌         | 7/127 [00:01<00:17,  6.95site/s]                                                       2024:   6%|▌         | 7/127 [00:01<00:17,  6.95site/s]                                                       2024:   6%|▋         | 8/127 [00:01<00:17,  6.95site/s]2024:   8%|▊         | 10/127 [00:01<00:12,  9.74site/s]                                                        2024:   8%|▊         | 10/127 [00:02<00:12,  9.74site/s]2024:   9%|▉         | 12/127 [00:02<00:18,  6.08site/s]                                                        2024:   9%|▉         | 12/127 [00:02<00:18,  6.08site/s]2024:  11%|█         | 14/127 [00:02<00:16,  6.97site/s]2024:  13%|█▎        | 16/127 [00:02<00:13,  8.50site/s]2024:  14%|█▍        | 18/127 [00:03<00:16,  6.62site/s]2024:  16%|█▌        | 20/127 [00:03<00:18,  5.65site/s]2024:  17%|█▋        | 22/127 [00:03<00:19,  5.38site/s]2024:  18%|█▊        | 23/127 [00:04<00:17,  5.84site/s]                                                        2024:  18%|█▊        | 23/127 [00:04<00:17,  5.84site/s]2024:  20%|██        | 26/127 [00:04<00:14,  7.14site/s]2024:  21%|██▏       | 27/127 [00:04<00:15,  6.37site/s]2024:  22%|██▏       | 28/127 [00:04<00:17,  5.64site/s]2024:  23%|██▎       | 29/127 [00:05<00:20,  4.85site/s]2024:  24%|██▍       | 31/127 [00:05<00:14,  6.68site/s]2024:  26%|██▌       | 33/127 [00:05<00:12,  7.60site/s]2024:  27%|██▋       | 34/127 [00:05<00:14,  6.23site/s]2024:  28%|██▊       | 36/127 [00:05<00:12,  7.56site/s]2024:  29%|██▉       | 37/127 [00:06<00:18,  4.89site/s]                                                        2024:  29%|██▉       | 37/127 [00:06<00:18,  4.89site/s]2024:  30%|██▉       | 38/127 [00:06<00:16,  5.43site/s]2024:  31%|███       | 39/127 [00:06<00:15,  5.80site/s]2024:  32%|███▏      | 41/127 [00:06<00:11,  7.70site/s]2024:  33%|███▎      | 42/127 [00:06<00:11,  7.45site/s]2024:  34%|███▍      | 43/127 [00:07<00:11,  7.14site/s]2024:  35%|███▌      | 45/127 [00:07<00:15,  5.30site/s]2024:  36%|███▌      | 46/127 [00:08<00:18,  4.46site/s]2024:  38%|███▊      | 48/127 [00:08<00:13,  5.98site/s]                                                        2024:  39%|███▉      | 50/127 [00:08<00:12,  5.98site/s]2024:  40%|████      | 51/127 [00:08<00:08,  9.37site/s]2024:  42%|████▏     | 53/127 [00:08<00:08,  8.78site/s]2024:  43%|████▎     | 55/127 [00:09<00:11,  6.17site/s]2024:  44%|████▍     | 56/127 [00:09<00:13,  5.45site/s]2024:  45%|████▍     | 57/127 [00:09<00:12,  5.81site/s]2024:  46%|████▋     | 59/127 [00:09<00:09,  7.31site/s]2024:  47%|████▋     | 60/127 [00:09<00:10,  6.30site/s]2024:  49%|████▉     | 62/127 [00:10<00:10,  6.35site/s]2024:  50%|████▉     | 63/127 [00:10<00:11,  5.63site/s]                                                        2024:  50%|█████     | 64/127 [00:10<00:11,  5.63site/s]2024:  51%|█████     | 65/127 [00:10<00:08,  7.12site/s]2024:  53%|█████▎    | 67/127 [00:10<00:07,  7.79site/s]2024:  54%|█████▎    | 68/127 [00:11<00:10,  5.90site/s]2024:  54%|█████▍    | 69/127 [00:11<00:12,  4.73site/s]2024:  55%|█████▌    | 70/127 [00:11<00:11,  4.86site/s]2024:  57%|█████▋    | 72/127 [00:11<00:09,  5.73site/s]2024:  58%|█████▊    | 74/127 [00:12<00:07,  6.63site/s]2024:  59%|█████▉    | 75/127 [00:12<00:07,  6.62site/s]2024:  60%|█████▉    | 76/127 [00:12<00:09,  5.14site/s]2024:  61%|██████    | 77/127 [00:12<00:10,  4.66site/s]2024:  61%|██████▏   | 78/127 [00:13<00:11,  4.39site/s]2024:  63%|██████▎   | 80/127 [00:13<00:07,  6.32site/s]                                                        2024:  63%|██████▎   | 80/127 [00:13<00:07,  6.32site/s]2024:  64%|██████▍   | 81/127 [00:13<00:06,  6.66site/s]2024:  65%|██████▍   | 82/127 [00:13<00:06,  7.13site/s]2024:  65%|██████▌   | 83/127 [00:13<00:06,  6.79site/s]2024:  66%|██████▌   | 84/127 [00:13<00:05,  7.24site/s]2024:  67%|██████▋   | 85/127 [00:14<00:07,  5.92site/s]2024:  69%|██████▊   | 87/127 [00:14<00:04,  8.03site/s]2024:  70%|███████   | 89/127 [00:14<00:07,  4.98site/s]2024:  71%|███████   | 90/127 [00:14<00:06,  5.54site/s]2024:  72%|███████▏  | 91/127 [00:15<00:06,  5.97site/s]2024:  72%|███████▏  | 92/127 [00:15<00:05,  6.18site/s]2024:  73%|███████▎  | 93/127 [00:15<00:05,  6.00site/s]2024:  75%|███████▍  | 95/127 [00:15<00:03,  8.34site/s]2024:  76%|███████▋  | 97/127 [00:16<00:06,  4.86site/s]2024:  77%|███████▋  | 98/127 [00:16<00:06,  4.78site/s]                                                        2024:  80%|███████▉  | 101/127 [00:16<00:05,  4.78site/s]2024:  80%|████████  | 102/127 [00:16<00:03,  7.70site/s]2024:  81%|████████  | 103/127 [00:16<00:03,  7.00site/s]                                                         2024:  81%|████████  | 103/127 [00:16<00:03,  7.00site/s]2024:  83%|████████▎ | 105/127 [00:17<00:02,  8.82site/s]                                                         2024:  83%|████████▎ | 105/127 [00:17<00:02,  8.82site/s]                                                         2024:  83%|████████▎ | 106/127 [00:17<00:02,  8.82site/s]2024:  84%|████████▍ | 107/127 [00:17<00:02,  8.31site/s]2024:  86%|████████▌ | 109/127 [00:17<00:02,  6.62site/s]2024:  87%|████████▋ | 110/127 [00:17<00:02,  6.88site/s]                                                         2024:  87%|████████▋ | 110/127 [00:17<00:02,  6.88site/s]                                                         2024:  87%|████████▋ | 111/127 [00:17<00:02,  6.88site/s]2024:  90%|████████▉ | 114/127 [00:18<00:01, 10.09site/s]2024:  91%|█████████▏| 116/127 [00:18<00:01, 10.54site/s]                                                         2024:  91%|█████████▏| 116/127 [00:18<00:01, 10.54site/s]2024:  93%|█████████▎| 118/127 [00:18<00:01,  8.82site/s]                                                         2024:  93%|█████████▎| 118/127 [00:18<00:01,  8.82site/s]                                                         2024:  94%|█████████▎| 119/127 [00:18<00:00,  8.82site/s]2024:  94%|█████████▍| 120/127 [00:18<00:00,  8.60site/s]2024:  95%|█████████▌| 121/127 [00:19<00:00,  6.23site/s]2024:  98%|█████████▊| 124/127 [00:19<00:00,  8.84site/s]2024:  99%|█████████▉| 126/127 [00:19<00:00,  6.38site/s]2024: 100%|██████████| 127/127 [00:20<00:00,  5.31site/s]2024: 100%|██████████| 127/127 [00:20<00:00,  6.28site/s]
+  esri_2024/amazon_forest.tif written
+amazon_forest 2024: done
+  esri_2024/poltava_ukraine.tif written
+poltava_ukraine 2024: done
+  esri_2024/iowa_corn_belt.tif written
+iowa_corn_belt 2024: done
+  esri_2024/mekong_delta_rice.tif written
+mekong_delta_rice 2024: done
+  esri_2024/pampas_argentina.tif written
+pampas_argentina 2024: done
+  esri_2024/punjab_india.tif written
+punjab_india 2024: done
+  esri_2024/mato_grosso_soy.tif written
+mato_grosso_soy 2024: done
+sahara_algeria 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+sahara_algeria_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+western_desert 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+western_desert_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/nile_delta.tif written
+nile_delta 2024: done
+namib_desert 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+namib_desert_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/congo_forest.tif written
+congo_forest 2024: done
+mongolia_steppe 2024: S1 scenes per month {'1': 0, '10': 6, '11': 4, '12': 4, '2': 0, '3': 2, '4': 2, '5': 4, '6': 2, '7': 0, '8': 6, '9': 4}
+mongolia_steppe_2024: SKIPPED (2024: 3 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 6, '11': 4, '12': 4, '2': 0, '3': 2, '4': 2, '5': 4, '6': 2, '7': 0, '8': 6, '9': 4})
+  esri_2024/black_forest.tif written
+black_forest 2024: done
+  esri_2024/sundarbans.tif written
+sundarbans 2024: done
+  esri_2024/borneo_forest.tif written
+borneo_forest 2024: done
+  esri_2024/badain_jaran.tif written
+badain_jaran 2024: done
+  esri_2024/texas_shrubland.tif written
+texas_shrubland 2024: done
+  esri_2024/sudd_wetland.tif written
+sudd_wetland 2024: done
+  esri_2024/inner_niger_delta.tif written
+inner_niger_delta 2024: done
+  esri_2024/pantanal.tif written
+pantanal 2024: done
+  esri_2024/quebec_boreal.tif written
+quebec_boreal 2024: done
+  esri_2024/sweden_taiga.tif written
+sweden_taiga 2024: done
+sikhote_alin_forest 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+  esri_2024/alaska_boreal.tif written
+alaska_boreal 2024: done
+sikhote_alin_forest_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/appalachian_forest.tif written
+appalachian_forest 2024: done
+  esri_2024/olympic_rainforest.tif written
+olympic_rainforest 2024: done
+  esri_2024/gabon_forest.tif written
+gabon_forest 2024: done
+  esri_2024/tasmania_forest.tif written
+tasmania_forest 2024: done
+  esri_2024/papua_forest.tif written
+papua_forest 2024: done
+  esri_2024/karoo_shrubland.tif written
+karoo_shrubland 2024: done
+  esri_2024/great_basin_sagebrush.tif written
+great_basin_sagebrush 2024: done
+  esri_2024/patagonia_steppe.tif written
+patagonia_steppe 2024: done
+  esri_2024/nebraska_sandhills.tif written
+nebraska_sandhills 2024: done
+  esri_2024/saskatchewan_wheat.tif written
+saskatchewan_wheat 2024: done
+  esri_2024/tibet_grassland.tif written
+tibet_grassland 2024: done
+  esri_2024/central_valley_ca.tif written
+central_valley_ca 2024: done
+hudson_bay_lowland 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+hudson_bay_lowland_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/heilongjiang_maize.tif written
+heilongjiang_maize 2024: done
+  esri_2024/karawang_rice.tif written
+karawang_rice 2024: done
+  esri_2024/punjab_pakistan.tif written
+punjab_pakistan 2024: done
+  esri_2024/australia_wheatbelt.tif written
+australia_wheatbelt 2024: done
+  esri_2024/hungarian_plain.tif written
+hungarian_plain 2024: done
+  esri_2024/danube_delta.tif written
+danube_delta 2024: done
+  esri_2024/niger_delta_mangrove.tif written
+niger_delta_mangrove 2024: done
+  esri_2024/louisiana_marsh.tif written
+louisiana_marsh 2024: done
+  esri_2024/taklamakan_desert.tif written
+taklamakan_desert 2024: done
+  esri_2024/north_slope_alaska.tif written
+north_slope_alaska 2024: done
+  esri_2024/lake_balaton.tif written
+lake_balaton 2024: done
+  esri_2024/finnish_lakeland.tif written
+finnish_lakeland 2024: done
+llanos_venezuela 2024: S1 scenes per month {'1': 0, '10': 3, '11': 1, '12': 2, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 2, '9': 2}
+llanos_venezuela_2024: SKIPPED (2024: 7 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 3, '11': 1, '12': 2, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 2, '9': 2})
+  esri_2024/finnmark_tundra.tif written
+finnmark_tundra 2024: done
+  esri_2024/iceland_highland.tif written
+iceland_highland 2024: done
+  esri_2024/kruger_savanna.tif written
+kruger_savanna 2024: done
+  esri_2024/sahel_niger.tif written
+sahel_niger 2024: done
+  esri_2024/cerrado_goias.tif written
+cerrado_goias 2024: done
+  esri_2024/miombo_zambia.tif written
+miombo_zambia 2024: done
+  esri_2024/chile_matorral.tif written
+chile_matorral 2024: done
+  esri_2024/california_chaparral.tif written
+california_chaparral 2024: done
+  esri_2024/dehesa_spain.tif written
+dehesa_spain 2024: done
+  esri_2024/cape_fynbos.tif written
+cape_fynbos 2024: done
+  esri_2024/ethiopia_highland_farms.tif written
+ethiopia_highland_farms 2024: done
+  esri_2024/malawi_farms.tif written
+malawi_farms 2024: done
+  esri_2024/nepal_midhills.tif written
+nepal_midhills 2024: done
+gran_chaco 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+gran_chaco_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/rwanda_hills.tif written
+rwanda_hills 2024: done
+  esri_2024/western_kenya_farms.tif written
+western_kenya_farms 2024: done
+  esri_2024/andes_sacred_valley.tif written
+andes_sacred_valley 2024: done
+  esri_2024/allgaeu_prealps.tif written
+allgaeu_prealps 2024: done
+  esri_2024/kanha_deciduous.tif written
+kanha_deciduous 2024: done
+  esri_2024/vosges_mosaic.tif written
+vosges_mosaic 2024: done
+  esri_2024/bavarian_forest.tif written
+bavarian_forest 2024: done
+  esri_2024/bukovina_hills.tif written
+bukovina_hills 2024: done
+  esri_2024/swiss_jura.tif written
+swiss_jura 2024: done
+  esri_2024/beskid_foothills.tif written
+beskid_foothills 2024: done
+  esri_2024/ardennes.tif written
+ardennes 2024: done
+  esri_2024/massif_central.tif written
+massif_central 2024: done
+  esri_2024/highland_fringe.tif written
+highland_fringe 2024: done
+  esri_2024/smaland_farm_forest.tif written
+smaland_farm_forest 2024: done
+  esri_2024/tuscany_hills.tif written
+tuscany_hills 2024: done
+serra_gaucha 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 2, '6': 0, '7': 0, '8': 0, '9': 0}
+serra_gaucha_2024: SKIPPED (2024: 11 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 2, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/welsh_uplands.tif written
+welsh_uplands 2024: done
+  esri_2024/vermont_mosaic.tif written
+vermont_mosaic 2024: done
+  esri_2024/wisconsin_driftless.tif written
+wisconsin_driftless 2024: done
+  esri_2024/michoacan_highlands.tif written
+michoacan_highlands 2024: done
+  esri_2024/ozark_farms.tif written
+ozark_farms 2024: done
+  esri_2024/colombia_coffee.tif written
+colombia_coffee 2024: done
+  esri_2024/quebec_farm_forest.tif written
+quebec_farm_forest 2024: done
+  esri_2024/ghana_cocoa.tif written
+ghana_cocoa 2024: done
+  esri_2024/rondonia_frontier.tif written
+rondonia_frontier 2024: done
+  esri_2024/uganda_mosaic.tif written
+uganda_mosaic 2024: done
+  esri_2024/vietnam_midlands.tif written
+vietnam_midlands 2024: done
+  esri_2024/kzn_midlands.tif written
+kzn_midlands 2024: done
+  esri_2024/kilimanjaro_slopes.tif written
+kilimanjaro_slopes 2024: done
+  esri_2024/java_rice_hills.tif written
+java_rice_hills 2024: done
+  esri_2024/nigeria_middle_belt.tif written
+nigeria_middle_belt 2024: done
+  esri_2024/sichuan_hills.tif written
+sichuan_hills 2024: done
+  esri_2024/georgia_mosaic.tif written
+georgia_mosaic 2024: done
+  esri_2024/isan_paddies.tif written
+isan_paddies 2024: done
+  esri_2024/kerala_mosaic.tif written
+kerala_mosaic 2024: done
+  esri_2024/pontic_slopes.tif written
+pontic_slopes 2024: done
+parana_river 2024: S1 scenes per month {'1': 1, '10': 2, '11': 3, '12': 2, '2': 0, '3': 2, '4': 3, '5': 0, '6': 2, '7': 0, '8': 2, '9': 3}
+parana_river_2024: SKIPPED (2024: 3 months without Sentinel-1 IW scenes (allowed 2): {'1': 1, '10': 2, '11': 3, '12': 2, '2': 0, '3': 2, '4': 3, '5': 0, '6': 2, '7': 0, '8': 2, '9': 3})
+  esri_2024/nagano_satoyama.tif written
+nagano_satoyama 2024: done
+betsiboka_eroded_hills_2024: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2024/nepal_terai.tif written
+nepal_terai 2024: done
+etosha_pan_edge 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_edge_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+pilbara_iron_mines_2024: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2024/waikato_farms.tif written
+waikato_farms 2024: done
+  esri_2024/new_england_tablelands.tif written
+new_england_tablelands 2024: done
+  esri_2024/brahmaputra_assam.tif written
+brahmaputra_assam 2024: done
+lake_alaotra_rice_2024: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+mbale_hill_farms_2024: SKIPPED (no 2021 tile (later years only extend sites that exist in 2021))
+  esri_2024/masuria_lakes.tif written
+masuria_lakes 2024: done
+  esri_2024/mecklenburg_lakes.tif written
+mecklenburg_lakes 2024: done
+  esri_2024/lake_kyoga_shore.tif written
+lake_kyoga_shore 2024: done
+  esri_2024/carajas_mine.tif written
+carajas_mine 2024: done
+etosha_pan_pure 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+etosha_pan_pure_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/tigray_degraded_highland.tif written
+tigray_degraded_highland 2024: done
+gezira_scheme_pure 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+gezira_scheme_pure_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+matopos_granite 2024: S1 scenes per month {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+matopos_granite_2024: SKIPPED (2024: 12 months without Sentinel-1 IW scenes (allowed 2): {'1': 0, '10': 0, '11': 0, '12': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0})
+  esri_2024/burkina_central_plateau.tif written
+burkina_central_plateau 2024: done
+  esri_2024/deccan_dry_plateau.tif written
+deccan_dry_plateau 2024: done
+  esri_2024/nepal_terraces.tif written
+nepal_terraces 2024: done
+  esri_2024/sri_lanka_dry_zone.tif written
+sri_lanka_dry_zone 2024: done
+  esri_2024/sierra_nevada_granite.tif written
+sierra_nevada_granite 2024: done
+  esri_2024/salar_de_uyuni_pure.tif written
+salar_de_uyuni_pure 2024: done
+  esri_2024/central_thailand_rice_pure.tif written
+central_thailand_rice_pure 2024: done
+skipped (see skipped_sites.json): ['betsiboka_eroded_hills', 'betsiboka_eroded_hills_2022', 'betsiboka_eroded_hills_2023', 'betsiboka_eroded_hills_2024', 'etosha_pan_edge_2022', 'etosha_pan_edge_2023', 'etosha_pan_edge_2024', 'etosha_pan_pure_2022', 'etosha_pan_pure_2023', 'etosha_pan_pure_2024', 'gezira_scheme_pure_2022', 'gezira_scheme_pure_2023', 'gezira_scheme_pure_2024', 'gran_chaco_2022', 'gran_chaco_2023', 'gran_chaco_2024', 'hudson_bay_lowland_2022', 'hudson_bay_lowland_2023', 'hudson_bay_lowland_2024', 'lake_alaotra_rice', 'lake_alaotra_rice_2022', 'lake_alaotra_rice_2023', 'lake_alaotra_rice_2024', 'llanos_venezuela_2022', 'llanos_venezuela_2023', 'llanos_venezuela_2024', 'matopos_granite_2022', 'matopos_granite_2023', 'matopos_granite_2024', 'mbale_hill_farms', 'mbale_hill_farms_2022', 'mbale_hill_farms_2023', 'mbale_hill_farms_2024', 'mongolia_steppe_2022', 'mongolia_steppe_2023', 'mongolia_steppe_2024', 'namib_desert_2022', 'namib_desert_2023', 'namib_desert_2024', 'parana_river_2022', 'parana_river_2024', 'pilbara_iron_mines', 'pilbara_iron_mines_2022', 'pilbara_iron_mines_2023', 'pilbara_iron_mines_2024', 'sahara_algeria_2022', 'sahara_algeria_2023', 'sahara_algeria_2024', 'serra_gaucha_2022', 'serra_gaucha_2023', 'serra_gaucha_2024', 'sikhote_alin_forest_2022', 'sikhote_alin_forest_2023', 'sikhote_alin_forest_2024', 'western_desert_2022', 'western_desert_2023', 'western_desert_2024']
+everything else downloaded
+[22:32:59] $ /home/jovyan/vault/LULC-semantic-Model/data_pipeline/make_patches.py
+train/innsbruck: 16 patches
+train/reykjavik: 16 patches
+train/denver: 16 patches
+train/minneapolis: 16 patches
+test/anchorage: 16 patches
+train/manaus: 16 patches
+train/brasilia: 16 patches
+train/quito: 16 patches
+train/corumba: 16 patches
+test/curitiba: 16 patches
+train/addis_ababa: 16 patches
+train/dakar: 16 patches
+val/lusaka: 16 patches
+test/nairobi: 16 patches
+train/almaty: 16 patches
+train/ulaanbaatar: 16 patches
+train/khulna: 16 patches
+train/auckland: 16 patches
+val/perth: 16 patches
+test/adelaide: 16 patches
+train/krakow_edge: 16 patches
+train/des_moines_edge: 16 patches
+val/fresno_edge: 16 patches
+train/cordoba_edge: 16 patches
+train/kumasi_edge: 16 patches
+train/bamako_edge: 16 patches
+train/chiang_mai_edge: 16 patches
+train/yogyakarta_edge: 16 patches
+train/lucknow_edge: 16 patches
+train/christchurch_edge: 16 patches
+train/iowa_corn_belt: 16 patches
+train/punjab_india: 16 patches
+train/poltava_ukraine: 16 patches
+train/pampas_argentina: 16 patches
+train/nile_delta: 16 patches
+train/mato_grosso_soy: 16 patches
+train/mekong_delta_rice: 16 patches
+val/beauce_france: 16 patches
+val/kansas_pivots: 16 patches
+test/north_china_plain: 16 patches
+test/kano_farmland: 16 patches
+train/amazon_forest: 16 patches
+train/congo_forest: 16 patches
+train/black_forest: 16 patches
+train/borneo_forest: 16 patches
+val/ontario_boreal: 16 patches
+test/siberia_taiga: 16 patches
+train/sahara_algeria: 16 patches
+train/western_desert: 16 patches
+train/badain_jaran: 16 patches
+train/namib_desert: 16 patches
+val/atacama_desert: 16 patches
+test/rub_al_khali: 16 patches
+train/mongolia_steppe: 16 patches
+train/texas_shrubland: 16 patches
+val/kazakh_steppe: 16 patches
+test/serengeti: 16 patches
+train/sundarbans: 16 patches
+train/pantanal: 16 patches
+train/sudd_wetland: 16 patches
+train/inner_niger_delta: 16 patches
+val/okavango_delta: 16 patches
+test/everglades: 16 patches
+train/aletsch_glacier: 16 patches
+train/patagonia_icefield: 16 patches
+val/svalbard_glacier: 16 patches
+test/karakoram_baltoro: 9 patches
+train/sweden_taiga: 16 patches
+train/alaska_boreal: 16 patches
+train/quebec_boreal: 16 patches
+train/appalachian_forest: 16 patches
+train/olympic_rainforest: 16 patches
+train/sikhote_alin_forest: 16 patches
+train/gabon_forest: 16 patches
+train/tasmania_forest: 16 patches
+train/papua_forest: 15 patches
+train/juneau_icefield: 16 patches
+train/khumbu_himalaya: 12 patches
+train/tasman_glacier: 16 patches
+val/caucasus_elbrus: 15 patches
+train/nebraska_sandhills: 16 patches
+train/great_basin_sagebrush: 16 patches
+train/patagonia_steppe: 16 patches
+train/karoo_shrubland: 16 patches
+train/tibet_grassland: 16 patches
+train/saskatchewan_wheat: 16 patches
+train/central_valley_ca: 16 patches
+train/punjab_pakistan: 16 patches
+train/karawang_rice: 16 patches
+train/heilongjiang_maize: 16 patches
+train/australia_wheatbelt: 16 patches
+train/hungarian_plain: 16 patches
+train/hudson_bay_lowland: 16 patches
+train/danube_delta: 16 patches
+train/louisiana_marsh: 16 patches
+train/niger_delta_mangrove: 16 patches
+train/taklamakan_desert: 16 patches
+train/lake_balaton: 16 patches
+train/finnish_lakeland: 16 patches
+train/finnmark_tundra: 16 patches
+train/north_slope_alaska: 16 patches
+train/iceland_highland: 16 patches
+val/kola_tundra: 16 patches
+train/kruger_savanna: 16 patches
+train/cerrado_goias: 16 patches
+train/llanos_venezuela: 16 patches
+train/miombo_zambia: 16 patches
+train/sahel_niger: 16 patches
+val/top_end_savanna: 16 patches
+train/dehesa_spain: 16 patches
+train/california_chaparral: 16 patches
+train/chile_matorral: 16 patches
+train/cape_fynbos: 16 patches
+val/crete_maquis: 16 patches
+train/ethiopia_highland_farms: 16 patches
+train/malawi_farms: 16 patches
+train/rwanda_hills: 16 patches
+train/western_kenya_farms: 16 patches
+train/kampala: 16 patches
+train/port_au_prince: 16 patches
+train/nepal_midhills: 16 patches
+train/andes_sacred_valley: 16 patches
+train/gran_chaco: 16 patches
+train/kanha_deciduous: 16 patches
+test/black_forest_villages: 16 patches
+train/vosges_mosaic: 16 patches
+train/bavarian_forest: 16 patches
+val/harz_mosaic: 16 patches
+train/allgaeu_prealps: 16 patches
+train/swiss_jura: 16 patches
+train/bukovina_hills: 16 patches
+train/beskid_foothills: 16 patches
+train/ardennes: 16 patches
+train/massif_central: 16 patches
+val/galicia_farms: 16 patches
+train/highland_fringe: 16 patches
+train/welsh_uplands: 16 patches
+train/smaland_farm_forest: 16 patches
+test/latvia_mosaic: 16 patches
+train/tuscany_hills: 16 patches
+train/vermont_mosaic: 16 patches
+train/wisconsin_driftless: 16 patches
+val/pennsylvania_ridges: 16 patches
+train/ozark_farms: 16 patches
+train/quebec_farm_forest: 16 patches
+test/willamette_foothills: 16 patches
+train/michoacan_highlands: 16 patches
+train/serra_gaucha: 16 patches
+train/colombia_coffee: 16 patches
+test/chile_lakes: 16 patches
+val/paraguay_mosaic: 16 patches
+train/rondonia_frontier: 16 patches
+train/uganda_mosaic: 16 patches
+train/ghana_cocoa: 16 patches
+train/nigeria_middle_belt: 16 patches
+val/cameroon_highlands: 16 patches
+test/madagascar_highlands: 16 patches
+train/kzn_midlands: 16 patches
+train/kilimanjaro_slopes: 15 patches
+train/java_rice_hills: 16 patches
+train/vietnam_midlands: 16 patches
+train/isan_paddies: 16 patches
+val/sri_lanka_hills: 16 patches
+train/kerala_mosaic: 16 patches
+train/nagano_satoyama: 16 patches
+train/sichuan_hills: 16 patches
+test/yunnan_mosaic: 16 patches
+train/nepal_terai: 16 patches
+train/pontic_slopes: 16 patches
+train/georgia_mosaic: 16 patches
+train/waikato_farms: 16 patches
+val/gippsland_mosaic: 16 patches
+train/new_england_tablelands: 16 patches
+train/mecklenburg_lakes: 16 patches
+train/masuria_lakes: 16 patches
+train/brahmaputra_assam: 16 patches
+train/parana_river: 16 patches
+train/lake_kyoga_shore: 16 patches
+betsiboka_eroded_hills: not downloaded, skipping
+train/tigray_degraded_highland: 14 patches
+train/etosha_pan_edge: 16 patches
+pilbara_iron_mines: not downloaded, skipping
+train/carajas_mine: 16 patches
+train/deccan_dry_plateau: 16 patches
+train/burkina_central_plateau: 16 patches
+lake_alaotra_rice: not downloaded, skipping
+mbale_hill_farms: not downloaded, skipping
+train/nepal_terraces: 16 patches
+train/sri_lanka_dry_zone: 16 patches
+train/matopos_granite: 16 patches
+train/sierra_nevada_granite: 16 patches
+train/etosha_pan_pure: 16 patches
+train/salar_de_uyuni_pure: 16 patches
+train/gezira_scheme_pure: 16 patches
+train/central_thailand_rice_pure: 16 patches
+train 2022/iowa_corn_belt: 16 patches
+train 2023/iowa_corn_belt: 16 patches
+train 2024/iowa_corn_belt: 16 patches
+train 2022/punjab_india: 16 patches
+train 2023/punjab_india: 16 patches
+train 2024/punjab_india: 16 patches
+train 2022/poltava_ukraine: 16 patches
+train 2023/poltava_ukraine: 16 patches
+train 2024/poltava_ukraine: 16 patches
+train 2022/pampas_argentina: 16 patches
+train 2023/pampas_argentina: 16 patches
+train 2024/pampas_argentina: 16 patches
+train 2022/nile_delta: 16 patches
+train 2023/nile_delta: 16 patches
+train 2024/nile_delta: 16 patches
+train 2022/mato_grosso_soy: 16 patches
+train 2023/mato_grosso_soy: 16 patches
+train 2024/mato_grosso_soy: 16 patches
+train 2022/mekong_delta_rice: 16 patches
+train 2023/mekong_delta_rice: 16 patches
+train 2024/mekong_delta_rice: 16 patches
+train 2022/amazon_forest: 16 patches
+train 2023/amazon_forest: 16 patches
+train 2024/amazon_forest: 16 patches
+train 2022/congo_forest: 16 patches
+train 2023/congo_forest: 16 patches
+train 2024/congo_forest: 16 patches
+train 2022/black_forest: 16 patches
+train 2023/black_forest: 16 patches
+train 2024/black_forest: 16 patches
+train 2022/borneo_forest: 16 patches
+train 2023/borneo_forest: 16 patches
+train 2024/borneo_forest: 16 patches
+train 2022/badain_jaran: 16 patches
+train 2023/badain_jaran: 16 patches
+train 2024/badain_jaran: 16 patches
+train 2022/texas_shrubland: 10 patches
+train 2023/texas_shrubland: 16 patches
+train 2024/texas_shrubland: 16 patches
+train 2022/sundarbans: 16 patches
+train 2023/sundarbans: 16 patches
+train 2024/sundarbans: 16 patches
+train 2022/pantanal: 16 patches
+train 2023/pantanal: 16 patches
+train 2024/pantanal: 16 patches
+train 2022/sudd_wetland: 16 patches
+train 2023/sudd_wetland: 16 patches
+train 2024/sudd_wetland: 16 patches
+train 2022/inner_niger_delta: 16 patches
+train 2023/inner_niger_delta: 16 patches
+train 2024/inner_niger_delta: 16 patches
+train 2022/sweden_taiga: 16 patches
+train 2023/sweden_taiga: 16 patches
+train 2024/sweden_taiga: 16 patches
+train 2022/alaska_boreal: 16 patches
+train 2023/alaska_boreal: 16 patches
+train 2024/alaska_boreal: 16 patches
+train 2022/quebec_boreal: 16 patches
+train 2023/quebec_boreal: 16 patches
+train 2024/quebec_boreal: 16 patches
+train 2022/appalachian_forest: 16 patches
+train 2023/appalachian_forest: 16 patches
+train 2024/appalachian_forest: 16 patches
+train 2022/olympic_rainforest: 1 patches
+train 2023/olympic_rainforest: 16 patches
+train 2024/olympic_rainforest: 16 patches
+train 2022/gabon_forest: 16 patches
+train 2023/gabon_forest: 16 patches
+train 2024/gabon_forest: 16 patches
+train 2022/tasmania_forest: 16 patches
+train 2023/tasmania_forest: 16 patches
+train 2024/tasmania_forest: 16 patches
+train 2022/papua_forest: 15 patches
+train 2023/papua_forest: 15 patches
+train 2024/papua_forest: 15 patches
+train 2022/nebraska_sandhills: 0 patches
+train 2023/nebraska_sandhills: 16 patches
+train 2024/nebraska_sandhills: 16 patches
+train 2022/great_basin_sagebrush: 16 patches
+train 2023/great_basin_sagebrush: 16 patches
+train 2024/great_basin_sagebrush: 16 patches
+train 2022/patagonia_steppe: 16 patches
+train 2023/patagonia_steppe: 16 patches
+train 2024/patagonia_steppe: 16 patches
+train 2022/karoo_shrubland: 16 patches
+train 2023/karoo_shrubland: 16 patches
+train 2024/karoo_shrubland: 16 patches
+train 2022/tibet_grassland: 16 patches
+train 2023/tibet_grassland: 16 patches
+train 2024/tibet_grassland: 16 patches
+train 2022/saskatchewan_wheat: 16 patches
+train 2023/saskatchewan_wheat: 16 patches
+train 2024/saskatchewan_wheat: 16 patches
+train 2022/central_valley_ca: 16 patches
+train 2023/central_valley_ca: 16 patches
+train 2024/central_valley_ca: 16 patches
+train 2022/punjab_pakistan: 16 patches
+train 2023/punjab_pakistan: 16 patches
+train 2024/punjab_pakistan: 16 patches
+train 2022/karawang_rice: 16 patches
+train 2023/karawang_rice: 16 patches
+train 2024/karawang_rice: 16 patches
+train 2022/heilongjiang_maize: 16 patches
+train 2023/heilongjiang_maize: 16 patches
+train 2024/heilongjiang_maize: 16 patches
+train 2022/australia_wheatbelt: 16 patches
+train 2023/australia_wheatbelt: 16 patches
+train 2024/australia_wheatbelt: 16 patches
+train 2022/hungarian_plain: 16 patches
+train 2023/hungarian_plain: 16 patches
+train 2024/hungarian_plain: 16 patches
+train 2022/danube_delta: 16 patches
+train 2023/danube_delta: 16 patches
+train 2024/danube_delta: 16 patches
+train 2022/louisiana_marsh: 4 patches
+train 2023/louisiana_marsh: 4 patches
+train 2024/louisiana_marsh: 16 patches
+train 2022/niger_delta_mangrove: 16 patches
+train 2023/niger_delta_mangrove: 16 patches
+train 2024/niger_delta_mangrove: 16 patches
+train 2022/taklamakan_desert: 16 patches
+train 2023/taklamakan_desert: 16 patches
+train 2024/taklamakan_desert: 16 patches
+train 2022/lake_balaton: 16 patches
+train 2023/lake_balaton: 16 patches
+train 2024/lake_balaton: 16 patches
+train 2022/finnish_lakeland: 16 patches
+train 2023/finnish_lakeland: 16 patches
+train 2024/finnish_lakeland: 16 patches
+train 2022/finnmark_tundra: 16 patches
+train 2023/finnmark_tundra: 16 patches
+train 2024/finnmark_tundra: 16 patches
+train 2022/north_slope_alaska: 16 patches
+train 2023/north_slope_alaska: 16 patches
+train 2024/north_slope_alaska: 16 patches
+train 2022/iceland_highland: 16 patches
+train 2023/iceland_highland: 16 patches
+train 2024/iceland_highland: 16 patches
+train 2022/kruger_savanna: 16 patches
+train 2023/kruger_savanna: 16 patches
+train 2024/kruger_savanna: 16 patches
+train 2022/cerrado_goias: 16 patches
+train 2023/cerrado_goias: 16 patches
+train 2024/cerrado_goias: 16 patches
+train 2022/miombo_zambia: 16 patches
+train 2023/miombo_zambia: 16 patches
+train 2024/miombo_zambia: 16 patches
+train 2022/sahel_niger: 16 patches
+train 2023/sahel_niger: 16 patches
+train 2024/sahel_niger: 16 patches
+train 2022/dehesa_spain: 16 patches
+train 2023/dehesa_spain: 16 patches
+train 2024/dehesa_spain: 16 patches
+train 2022/california_chaparral: 16 patches
+train 2023/california_chaparral: 16 patches
+train 2024/california_chaparral: 16 patches
+train 2022/chile_matorral: 15 patches
+train 2023/chile_matorral: 16 patches
+train 2024/chile_matorral: 16 patches
+train 2022/cape_fynbos: 16 patches
+train 2023/cape_fynbos: 16 patches
+train 2024/cape_fynbos: 16 patches
+train 2022/ethiopia_highland_farms: 16 patches
+train 2023/ethiopia_highland_farms: 16 patches
+train 2024/ethiopia_highland_farms: 16 patches
+train 2022/malawi_farms: 16 patches
+train 2023/malawi_farms: 16 patches
+train 2024/malawi_farms: 3 patches
+train 2022/rwanda_hills: 16 patches
+train 2023/rwanda_hills: 16 patches
+train 2024/rwanda_hills: 16 patches
+train 2022/western_kenya_farms: 16 patches
+train 2023/western_kenya_farms: 16 patches
+train 2024/western_kenya_farms: 16 patches
+train 2022/nepal_midhills: 16 patches
+train 2023/nepal_midhills: 16 patches
+train 2024/nepal_midhills: 16 patches
+train 2022/andes_sacred_valley: 15 patches
+train 2023/andes_sacred_valley: 16 patches
+train 2024/andes_sacred_valley: 16 patches
+train 2022/kanha_deciduous: 16 patches
+train 2023/kanha_deciduous: 16 patches
+train 2024/kanha_deciduous: 16 patches
+train 2022/vosges_mosaic: 16 patches
+train 2023/vosges_mosaic: 16 patches
+train 2024/vosges_mosaic: 16 patches
+train 2022/bavarian_forest: 16 patches
+train 2023/bavarian_forest: 16 patches
+train 2024/bavarian_forest: 16 patches
+train 2022/allgaeu_prealps: 16 patches
+train 2023/allgaeu_prealps: 16 patches
+train 2024/allgaeu_prealps: 16 patches
+train 2022/swiss_jura: 16 patches
+train 2023/swiss_jura: 16 patches
+train 2024/swiss_jura: 16 patches
+train 2022/bukovina_hills: 16 patches
+train 2023/bukovina_hills: 16 patches
+train 2024/bukovina_hills: 16 patches
+train 2022/beskid_foothills: 16 patches
+train 2023/beskid_foothills: 16 patches
+train 2024/beskid_foothills: 16 patches
+train 2022/ardennes: 16 patches
+train 2023/ardennes: 16 patches
+train 2024/ardennes: 16 patches
+train 2022/massif_central: 16 patches
+train 2023/massif_central: 16 patches
+train 2024/massif_central: 16 patches
+train 2022/highland_fringe: 16 patches
+train 2023/highland_fringe: 16 patches
+train 2024/highland_fringe: 16 patches
+train 2022/welsh_uplands: 16 patches
+train 2023/welsh_uplands: 16 patches
+train 2024/welsh_uplands: 16 patches
+train 2022/smaland_farm_forest: 16 patches
+train 2023/smaland_farm_forest: 16 patches
+train 2024/smaland_farm_forest: 16 patches
+train 2022/tuscany_hills: 16 patches
+train 2023/tuscany_hills: 16 patches
+train 2024/tuscany_hills: 16 patches
+train 2022/vermont_mosaic: 16 patches
+train 2023/vermont_mosaic: 16 patches
+train 2024/vermont_mosaic: 16 patches
+train 2022/wisconsin_driftless: 16 patches
+train 2023/wisconsin_driftless: 16 patches
+train 2024/wisconsin_driftless: 16 patches
+train 2022/ozark_farms: 16 patches
+train 2023/ozark_farms: 16 patches
+train 2024/ozark_farms: 16 patches
+train 2022/quebec_farm_forest: 16 patches
+train 2023/quebec_farm_forest: 16 patches
+train 2024/quebec_farm_forest: 16 patches
+train 2022/michoacan_highlands: 16 patches
+train 2023/michoacan_highlands: 16 patches
+train 2024/michoacan_highlands: 16 patches
+train 2022/colombia_coffee: 14 patches
+train 2023/colombia_coffee: 14 patches
+train 2024/colombia_coffee: 14 patches
+train 2022/rondonia_frontier: 16 patches
+train 2023/rondonia_frontier: 16 patches
+train 2024/rondonia_frontier: 16 patches
+train 2022/uganda_mosaic: 16 patches
+train 2023/uganda_mosaic: 16 patches
+train 2024/uganda_mosaic: 16 patches
+train 2022/ghana_cocoa: 16 patches
+train 2023/ghana_cocoa: 16 patches
+train 2024/ghana_cocoa: 16 patches
+train 2022/nigeria_middle_belt: 16 patches
+train 2023/nigeria_middle_belt: 16 patches
+train 2024/nigeria_middle_belt: 16 patches
+train 2022/kzn_midlands: 16 patches
+train 2023/kzn_midlands: 16 patches
+train 2024/kzn_midlands: 16 patches
+train 2022/kilimanjaro_slopes: 15 patches
+train 2023/kilimanjaro_slopes: 15 patches
+train 2024/kilimanjaro_slopes: 15 patches
+train 2022/java_rice_hills: 16 patches
+train 2023/java_rice_hills: 16 patches
+train 2024/java_rice_hills: 16 patches
+train 2022/vietnam_midlands: 16 patches
+train 2023/vietnam_midlands: 16 patches
+train 2024/vietnam_midlands: 16 patches
+train 2022/isan_paddies: 16 patches
+train 2023/isan_paddies: 16 patches
+train 2024/isan_paddies: 16 patches
+train 2022/kerala_mosaic: 16 patches
+train 2023/kerala_mosaic: 16 patches
+train 2024/kerala_mosaic: 16 patches
+train 2022/nagano_satoyama: 16 patches
+train 2023/nagano_satoyama: 16 patches
+train 2024/nagano_satoyama: 16 patches
+train 2022/sichuan_hills: 16 patches
+train 2023/sichuan_hills: 16 patches
+train 2024/sichuan_hills: 16 patches
+train 2022/nepal_terai: 16 patches
+train 2023/nepal_terai: 16 patches
+train 2024/nepal_terai: 16 patches
+train 2022/pontic_slopes: 16 patches
+train 2023/pontic_slopes: 16 patches
+train 2024/pontic_slopes: 16 patches
+train 2022/georgia_mosaic: 16 patches
+train 2023/georgia_mosaic: 16 patches
+train 2024/georgia_mosaic: 16 patches
+train 2022/waikato_farms: 16 patches
+train 2023/waikato_farms: 16 patches
+train 2024/waikato_farms: 16 patches
+train 2022/new_england_tablelands: 16 patches
+train 2023/new_england_tablelands: 16 patches
+train 2024/new_england_tablelands: 16 patches
+train 2022/mecklenburg_lakes: 16 patches
+train 2023/mecklenburg_lakes: 16 patches
+train 2024/mecklenburg_lakes: 16 patches
+train 2022/masuria_lakes: 16 patches
+train 2023/masuria_lakes: 16 patches
+train 2024/masuria_lakes: 16 patches
+train 2022/brahmaputra_assam: 16 patches
+train 2023/brahmaputra_assam: 16 patches
+train 2024/brahmaputra_assam: 16 patches
+train 2023/parana_river: 16 patches
+train 2022/lake_kyoga_shore: 16 patches
+train 2023/lake_kyoga_shore: 16 patches
+train 2024/lake_kyoga_shore: 16 patches
+train 2022/tigray_degraded_highland: 14 patches
+train 2023/tigray_degraded_highland: 14 patches
+train 2024/tigray_degraded_highland: 14 patches
+train 2022/carajas_mine: 16 patches
+train 2023/carajas_mine: 16 patches
+train 2024/carajas_mine: 16 patches
+train 2022/deccan_dry_plateau: 14 patches
+train 2023/deccan_dry_plateau: 14 patches
+train 2024/deccan_dry_plateau: 14 patches
+train 2022/burkina_central_plateau: 16 patches
+train 2023/burkina_central_plateau: 16 patches
+train 2024/burkina_central_plateau: 16 patches
+train 2022/nepal_terraces: 16 patches
+train 2023/nepal_terraces: 16 patches
+train 2024/nepal_terraces: 16 patches
+train 2022/sri_lanka_dry_zone: 16 patches
+train 2023/sri_lanka_dry_zone: 16 patches
+train 2024/sri_lanka_dry_zone: 16 patches
+train 2022/sierra_nevada_granite: 16 patches
+train 2023/sierra_nevada_granite: 16 patches
+train 2024/sierra_nevada_granite: 16 patches
+train 2022/salar_de_uyuni_pure: 16 patches
+train 2023/salar_de_uyuni_pure: 16 patches
+train 2024/salar_de_uyuni_pure: 16 patches
+train 2022/central_thailand_rice_pure: 16 patches
+train 2023/central_thailand_rice_pure: 16 patches
+train 2024/central_thailand_rice_pure: 16 patches
+
+train, later years: 5148 patches (2022, 2023, 2024)
+norm stats: {'bands': ['VV', 'VH'], 'units': 'dB', 'mean': [-9.7133, -17.0316], 'std': [4.5228, 4.9623]}
+
+train: 2440 patches from 153 sites
+  Man-made                 8.4%
+  Crop fields             17.0%
+  Trees                   33.2%
+  Grassland               24.8%
+  Bare ground              9.0%
+  Water                    5.0%
+  Snow & ice               2.6%
+
+val: 335 patches from 21 sites
+  Man-made                 7.8%
+  Crop fields             13.3%
+  Trees                   28.6%
+  Grassland               31.4%
+  Bare ground             10.2%
+  Water                    4.9%
+  Snow & ice               3.8%
+
+test: 265 patches from 17 sites
+  Man-made                15.2%
+  Crop fields             16.5%
+  Trees                   28.1%
+  Grassland               28.4%
+  Bare ground              7.5%
+  Water                    2.1%
+  Snow & ice               2.3%
+
+agreement per class: WorldCover pixels confirmed by Dynamic World (2 maps) -> decided by the 3-map vote (at least 2 of WorldCover, Dynamic World, Esri agree)
+  train: Man-made 95->99% | Crop fields 71->97% | Trees 78->98% | Grassland 56->96% | Bare ground 72->96% | Water 96->100% | Snow & ice 88->95%
+  val: Man-made 96->99% | Crop fields 84->99% | Trees 76->99% | Grassland 58->95% | Bare ground 68->96% | Water 99->100% | Snow & ice 59->99%
+  test: Man-made 97->100% | Crop fields 56->96% | Trees 80->99% | Grassland 68->97% | Bare ground 91->99% | Water 94->99% | Snow & ice 57->97%
+[22:34:26] manifest: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration/dataset_manifest.json | tiles per year {'2021': 191, '2022': 109, '2023': 110, '2024': 109} | patches {'train': 2440, 'val': 335, 'test': 265, 'train_extra': 5148} | 10.388 GB
+[22:34:26]   Dataset_2nd_iteration_2021.zip: 200/1155 files
+[22:34:26]   Dataset_2nd_iteration_2021.zip: 400/1155 files
+[22:34:26]   Dataset_2nd_iteration_2021.zip: 600/1155 files
+[22:34:27]   Dataset_2nd_iteration_2021.zip: 800/1155 files
+[22:34:36]   Dataset_2nd_iteration_2021.zip: 1000/1155 files
+[22:34:36]   Dataset_2nd_iteration_2021.zip: 1155/1155 files
+[22:35:02] zip: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration_2021.zip (3.83 GB)
+[22:35:02]   Dataset_2nd_iteration.zip: 200/3124 files
+[22:35:02]   Dataset_2nd_iteration.zip: 400/3124 files
+[22:35:02]   Dataset_2nd_iteration.zip: 600/3124 files
+[22:35:02]   Dataset_2nd_iteration.zip: 800/3124 files
+[22:35:02]   Dataset_2nd_iteration.zip: 1000/3124 files
+[22:35:02]   Dataset_2nd_iteration.zip: 1200/3124 files
+[22:35:03]   Dataset_2nd_iteration.zip: 1400/3124 files
+[22:35:03]   Dataset_2nd_iteration.zip: 1600/3124 files
+[22:35:04]   Dataset_2nd_iteration.zip: 1800/3124 files
+[22:35:20]   Dataset_2nd_iteration.zip: 2000/3124 files
+[22:35:42]   Dataset_2nd_iteration.zip: 2200/3124 files
+[22:36:03]   Dataset_2nd_iteration.zip: 2400/3124 files
+[22:36:26]   Dataset_2nd_iteration.zip: 2600/3124 files
+[22:36:28]   Dataset_2nd_iteration.zip: 2800/3124 files
+[22:36:29]   Dataset_2nd_iteration.zip: 3000/3124 files
+[22:36:29]   Dataset_2nd_iteration.zip: 3124/3124 files
+[22:36:52] zip: /home/jovyan/vault/LULC-semantic-Model/Dataset_2nd_iteration.zip (10.39 GB)
+[22:36:52] done in 6 min
