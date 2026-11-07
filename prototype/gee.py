@@ -140,8 +140,20 @@ def sentinel2_rgb(region, start, end):
     s2 = (ee.ImageCollection("COPERNICUS/S2_HARMONIZED").filterBounds(region).filterDate(start, end)
           .linkCollection(clear, ["cs_cdf"])
           .map(lambda img: img.updateMask(img.select("cs_cdf").gte(0.6))))
-    rgb = s2.select(["B4", "B3", "B2"]).median().visualize(min=0, max=3000, gamma=1.3)
-    return rgb.unmask(0).toUint8()
+    # a fully masked dummy keeps the bands when a month has no scene at all (the median ignores masked pixels)
+    empty = ee.Image.constant([0, 0, 0]).rename(["B4", "B3", "B2"]).updateMask(0)
+    rgb = s2.select(["B4", "B3", "B2"]).merge(ee.ImageCollection([empty])).median()
+    return rgb.visualize(min=0, max=3000, gamma=1.3).unmask(0).toUint8()
+
+
+def sentinel2_months(region, months):
+    """One cloud-free Sentinel-2 RGB per (year, month), as one image with bands S2_BANDS per month in order."""
+    images = []
+    for t, (y, m) in enumerate(months):
+        y1, m1 = (y + 1, 1) if m == 12 else (y, m + 1)
+        rgb = sentinel2_rgb(region, f"{y}-{m:02d}-01", f"{y1}-{m1:02d}-01")
+        images.append(rgb.rename([f"{b}_{t}" for b in S2_BANDS]))
+    return ee.Image.cat(images), [f"{b}_{t}" for t in range(len(months)) for b in S2_BANDS]
 
 
 def fetch(image, bands, epsg, x0, y_top, n, dtype, fill):

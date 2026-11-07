@@ -2,7 +2,7 @@
 
 Pick a place (preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (`Weights/Iter2_Test_1_Full`, loaded by default), and shows everything on one screen:
 
-- a **live map** with a choice of basemap: satellite photos of the analysis period (Esri World Imagery Wayback, with the capture date of the photo at the box centre), a Sentinel-2 cloud-free true-colour image of the same 12 months inside the box, today's satellite imagery, or streets. On it, the segmentation of the selected month is drawn inside the bounding box of the analysed area; the segmentation of the selected month drawn inside the bounding box of the analysed area; an opacity slider and an overlay switch (model, Esri reference, none);
+- a **live map** (Satellite or Streets). Satellite shows the newest photo published before the end of the analysis year (Esri World Imagery Wayback), so it follows the Year box; the caption gives the date the photo was taken. Inside the box, a cloud-free Sentinel-2 photo of the selected month is shown (on by default), so the month slider and **Play** step through the photos together with the maps; cloudy parts let the older photo show through. On the map, the segmentation of the selected month is drawn inside the bounding box of the analysed area; the segmentation of the selected month drawn inside the bounding box of the analysed area; an opacity slider and an overlay switch (model, Esri reference, none);
 - the **Sentinel-1 radar input** of the same month beside the map, with the number of scenes;
 - **one month slider with a play button** that drives the map and the radar together;
 - **bar charts** of the class shares of the selected month, or of the change against the previous month;
@@ -136,7 +136,7 @@ annual mode vs Esri 10 m Annual LULC (independent reference)
 
 ## Limitations
 
-- **Basemap tiles** (Esri World Imagery and its Wayback archive, OpenStreetMap) are loaded by the browser, so the viewer's computer needs internet access. The Wayback version is the last one published before the analysis period ended, but its photo can be years older (the caption shows the capture date). The Sentinel-2 image covers exactly the 12 analysis months; it is for display only and is not a model input.
+- **Basemap tiles** (Esri World Imagery and its Wayback archive, OpenStreetMap) are loaded by the browser, so the viewer's computer needs internet access. The Wayback version is the last one published before the analysis period ended, but its photo can be years older (the caption shows the capture date). The monthly Sentinel-2 photos (one cloud-free median per analysis month, about 15 s extra per run) are for display only and are not a model input.
 - **Seasonal effects look like change.** The training label is annual, so snow, wet soil, harvest or flooding change the radar signal and can flip a pixel's class for some months. The month-to-month change mixes real change with these effects.
 - **Errors inflate the change.** If 5 % of pixels are misclassified differently in two months, the change table shows several pp of change even when nothing changed.
 - **Unfamiliar regions:** the models were trained on sites of 2021 (1st iteration: 134 training sites, city-heavy; 2nd iteration: about 130 training sites, mostly rural). Performance drops on landscapes unlike the training data. On the 1st-iteration test sites the weakest results were boreal / snow areas, shrubland and wetland.
