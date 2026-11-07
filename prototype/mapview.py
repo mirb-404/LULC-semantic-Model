@@ -90,11 +90,24 @@ WAYBACK_CONFIG = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/
 WAYBACK_METADATA_LAYERS = range(4, 9)
 
 
-def _get_json(url, timeout=15):
+def _get_json(url, timeout=15, headers=None):
     import json
     import urllib.request
-    with urllib.request.urlopen(url, timeout=timeout) as resp:
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers or {}), timeout=timeout) as resp:
         return json.load(resp)
+
+
+# OpenStreetMap Nominatim: free place search; its usage policy asks for an identifying User-Agent and at most
+# 1 request per second (one request per search here, cached by the app).
+NOMINATIM = "https://nominatim.openstreetmap.org/search"
+
+
+def geocode(query, limit=5):
+    """Places matching a free-text query (town, region, address): [(name, lat, lon)], best match first."""
+    from urllib.parse import urlencode
+    url = f"{NOMINATIM}?{urlencode(dict(q=query, format='jsonv2', limit=limit))}"
+    hits = _get_json(url, headers={"User-Agent": "Sentinel1-LULC-Explorer/1.0 (university prototype)"})
+    return [(h["display_name"], float(h["lat"]), float(h["lon"])) for h in hits]
 
 
 def wayback_releases():

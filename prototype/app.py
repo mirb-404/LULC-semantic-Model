@@ -389,6 +389,7 @@ def base_map(center, zoom, basemap, tiles=None):
 # network errors raise, and Streamlit does not cache a raised call, so a failed lookup is retried on the next rerun
 wayback_releases = st.cache_data(ttl=24 * 3600, show_spinner=False)(mapview.wayback_releases)
 wayback_capture = st.cache_data(show_spinner=False)(mapview.wayback_capture)
+geocode = st.cache_data(ttl=24 * 3600, show_spinner=False)(mapview.geocode)
 
 
 def satellite_for_year(year, month, lat, lon):
@@ -450,12 +451,43 @@ if "pending_loc" in st.session_state:  # a map click from the previous run
     plat, plon = st.session_state.pop("pending_loc")
     st.session_state["lat_text"], st.session_state["lon_text"] = f"{plat:.5f}", f"{plon:.5f}"
     st.session_state["preset"] = CUSTOM
+    st.session_state.pop("place_found", None)
 
 
 def apply_preset():
     point = PRESETS[st.session_state["preset"]]
     if point:
         st.session_state["lat_text"], st.session_state["lon_text"] = f"{point[0]:.4f}", f"{point[1]:.4f}"
+        st.session_state.pop("place_found", None)
+
+
+def go_to_place(name, lat, lon):
+    st.session_state["lat_text"], st.session_state["lon_text"] = f"{lat:.5f}", f"{lon:.5f}"
+    st.session_state["preset"] = CUSTOM
+    st.session_state["place_found"] = name
+
+
+def search_place():
+    """Search box callback: look the text up (OpenStreetMap) and move the area to the best match."""
+    query = st.session_state["search_text"].strip()
+    st.session_state["search_hits"], st.session_state["search_error"] = [], None
+    if not query:
+        return
+    try:
+        hits = geocode(query)
+    except Exception:
+        st.session_state["search_error"] = "Place search is not reachable right now; use coordinates or the map."
+        return
+    if not hits:
+        st.session_state["search_error"] = f"No place found for “{query}”."
+        return
+    st.session_state["search_hits"] = hits
+    st.session_state["search_pick"] = 0
+    go_to_place(*hits[0])
+
+
+def pick_place():
+    go_to_place(*st.session_state["search_hits"][st.session_state["search_pick"]])
 
 
 # ---------------------------------------------------------------- sidebar: advanced
@@ -528,6 +560,15 @@ if result is not None and weight_name and result["weights"] != weight_name:
                "Press **Run** to compute them with the selected model.")
 with st.container(border=True):
     if use_gee:
+        s = st.columns([3.2, 4.3], vertical_alignment="bottom")
+        s[0].text_input("Search a place", key="search_text", on_change=search_place,
+                        placeholder="Town, region or address, then Enter (e.g. Berlin, Kano Nigeria)")
+        hits = st.session_state.get("search_hits") or []
+        if len(hits) > 1:
+            s[1].selectbox("Matches", range(len(hits)), key="search_pick", on_change=pick_place,
+                           format_func=lambda i: hits[i][0])
+        if st.session_state.get("search_error"):
+            s[1].warning(st.session_state["search_error"])
         c = st.columns([3.2, 1.3, 1.3, 1, 1.1, 1.5, 1.1], vertical_alignment="bottom")
         c[0].selectbox("Place", list(PRESETS), key="preset", on_change=apply_preset)
         # text boxes instead of number inputs: no +/- buttons, coordinates are usually pasted
@@ -573,7 +614,8 @@ if run_clicked:
                 settings = dict(source="Google Earth Engine", start_year=int(year), start_month=int(month),
                                 area_px=size, patch_stride=stride, device=device.type)
                 place = f"{data['lat']:.4f}_{data['lon']:.4f}_{int(year)}-{int(month):02d}"
-                place_name = st.session_state["preset"] if st.session_state["preset"] != CUSTOM else "custom"
+                place_name = (st.session_state["preset"] if st.session_state["preset"] != CUSTOM
+                              else st.session_state.get("place_found") or "custom")
             else:
                 st.write("1/3 Reading the local dataset tile")
                 data = local_data(site, int(month), variant["iteration"])
@@ -631,7 +673,7 @@ if result is None:
              tiles=tiles)
     if basemap_note:
         st.caption(basemap_note)
-    st.info("Choose a place (preset, coordinates or a click on the map), then press **Run**.")
+    st.info("Choose a place (search, preset, coordinates or a click on the map), then press **Run**.")
     st.stop()
 
 

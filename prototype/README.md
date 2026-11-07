@@ -1,6 +1,6 @@
 # Sentinel-1 LULC prototype (Streamlit)
 
-Pick a place (preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (`Weights/Iter2_Test_1_Full`, loaded by default), and shows everything on one screen:
+Pick a place (search by name, preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (`Weights/Iter2_Test_1_Full`, loaded by default), and shows everything on one screen:
 
 - a **live map** (Satellite or Streets). Satellite shows the newest photo published before the end of the analysis year (Esri World Imagery Wayback), so it follows the Year box; the caption gives the date the photo was taken. Inside the box, a cloud-free Sentinel-2 photo of the selected month is shown (on by default), so the month slider and **Play** step through the photos together with the maps; cloudy parts let the older photo show through. On the map, the segmentation of the selected month is drawn inside the bounding box of the analysed area; the segmentation of the selected month drawn inside the bounding box of the analysed area; an opacity slider and an overlay switch (model, Esri reference, none);
 - the **Sentinel-1 radar input** of the same month beside the map, with the number of scenes;
@@ -75,7 +75,7 @@ The Earth Engine project ID is never sent to the browser: the app reads `EE_PROJ
 
 ## How to use
 
-1. **Place:** choose a preset (rural test sites never used in training, Thane, Berlin), type latitude and longitude, or click the map. The dashed yellow box shows the area of the next run.
+1. **Place:** search a town, region or address (OpenStreetMap Nominatim, press Enter; pick another match from the list if the first is wrong), choose a preset (rural test sites never used in training, Thane, Berlin), type latitude and longitude, or click the map. The search runs on the server and needs internet access there. The dashed yellow box shows the area of the next run.
 2. **Year, start month, area** (2.56, 5.12 or 10.24 km square), then **Run**. A status box shows the steps (download, prediction per month, statistics) and the time taken.
 3. **Explore:** move the month slider or press **Play**; the map overlay, the radar image and the bar chart follow. The model runs only once per Run; the slider never reruns it. Use the opacity slider to compare the segmentation with the satellite image, and the overlay switch to show the Esri reference map.
 4. **Analysis** (below the map): summary cards, then the tabs *Year overview*, *Change*, *Reference check*, *Downloads and run log*, *How to read the results*.
