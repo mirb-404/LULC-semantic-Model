@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-06 17:57:21",
+  "place_name": "Willamette foothills, USA (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 44.9,
+  "lon": -122.7,
+  "epsg": 32610,
+  "weights": "Iter2_Test_1_Full/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6789928942069342,
+    "test_mIoU": 0.7504549912714183
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    9,
+    9,
+    14,
+    10,
+    10,
+    14,
+    12
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2021 (Sentinel-2 based): independent of the training labels",
+  "reference_agreement_pct": 68.06373596191406,
+  "reference_majority_baseline_pct": 51.33552551269531,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 68.06373596191406,
+      "majority_baseline_pct": 51.33552551269531
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 74.79286193847656,
+      "majority_baseline_pct": 57.601165771484375
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 74.66354370117188,
+      "majority_baseline_pct": 53.17573547363281
+    }
+  },
+  "flicker_pct": [
+    0.2597808837890625,
+    0.4550933837890625,
+    0.460052490234375,
+    0.4039764404296875,
+    0.421142578125,
+    0.45318603515625,
+    0.524139404296875,
+    0.498199462890625,
+    0.6618499755859375,
+    0.45623779296875,
+    0.345611572265625
+  ]
+}
