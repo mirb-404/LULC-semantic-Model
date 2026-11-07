@@ -37,8 +37,10 @@ N_BEFORE = 2  # months fetched before the start month, for the three-month windo
 FINAL_RUN = "Iter2_Test_1_Full"
 SIZES = {"2.56 km": 256, "5.12 km": 512, "10.24 km (training tile)": 1024}
 ZOOM = {256: 14, 512: 13, 1024: 12}
+MAX_ZOOM = 20
 OVERLAPS = {"none (fastest)": 256, "25 %": 192, "50 % (smoothest)": 128}
 CUSTOM = "Custom: click the map or type coordinates"
+MODEL_LAYER = "Land cover (model)"
 PRESETS = {  # rural test sites of Dataset_2nd_iteration (never trained on) and the two urban cases
     CUSTOM: None,
     "Black Forest villages, Germany (rural test site)": (47.95, 8.10),
@@ -386,11 +388,14 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
 
 def base_map(center, zoom, basemap, tiles=None):
     """basemap 'Streets' = OpenStreetMap; otherwise satellite tiles (`tiles`, default today's Esri imagery)."""
-    m = folium.Map(location=center, zoom_start=zoom, tiles=None, control_scale=True)
+    m = folium.Map(location=center, zoom_start=zoom, tiles=None, control_scale=True, max_zoom=MAX_ZOOM)
+    # max_native_zoom: above it Leaflet enlarges the last real tiles instead of requesting deeper ones. Esri has
+    # no photo beyond about zoom 17 in many rural areas and answers with a "Map data not yet available" tile.
     if basemap == "Streets":
-        folium.TileLayer("OpenStreetMap", name="Streets").add_to(m)
+        folium.TileLayer("OpenStreetMap", name="Streets", max_zoom=MAX_ZOOM, max_native_zoom=19).add_to(m)
     else:
-        folium.TileLayer(tiles or SATELLITE_TILES, attr=SATELLITE_ATTR, name="Satellite", max_zoom=19).add_to(m)
+        folium.TileLayer(tiles or SATELLITE_TILES, attr=SATELLITE_ATTR, name="Satellite", max_zoom=MAX_ZOOM,
+                         max_native_zoom=17).add_to(m)
     return m
 
 
@@ -432,7 +437,8 @@ def show_map(center, zoom, basemap, layers, height=560, tiles=None):
     key = "map_" + hashlib.md5(f"{basemap}{tiles}".encode()).hexdigest()[:8]
     # center/zoom passed separately: st_folium pans an existing map only when these change
     out = st_folium(base_map(center, zoom, basemap, tiles), feature_group_to_add=group, key=key, height=height,
-                    center=center, zoom=zoom, use_container_width=True, returned_objects=["last_clicked"])
+                    center=center, zoom=zoom, use_container_width=True, returned_objects=["last_clicked"],
+                    pixelated=True)  # crisp 10 m pixels when zoomed in, not a blurred smear
     click = (out or {}).get("last_clicked")
     if click and click != st.session_state.get("handled_click"):
         st.session_state["handled_click"] = click
@@ -443,33 +449,6 @@ def show_map(center, zoom, basemap, layers, height=560, tiles=None):
 def box_layer(corners, color, dashed=False, tooltip=None):
     return folium.Polygon(corners, color=color, weight=2.5, fill=False, dash_array="8 6" if dashed else None,
                           tooltip=tooltip)
-
-
-def class_panel(names, colors, share, vs_prev, since_first, prev_label, first_label):
-    """Legend beside the map: colour, share of the area this month and its changes (pp), as an HTML table."""
-    def delta(v):
-        if v is None:
-            return "<span style='opacity:.45'>–</span>"
-        if abs(v) < 0.05:
-            return "<span style='opacity:.45'>0.0</span>"
-        return f"{'▲' if v > 0 else '▼'}&nbsp;{abs(v):.1f}"
-
-    cell = "padding:5px 4px;border-bottom:1px solid rgba(128,128,128,.25);text-align:right"
-    rows = []
-    for i, (n, c) in enumerate(zip(names, colors)):
-        idle = share[i] < 0.05 and (since_first is None or abs(since_first[i]) < 0.05)
-        rows.append(
-            f"<tr style='opacity:{.45 if idle else 1}'>"
-            f"<td style='{cell};text-align:left'><span style='display:inline-block;width:13px;height:13px;"
-            f"border-radius:3px;background:{c};border:1px solid #8888;margin-right:6px;vertical-align:-2px'>"
-            f"</span>{n}</td><td style='{cell}'>{share[i]:.1f}</td>"
-            f"<td style='{cell}'>{delta(None if vs_prev is None else vs_prev[i])}</td>"
-            f"<td style='{cell}'>{delta(None if since_first is None else since_first[i])}</td></tr>")
-    head = "padding:4px;text-align:right;font-weight:600;font-size:.78rem;opacity:.8;vertical-align:bottom"
-    return (f"<table style='width:100%;border-collapse:collapse;font-size:.86rem'>"
-            f"<tr><th style='{head};text-align:left'>Class</th><th style='{head}'>Area %</th>"
-            f"<th style='{head}'>vs {prev_label or 'last month'}</th><th style='{head}'>since {first_label}</th></tr>"
-            f"{''.join(rows)}</table>")
 
 
 # ---------------------------------------------------------------- location state
@@ -713,105 +692,108 @@ if result is None:
 # ---------------------------------------------------------------- viewer: map + radar, one month slider
 def viewer():
     r = st.session_state["result"]
-    labels, names, colors = r["labels"], r["names"], r["colors"]
+    labels, names, colors, data = r["labels"], r["names"], r["colors"], r["data"]
     if st.session_state.get("playing"):
         st.session_state["month_idx"] = (st.session_state.get("month_idx", 0) + 1) % 12
 
-    c = st.columns([4.2, 1.1, 1.8, 2.2, 1.6], vertical_alignment="bottom")
+    # controls: month, play, map layer; the rarely changed map settings sit in a popover
+    c = st.columns([5, 1.1, 2.6, 1.5], vertical_alignment="bottom")
     k = c[0].select_slider("Month", options=list(range(12)), format_func=lambda i: labels[i], key="month_idx")
     playing = st.session_state.get("playing", False)
-    if c[1].button("Pause" if playing else "Play", width="stretch",
-                   help="Step through the 12 months, about one month per second."):
+    if c[1].button("Pause" if playing else "Play", icon=":material/pause:" if playing else ":material/play_arrow:",
+                   width="stretch", help="Step through the 12 months, about one month per second."):
         st.session_state["playing"] = not playing
         st.rerun()
-    opacity = c[2].slider("Map overlay opacity", 0, 100, 65, 5, key="opacity") / 100
     ref_names = list(r.get("ref_overlays", {}))
-    layer = c[3].selectbox("Overlay", ["Model, this month", *[f"Reference: {n}" for n in ref_names], "None"],
-                           key="overlay")
-    basemap = c[4].radio("Basemap", ["Satellite", "Streets"], horizontal=True, key="basemap")
+    layers_menu = [MODEL_LAYER, *[f"Reference: {n}" for n in ref_names], "None"]
+    if st.session_state.get("overlay") not in layers_menu:
+        st.session_state.pop("overlay", None)
+    layer = c[2].selectbox("Map layer", layers_menu, key="overlay",
+                           help="The model's land-cover map of the selected month, or an annual reference map "
+                                "for comparison.")
+    with c[3].popover("Map options", icon=":material/tune:"):
+        basemap = st.radio("Background", ["Satellite", "Streets"], horizontal=True, key="basemap")
+        opacity = st.slider("Layer opacity", 0, 100, 65, 5, key="opacity", format="%d %%") / 100
 
-    left, mid, right = st.columns([2.7, 1.3, 1.6])
+    left, right = st.columns([3, 2], gap="large")
     with left:
-        data = r["data"]
-        tiles, basemap_note = None, "Streets: OpenStreetMap."
-        layers = []
+        tiles, background = None, None
         if basemap == "Satellite":
-            # the photo follows the analysed months of the shown result (the radar input of that run)
-            tiles, basemap_note = satellite_for_year(*data["months_all"][N_BEFORE], data["lat"], data["lon"])
-            if r.get("s2_overlays") and st.checkbox(
-                    "Photo of this month inside the box (Sentinel-2)", value=True, key="s2_inside",
-                    help="Cloud-free 10 m true colour of the selected month, so Play steps through the photos "
-                         "together with the maps. Display only, not a model input."):
-                layers.append(folium.raster_layers.ImageOverlay(r["s2_overlays"][k], r["bounds"], opacity=1.0,
-                                                                interactive=False))
-                clear = r["s2_clear"][k]
-                basemap_note = (f"Inside the box: Sentinel-2 photo of **{labels[k]}**"
-                                + (f", {100 - clear:.0f} % hidden by clouds (older photo shows through)"
-                                   if clear < 99.5 else "")
-                                + ". Outside: " + basemap_note[0].lower() + basemap_note[1:])
-        if layer.startswith("Model"):
+            # the background photo follows the analysed year of the shown result
+            tiles, background = satellite_for_year(*data["months_all"][N_BEFORE], data["lat"], data["lon"])
+        photo_on = bool(r.get("s2_overlays")) and st.session_state.get("s2_inside", False)
+        layers = []
+        if photo_on:
+            layers.append(folium.raster_layers.ImageOverlay(r["s2_overlays"][k], r["bounds"], opacity=1.0,
+                                                            interactive=False))
+        if layer == MODEL_LAYER:
             layers.append(folium.raster_layers.ImageOverlay(r["overlays"][k], r["bounds"], opacity=opacity,
                                                             interactive=False))
         elif layer.startswith("Reference: "):
             layers.append(folium.raster_layers.ImageOverlay(r["ref_overlays"][layer.removeprefix("Reference: ")],
-                                                            r["bounds"], opacity=opacity,
-                                                            interactive=False))
+                                                            r["bounds"], opacity=opacity, interactive=False))
         layers.append(box_layer(r["corners"], "#ffffff", tooltip="analysed area"))
         if planned is not None and planned != r["corners"]:
             layers.append(box_layer(planned, "#ffd92f", True, "next analysis area (press Run)"))
         show_map(center, zoom, basemap, layers, tiles=tiles)
-        st.caption(basemap_note)
-        if not ref_names:
-            st.caption("No reference map for this run.")
-
-    with mid:
-        # legend and the change of every class, next to the map; follows the month slider and Play
-        share = r["pct"].iloc[k].values
-        vs_prev = r["steps"].iloc[k - 1].values if k > 0 else None
-        since_first = (r["pct"].iloc[k] - r["pct"].iloc[0]).values if k > 0 else None
-        st.markdown(f"**Land cover, {labels[k]}**")
-        st.markdown(class_panel(names, colors, share, vs_prev, since_first, labels[k - 1] if k > 0 else None,
-                                labels[0]), unsafe_allow_html=True)
-        if k > 0:
-            i = int(np.abs(vs_prev).argmax())
-            if abs(vs_prev[i]) < 0.05:
-                st.markdown(f"No class changed by 0.1 pp or more vs {labels[k - 1]}.")
-            else:
-                st.markdown(f"Biggest change vs {labels[k - 1]}: **{names[i]} {vs_prev[i]:+.1f} pp**")
-        else:
-            st.caption("First month: changes start from the next month.")
-        st.caption("Area % = share of the box. ▲/▼ = change in percentage points (pp). Changes below about 1 pp "
-                   f"are usually model noise (flicker this run: {np.mean(r['flicker']):.1f} % of pixels per month).")
+        if r.get("s2_overlays"):
+            st.toggle("Sentinel-2 photo of this month inside the box", key="s2_inside",
+                      help="Cloud-free true-colour photo of the selected month, to check the map by eye. "
+                           "Display only, not a model input. Clouds and city smog can hide parts of it.")
+        notes = []
+        if photo_on:
+            clear = r["s2_clear"][k]
+            notes.append(f"Box: Sentinel-2 photo of {labels[k]}"
+                         + (f", {100 - clear:.0f} % hidden by clouds" if clear < 99.5 else ""))
+        if background:
+            notes.append("Background: " + background[0].lower() + background[1:])
+        if notes:
+            st.caption(" · ".join(notes))
 
     with right:
-        data = r["data"]
-        count = data["counts"][N_BEFORE + k] if data["counts"] is not None else None
-        st.markdown(f"**Radar input, {labels[k]}**" + (f" · {count} scene{'s' if count != 1 else ''}"
-                                                         if count is not None else ""))
-        if count == 0:
-            st.warning("No Sentinel-1 scene in this month: the input is treated as missing.")
-        st.image(false_colour(data["codes"][N_BEFORE + k], r["card"]), width="stretch", clamp=True,
-                 caption="R = VV, G = VH, B = VV−VH (dB), same area as the box, north up")
-        view = st.radio("Bars", ["Class share this month", "Change vs previous month"], horizontal=True,
-                        key="bars_view", label_visibility="collapsed")
-        if view.startswith("Class") or k == 0:
-            if view.startswith("Change"):
-                st.caption("The first month has no previous month; showing the class share.")
-            st.altair_chart(class_bars(r["pct"].iloc[k].values, names, colors, "%"), width="stretch")
+        # only classes present in this area; the coloured bars double as the map legend
+        present = [i for i in range(len(names)) if r["pct"].iloc[:, i].max() >= 0.05]
+        shown_names, shown_colors = [names[i] for i in present], [colors[i] for i in present]
+        st.markdown(f"#### Land cover · {labels[k]}")
+        views = ["Area %", "Change vs last month", f"Change since {labels[0]}"]
+        if st.session_state.get("bars_view") not in views:
+            st.session_state["bars_view"] = views[0]
+        view = st.segmented_control("Show", views, key="bars_view", label_visibility="collapsed") or views[0]
+        share = r["pct"].iloc[k].values
+        if view == views[0]:
+            values, unit = share, "%"
+        elif k == 0:
+            values, unit = None, "pp"
+        elif view == views[1]:
+            values, unit = r["steps"].iloc[k - 1].values, "pp"
         else:
-            st.altair_chart(class_bars(r["steps"].iloc[k - 1].values, names, colors, "pp"),
-                            width="stretch")
-            st.caption(f"{labels[k - 1]} → {labels[k]}, percentage points of the area.")
+            values, unit = (r["pct"].iloc[k] - r["pct"].iloc[0]).values, "pp"
+        if values is None:
+            st.info(f"{labels[0]} is the first month: there is no earlier month to compare with.")
+        else:
+            st.altair_chart(class_bars(values[present], shown_names, shown_colors, unit), width="stretch")
+            if unit == "%":
+                i = int(np.argmax(share))
+                st.caption(f"Largest class: {names[i]}, {share[i]:.1f} % of the area.")
+            else:
+                i = int(np.abs(values).argmax())
+                st.caption(("No class changed by 0.1 pp or more." if abs(values[i]) < 0.05
+                            else f"Largest change: {names[i]} {values[i]:+.1f} percentage points.")
+                           + " Changes under about 1 pp are usually model noise, not real land change.")
+        count = data["counts"][N_BEFORE + k] if data["counts"] is not None else None
+        if count == 0:
+            st.warning(f"No Sentinel-1 radar scene in {labels[k]}: this month's map is less reliable.")
+        elif count is not None:
+            st.caption(f"Radar input: {count} Sentinel-1 scene{'s' if count != 1 else ''} in {labels[k]}.")
 
     previews = r.get("previews")
     if previews:
-        # all 12 months at a glance; the month shown above is framed in yellow
-        h = st.columns([1.2, 4], vertical_alignment="center")
-        h[0].markdown("**All 12 months**")
-        if st.session_state.get("preview_kind") not in previews:
-            st.session_state.pop("preview_kind", None)
-        kind = h[1].radio("Preview", list(previews), horizontal=True, key="preview_kind",
-                          label_visibility="collapsed")
+        # all 12 months at a glance; the month shown on the map is framed in yellow
+        st.markdown("#### All 12 months")
+        kinds = list(previews)
+        if st.session_state.get("preview_kind") not in kinds:
+            st.session_state["preview_kind"] = kinds[0]
+        kind = st.segmented_control("Preview", kinds, key="preview_kind", label_visibility="collapsed") or kinds[0]
         for row in range(2):
             cols = st.columns(6)
             for j, col in enumerate(cols):
@@ -823,7 +805,7 @@ def viewer():
                     framed[:] = (255, 217, 47)
                     framed[pad:-pad, pad:-pad] = img
                     img = framed
-                col.image(img, width="stretch", caption=labels[i] + ("  ◀ shown" if i == k else ""))
+                col.image(img, width="stretch", caption=labels[i])
 
 
 st.fragment(run_every=1.2 if st.session_state.get("playing") else None)(viewer)()
