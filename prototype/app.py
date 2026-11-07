@@ -422,8 +422,9 @@ def show_map(center, zoom, basemap, layers, height=560, tiles=None):
         layer.add_to(group)
     # st_folium only updates the overlay group of an existing map: a new key redraws it when the photo changes
     key = "map_" + hashlib.md5(f"{basemap}{tiles}".encode()).hexdigest()[:8]
+    # center/zoom passed separately: st_folium pans an existing map only when these change
     out = st_folium(base_map(center, zoom, basemap, tiles), feature_group_to_add=group, key=key, height=height,
-                    use_container_width=True, returned_objects=["last_clicked"])
+                    center=center, zoom=zoom, use_container_width=True, returned_objects=["last_clicked"])
     click = (out or {}).get("last_clicked")
     if click and click != st.session_state.get("handled_click"):
         st.session_state["handled_click"] = click
@@ -561,8 +562,12 @@ if result is not None and weight_name and result["weights"] != weight_name:
 with st.container(border=True):
     if use_gee:
         s = st.columns([3.2, 4.3], vertical_alignment="bottom")
-        s[0].text_input("Search a place", key="search_text", on_change=search_place,
-                        placeholder="Town, region or address, then Enter (e.g. Berlin, Kano Nigeria)")
+        # a form: Enter always submits, also for the same text again (on_change fires only when the text changes)
+        with s[0].form("search_form", border=False):
+            f = st.columns([4, 1], vertical_alignment="bottom")
+            f[0].text_input("Search a place", key="search_text",
+                            placeholder="Town, region or address, then Enter (e.g. Berlin, Kano Nigeria)")
+            f[1].form_submit_button("Search", on_click=search_place, width="stretch")
         hits = st.session_state.get("search_hits") or []
         if len(hits) > 1:
             s[1].selectbox("Matches", range(len(hits)), key="search_pick", on_change=pick_place,
