@@ -310,6 +310,14 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
     if data.get("s2") is not None:
         s2_overlays = [mapview.png_data_url(mapview.rgb_overlay(img, index)) for img in data["s2"]]
         s2_clear = [float((img.max(0) > 0).mean() * 100) for img in data["s2"]]
+    # small 12-month previews below the map (UTM grid of the run, north up); no data stays black
+    step = max(1, n // 240)
+    lut = mapview.palette(colors, 1.0)[:, :3]
+    previews = {"Land cover (model)": [lut[np.where(valid, p, 0)[::step, ::step]] for p in preds]}
+    if data.get("s2") is not None:
+        previews["Photo (Sentinel-2)"] = [img[:, ::step, ::step].transpose(1, 2, 0) for img in data["s2"]]
+    previews["Radar (Sentinel-1)"] = [(false_colour(c[:, ::step, ::step], card) * 255).astype(np.uint8)
+                                      for c in data["codes"][N_BEFORE:]]
     ref_overlay = (mapview.png_data_url(mapview.class_overlay(data["ref"], index, colors, 1.0))
                    if data["ref"] is not None else None)
     # every reference map: (name, agreement %, majority baseline %, per-class table) and its map overlay
@@ -369,7 +377,7 @@ def summarise(data, preds, card, weight_name, model_name, settings, place, place
 
     return dict(data=data, preds=preds, valid=valid, card=card, names=names, colors=colors, labels=labels,
                 pct=pct, steps=steps, total=total, flicker=flick, check=check, overlays=overlays,
-                s2_overlays=s2_overlays, s2_clear=s2_clear,
+                s2_overlays=s2_overlays, s2_clear=s2_clear, previews=previews,
                 ref_overlay=ref_overlay, ref_checks=ref_checks, ref_overlays=ref_overlays, bounds=bounds,
                 corners=mapview.utm_corners(data["epsg"], data["x0"], data["y_top"], n),
                 files=files, log_dir=log_dir, model=model_name, weights=weight_name, place_name=place_name,
@@ -437,11 +445,31 @@ def box_layer(corners, color, dashed=False, tooltip=None):
                           tooltip=tooltip)
 
 
-def legend_html(names, colors):
-    items = "".join(f"<span style='display:inline-flex;align-items:center;margin-right:14px'>"
-                    f"<span style='width:13px;height:13px;border-radius:3px;background:{c};"
-                    f"border:1px solid #8888;margin-right:5px'></span>{n}</span>" for n, c in zip(names, colors))
-    return f"<div style='font-size:0.9rem;line-height:1.9'>{items}</div>"
+def class_panel(names, colors, share, vs_prev, since_first, prev_label, first_label):
+    """Legend beside the map: colour, share of the area this month and its changes (pp), as an HTML table."""
+    def delta(v):
+        if v is None:
+            return "<span style='opacity:.45'>–</span>"
+        if abs(v) < 0.05:
+            return "<span style='opacity:.45'>0.0</span>"
+        return f"{'▲' if v > 0 else '▼'}&nbsp;{abs(v):.1f}"
+
+    cell = "padding:5px 4px;border-bottom:1px solid rgba(128,128,128,.25);text-align:right"
+    rows = []
+    for i, (n, c) in enumerate(zip(names, colors)):
+        idle = share[i] < 0.05 and (since_first is None or abs(since_first[i]) < 0.05)
+        rows.append(
+            f"<tr style='opacity:{.45 if idle else 1}'>"
+            f"<td style='{cell};text-align:left'><span style='display:inline-block;width:13px;height:13px;"
+            f"border-radius:3px;background:{c};border:1px solid #8888;margin-right:6px;vertical-align:-2px'>"
+            f"</span>{n}</td><td style='{cell}'>{share[i]:.1f}</td>"
+            f"<td style='{cell}'>{delta(None if vs_prev is None else vs_prev[i])}</td>"
+            f"<td style='{cell}'>{delta(None if since_first is None else since_first[i])}</td></tr>")
+    head = "padding:4px;text-align:right;font-weight:600;font-size:.78rem;opacity:.8;vertical-align:bottom"
+    return (f"<table style='width:100%;border-collapse:collapse;font-size:.86rem'>"
+            f"<tr><th style='{head};text-align:left'>Class</th><th style='{head}'>Area %</th>"
+            f"<th style='{head}'>vs {prev_label or 'last month'}</th><th style='{head}'>since {first_label}</th></tr>"
+            f"{''.join(rows)}</table>")
 
 
 # ---------------------------------------------------------------- location state
@@ -702,7 +730,7 @@ def viewer():
                            key="overlay")
     basemap = c[4].radio("Basemap", ["Satellite", "Streets"], horizontal=True, key="basemap")
 
-    left, right = st.columns([3, 2])
+    left, mid, right = st.columns([2.7, 1.3, 1.6])
     with left:
         data = r["data"]
         tiles, basemap_note = None, "Streets: OpenStreetMap."
@@ -732,10 +760,28 @@ def viewer():
         if planned is not None and planned != r["corners"]:
             layers.append(box_layer(planned, "#ffd92f", True, "next analysis area (press Run)"))
         show_map(center, zoom, basemap, layers, tiles=tiles)
-        st.markdown(legend_html(names, colors), unsafe_allow_html=True)
         st.caption(basemap_note)
         if not ref_names:
             st.caption("No reference map for this run.")
+
+    with mid:
+        # legend and the change of every class, next to the map; follows the month slider and Play
+        share = r["pct"].iloc[k].values
+        vs_prev = r["steps"].iloc[k - 1].values if k > 0 else None
+        since_first = (r["pct"].iloc[k] - r["pct"].iloc[0]).values if k > 0 else None
+        st.markdown(f"**Land cover, {labels[k]}**")
+        st.markdown(class_panel(names, colors, share, vs_prev, since_first, labels[k - 1] if k > 0 else None,
+                                labels[0]), unsafe_allow_html=True)
+        if k > 0:
+            i = int(np.abs(vs_prev).argmax())
+            if abs(vs_prev[i]) < 0.05:
+                st.markdown(f"No class changed by 0.1 pp or more vs {labels[k - 1]}.")
+            else:
+                st.markdown(f"Biggest change vs {labels[k - 1]}: **{names[i]} {vs_prev[i]:+.1f} pp**")
+        else:
+            st.caption("First month: changes start from the next month.")
+        st.caption("Area % = share of the box. ▲/▼ = change in percentage points (pp). Changes below about 1 pp "
+                   f"are usually model noise (flicker this run: {np.mean(r['flicker']):.1f} % of pixels per month).")
 
     with right:
         data = r["data"]
@@ -756,6 +802,28 @@ def viewer():
             st.altair_chart(class_bars(r["steps"].iloc[k - 1].values, names, colors, "pp"),
                             width="stretch")
             st.caption(f"{labels[k - 1]} → {labels[k]}, percentage points of the area.")
+
+    previews = r.get("previews")
+    if previews:
+        # all 12 months at a glance; the month shown above is framed in yellow
+        h = st.columns([1.2, 4], vertical_alignment="center")
+        h[0].markdown("**All 12 months**")
+        if st.session_state.get("preview_kind") not in previews:
+            st.session_state.pop("preview_kind", None)
+        kind = h[1].radio("Preview", list(previews), horizontal=True, key="preview_kind",
+                          label_visibility="collapsed")
+        for row in range(2):
+            cols = st.columns(6)
+            for j, col in enumerate(cols):
+                i = row * 6 + j
+                img = previews[kind][i]
+                if i == k:
+                    pad = max(3, img.shape[0] // 40)
+                    framed = np.empty((img.shape[0] + 2 * pad, img.shape[1] + 2 * pad, 3), np.uint8)
+                    framed[:] = (255, 217, 47)
+                    framed[pad:-pad, pad:-pad] = img
+                    img = framed
+                col.image(img, width="stretch", caption=labels[i] + ("  ◀ shown" if i == k else ""))
 
 
 st.fragment(run_every=1.2 if st.session_state.get("playing") else None)(viewer)()
