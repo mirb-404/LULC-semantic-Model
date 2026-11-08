@@ -361,29 +361,6 @@ def monthly_change_chart(steps, names, colors):
     ).properties(height=320)
 
 
-def year_chart(pct, names, colors):
-    """Class shares over the 12 months as lines, stock-chart style: hovering shows a crosshair with every
-    class's value in that month; clicking a legend entry highlights that class."""
-    months = list(pct.index)
-    long = pct[names].reset_index(names="month").melt("month", var_name="cls", value_name="share")
-    x = alt.X("month:N", sort=months, title=None, axis=alt.Axis(labelAngle=-45))
-    color = alt.Color("cls:N", sort=list(names), legend=alt.Legend(orient="bottom", title=None),
-                      scale=alt.Scale(domain=list(names), range=[line_color(c) for c in colors]))
-    hover = alt.selection_point(nearest=True, on="pointerover", fields=["month"], empty=False)
-    pick = alt.selection_point(fields=["cls"], bind="legend")
-    base = alt.Chart(long).encode(x=x, y=alt.Y("share:Q", title="% of area"), color=color)
-    lines = base.mark_line(strokeWidth=2.5).encode(
-        opacity=alt.condition(pick, alt.value(1), alt.value(0.15))).add_params(pick)
-    dots = base.mark_point(filled=True, size=70).encode(
-        opacity=alt.condition(hover, alt.value(1), alt.value(0)))
-    rule = alt.Chart(long).transform_pivot("cls", value="share", groupby=["month"]).mark_rule(
-        color="#888", strokeWidth=1.5).encode(
-        x=x, opacity=alt.condition(hover, alt.value(0.9), alt.value(0)),
-        tooltip=[alt.Tooltip("month:N")] + [alt.Tooltip(field=n, type="quantitative", format=".2f",
-                                                        title=f"{n} %") for n in names]).add_params(hover)
-    return alt.layer(lines, dots, rule).properties(height=380)
-
-
 def class_lines(pct, names, colors):
     """One small line chart per class with its own y scale, so changes of a fraction of a percent are visible."""
     months = list(pct.index)
@@ -964,16 +941,9 @@ tab_year, tab_change, tab_check, tab_files, tab_help = st.tabs(
 
 with tab_year:
     shown = [n for n in names if pct[n].max() >= 0.05]
-    shown_colors = [colors[names.index(n)] for n in shown]
-    year_view = st.segmented_control("Year view", ["All classes", "Each class zoomed in"], default="All classes",
-                                     key="year_view", label_visibility="collapsed") or "All classes"
-    if year_view == "All classes":
-        st.altair_chart(year_chart(pct, shown, shown_colors), width="stretch")
-        st.caption("Hover for the values of a month; click a class in the legend to highlight it.")
-    else:
-        st.altair_chart(class_lines(pct, shown, shown_colors))
-        st.caption("Each class has its own scale, so small changes are visible. Compare the numbers on the axes: "
-                   "changes under about 1 pp are usually model noise.")
+    st.altair_chart(class_lines(pct, shown, [colors[names.index(n)] for n in shown]))
+    st.caption("Each class has its own scale, so small changes are visible. Compare the numbers on the axes: "
+               "changes under about 1 pp are usually model noise.")
     with st.expander("Exact numbers"):
         st.dataframe(pct.round(2), width="stretch")
 
