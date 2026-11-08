@@ -82,6 +82,12 @@ def month_label(year, month):
     return f"{pipeline.MONTH_NAMES[month - 1]} {year}"
 
 
+def text_color():
+    """Label colour readable on the app theme: white on dark (and when unknown), dark grey on light."""
+    theme = getattr(getattr(st, "context", None), "theme", None)
+    return "#31333f" if getattr(theme, "type", None) == "light" else "#ffffff"
+
+
 def line_color(color):
     """Very light class colours (snow) are drawn grey in charts, so they stay visible on a white background."""
     return "#9e9e9e" if sum(to_rgb(color)) / 3 > 0.85 else color
@@ -271,7 +277,7 @@ def class_bars(values, names, colors, unit):
         x=alt.X("value:Q", title="percentage points" if unit == "pp" else "% of area"),
         color=alt.Color("color:N", scale=None, legend=None),
         tooltip=[alt.Tooltip("class:N"), alt.Tooltip("label:N", title="value")])
-    text = base.mark_text(align="left", dx=4).encode(x="text_x:Q", text="label:N")
+    text = base.mark_text(align="left", dx=4, color=text_color()).encode(x="text_x:Q", text="label:N")
     rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#888").encode(x="x:Q")
     return (bars + text + rule).properties(height=32 * len(names) + 30)
 
@@ -288,13 +294,14 @@ def compare_bars(before, after, names, colors, before_label, after_label):
         x=alt.X("value:Q", title="% of area"),
         color=alt.Color("color:N", scale=None, legend=None),
         opacity=alt.Opacity("month:N", sort=order, scale=alt.Scale(domain=order, range=[0.35, 1]),
-                            legend=alt.Legend(orient="top", title=None, symbolType="square")),
+                            legend=alt.Legend(orient="top", title=None, symbolType="square",
+                                            symbolFillColor=text_color())),
         tooltip=[alt.Tooltip("cls:N", title="class"), alt.Tooltip("month:N"),
                  alt.Tooltip("value:Q", format=".1f", title="% of area")])
     change = pd.DataFrame({"cls": list(names), "x": np.maximum(before, after),
                            "label": [f"{a - b:+.1f} pp" if abs(a - b) >= 0.05 else "no change"
                                      for b, a in zip(before, after)]})
-    text = alt.Chart(change).mark_text(align="left", dx=5, fontWeight="bold").encode(
+    text = alt.Chart(change).mark_text(align="left", dx=5, fontWeight="bold", color=text_color()).encode(
         y=alt.Y("cls:N", sort=list(names)), x="x:Q", text="label:N")
     return (bars + text).properties(height=44 * len(names) + 40)
 
