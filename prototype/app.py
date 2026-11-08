@@ -306,6 +306,42 @@ def compare_bars(before, after, names, colors, before_label, after_label):
     return (bars + text).properties(height=44 * len(names) + 40)
 
 
+def cumulative_chart(pct, names, colors, k):
+    """Running change of every class since the first month (pp), one line per class; the selected month k
+    is marked and labelled, later months are drawn faded."""
+    since = pct[names] - pct[names].iloc[0]
+    months = list(pct.index)
+    long = since.reset_index(names="month").melt("month", var_name="cls", value_name="pp")
+    long["shown"] = long["month"].map({m: i <= k for i, m in enumerate(months)})
+    color = alt.Color("cls:N", sort=list(names), legend=alt.Legend(orient="bottom", title=None),
+                      scale=alt.Scale(domain=list(names), range=[line_color(c) for c in colors]))
+    x = alt.X("month:N", sort=months, title=None, axis=alt.Axis(labelAngle=-45))
+    tooltip = [alt.Tooltip("month:N"), alt.Tooltip("cls:N", title="class"),
+               alt.Tooltip("pp:Q", format="+.2f", title=f"change since {months[0]} (pp)")]
+    base = alt.Chart(long).encode(x=x, y=alt.Y("pp:Q", title=f"change since {months[0]} (pp)"), color=color,
+                                  tooltip=tooltip)
+    # a line has one opacity: the whole year faded underneath, the months up to k solid on top
+    lines = (base.transform_filter("datum.shown").mark_line(point=True, strokeWidth=2.5)
+             + base.mark_line(strokeWidth=2, strokeOpacity=0.2))
+    now = long[long["month"] == months[k]]
+    labels = alt.Chart(now).mark_text(align="left", dx=7, fontWeight="bold", color=text_color()).encode(
+        x=x, y="pp:Q", text=alt.Text("pp:Q", format="+.1f"))
+    zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color="#888", strokeDash=[4, 4]).encode(y="y:Q")
+    mark = alt.Chart(pd.DataFrame({"month": [months[k]]})).mark_rule(color="#ffd92f", strokeWidth=2).encode(
+        x=alt.X("month:N", sort=months))
+    return (zero + mark + lines + labels).properties(height=320)
+
+
+def change_table(pct, steps, names, k):
+    """Per class up to month k: share in the first and in month k, the sum of all monthly gains and losses,
+    and the net change (gains + losses = month k − first month)."""
+    first, now = pct.index[0], pct.index[k]
+    part = steps[names].iloc[:k]
+    return pd.DataFrame({f"{first} %": pct[names].iloc[0], f"{now} %": pct[names].iloc[k],
+                         "gained (pp)": part.clip(lower=0).sum(), "lost (pp)": part.clip(upper=0).sum(),
+                         "net (pp)": pct[names].iloc[k] - pct[names].iloc[0]}).round(2)
+
+
 def monthly_change_chart(steps, names, colors):
     """Change of every class from one month to the next, as grouped vertical bars (percentage points)."""
     long = steps.reset_index(names="step").melt("step", var_name="cls", value_name="pp")
@@ -326,19 +362,42 @@ def monthly_change_chart(steps, names, colors):
 
 
 def year_chart(pct, names, colors):
-    """Stacked bars: class shares of every month."""
-    long = pct.reset_index(names="month").melt("month", var_name="class", value_name="share")
-    return alt.Chart(long).mark_bar().encode(
-        x=alt.X("month:N", sort=list(pct.index), title=None),
-        y=alt.Y("share:Q", title="% of area", stack="zero", scale=alt.Scale(domain=[0, 100])),
-        color=alt.Color("class:N", sort=list(names),
-                        scale=alt.Scale(domain=list(names), range=[line_color(c) for c in colors]),
-                        legend=alt.Legend(orient="bottom", title=None)),
-        order=alt.Order("class_order:Q"),
-        tooltip=["month", "class", alt.Tooltip("share:Q", format=".1f", title="%")],
-    ).transform_calculate(
-        class_order=" + ".join(f"(datum['class'] == {json.dumps(n)}) * {i}" for i, n in enumerate(names))
-    ).properties(height=380)
+    """Class shares over the 12 months as lines, stock-chart style: hovering shows a crosshair with every
+    class's value in that month; clicking a legend entry highlights that class."""
+    months = list(pct.index)
+    long = pct[names].reset_index(names="month").melt("month", var_name="cls", value_name="share")
+    x = alt.X("month:N", sort=months, title=None, axis=alt.Axis(labelAngle=-45))
+    color = alt.Color("cls:N", sort=list(names), legend=alt.Legend(orient="bottom", title=None),
+                      scale=alt.Scale(domain=list(names), range=[line_color(c) for c in colors]))
+    hover = alt.selection_point(nearest=True, on="pointerover", fields=["month"], empty=False)
+    pick = alt.selection_point(fields=["cls"], bind="legend")
+    base = alt.Chart(long).encode(x=x, y=alt.Y("share:Q", title="% of area"), color=color)
+    lines = base.mark_line(strokeWidth=2.5).encode(
+        opacity=alt.condition(pick, alt.value(1), alt.value(0.15))).add_params(pick)
+    dots = base.mark_point(filled=True, size=70).encode(
+        opacity=alt.condition(hover, alt.value(1), alt.value(0)))
+    rule = alt.Chart(long).transform_pivot("cls", value="share", groupby=["month"]).mark_rule(
+        color="#888", strokeWidth=1.5).encode(
+        x=x, opacity=alt.condition(hover, alt.value(0.9), alt.value(0)),
+        tooltip=[alt.Tooltip("month:N")] + [alt.Tooltip(field=n, type="quantitative", format=".2f",
+                                                        title=f"{n} %") for n in names]).add_params(hover)
+    return alt.layer(lines, dots, rule).properties(height=380)
+
+
+def class_lines(pct, names, colors):
+    """One small line chart per class with its own y scale, so changes of a fraction of a percent are visible."""
+    months = list(pct.index)
+    long = pct[names].reset_index(names="month").melt("month", var_name="cls", value_name="share")
+    return alt.Chart(long).mark_line(point=True, strokeWidth=2).encode(
+        x=alt.X("month:N", sort=months, title=None, axis=alt.Axis(labelAngle=-45, labelFontSize=9)),
+        y=alt.Y("share:Q", title="% of area", scale=alt.Scale(zero=False)),
+        color=alt.Color("cls:N", legend=None,
+                        scale=alt.Scale(domain=list(names), range=[line_color(c) for c in colors])),
+        tooltip=[alt.Tooltip("month:N"), alt.Tooltip("share:Q", format=".2f", title="% of area")],
+    ).properties(width=300, height=140).facet(
+        facet=alt.Facet("cls:N", sort=list(names), title=None, header=alt.Header(labelFontWeight="bold",
+                                                                                 labelFontSize=13)),
+        columns=3).resolve_scale(y="independent")
 
 
 def summarise(data, preds, card, weight_name, model_name, settings, place, place_name):
@@ -815,10 +874,15 @@ def viewer():
             st.caption(f"Largest class: {names[i]}, {share[i]:.1f} % of the area.")
         elif k == 0:
             st.info(f"{labels[0]} is the first month: there is no earlier month to compare with.")
+        elif view == views[2]:
+            # every monthly change carried forward: the line at month k is the sum of all steps up to k
+            st.altair_chart(cumulative_chart(r["pct"], shown_names, shown_colors, k), width="stretch")
+            st.dataframe(change_table(r["pct"], r["steps"], shown_names, k), width="stretch")
+            st.caption("Net = gained + lost = the line at the yellow month. Gains and losses in between cancel. "
+                       "Changes under about 1 pp are usually model noise, not real land change.")
         else:
-            j = k - 1 if view == views[1] else 0
-            before = r["pct"].iloc[j].values
-            st.altair_chart(compare_bars(before[present], share[present], shown_names, shown_colors, labels[j],
+            before = r["pct"].iloc[k - 1].values
+            st.altair_chart(compare_bars(before[present], share[present], shown_names, shown_colors, labels[k - 1],
                                          labels[k]), width="stretch")
             diff = share - before
             i = int(np.abs(diff).argmax())
@@ -899,8 +963,19 @@ tab_year, tab_change, tab_check, tab_files, tab_help = st.tabs(
     ["Year overview", "Change", "Reference check", "Downloads and run log", "How to read the results"])
 
 with tab_year:
-    st.altair_chart(year_chart(pct, names, colors), width="stretch")
-    st.dataframe(pct.round(1), width="stretch")
+    shown = [n for n in names if pct[n].max() >= 0.05]
+    shown_colors = [colors[names.index(n)] for n in shown]
+    year_view = st.segmented_control("Year view", ["All classes", "Each class zoomed in"], default="All classes",
+                                     key="year_view", label_visibility="collapsed") or "All classes"
+    if year_view == "All classes":
+        st.altair_chart(year_chart(pct, shown, shown_colors), width="stretch")
+        st.caption("Hover for the values of a month; click a class in the legend to highlight it.")
+    else:
+        st.altair_chart(class_lines(pct, shown, shown_colors))
+        st.caption("Each class has its own scale, so small changes are visible. Compare the numbers on the axes: "
+                   "changes under about 1 pp are usually model noise.")
+    with st.expander("Exact numbers"):
+        st.dataframe(pct.round(2), width="stretch")
 
 with tab_change:
     present = [n for n in names if pct[n].max() >= 0.05]
@@ -910,6 +985,7 @@ with tab_change:
         st.markdown(f"**Whole period: {labels[0]} vs {labels[-1]}**")
         st.altair_chart(compare_bars(pct.iloc[0][present].values, pct.iloc[-1][present].values, present,
                                      shown_colors, labels[0], labels[-1]), width="stretch")
+        st.dataframe(change_table(pct, r["steps"], present, 11), width="stretch")
     with c2:
         st.markdown("**Month by month: change vs the previous month**")
         st.altair_chart(monthly_change_chart(r["steps"], present, colors), width="stretch")
