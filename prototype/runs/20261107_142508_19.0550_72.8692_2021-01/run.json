@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-07 14:25:07",
+  "place_name": "Mumbai, Mumbai Suburban District, Maharashtra, 400051, India",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 19.055,
+  "lon": 72.8692,
+  "epsg": 32643,
+  "weights": "Iter2_Test_1_Full/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6789928942069342,
+    "test_mIoU": 0.7504549912714183
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    4,
+    3,
+    3,
+    2,
+    3
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2021 (Sentinel-2 based): independent of the training labels",
+  "reference_agreement_pct": 92.31758117675781,
+  "reference_majority_baseline_pct": 89.90898132324219,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 92.31758117675781,
+      "majority_baseline_pct": 89.90898132324219
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 68.04389953613281,
+      "majority_baseline_pct": 60.65940856933594
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 90.52391052246094,
+      "majority_baseline_pct": 85.35270690917969
+    }
+  },
+  "flicker_pct": [
+    0.2590179443359375,
+    0.395965576171875,
+    0.3055572509765625,
+    0.43792724609375,
+    0.481414794921875,
+    0.4024505615234375,
+    0.4177093505859375,
+    0.3299713134765625,
+    0.434112548828125,
+    0.3330230712890625,
+    0.2655029296875
+  ]
+}
