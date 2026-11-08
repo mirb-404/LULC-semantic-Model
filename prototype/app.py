@@ -276,6 +276,48 @@ def class_bars(values, names, colors, unit):
     return (bars + text + rule).properties(height=32 * len(names) + 30)
 
 
+def compare_bars(before, after, names, colors, before_label, after_label):
+    """Area % per class in two months as paired bars (faded = earlier, solid = later), labelled with the change."""
+    rows = [dict(cls=n, month=lab, value=round(float(v), 2), color=line_color(c))
+            for n, c, b, a in zip(names, colors, before, after) for lab, v in ((before_label, b), (after_label, a))]
+    df = pd.DataFrame(rows)
+    order = [before_label, after_label]
+    bars = alt.Chart(df).mark_bar().encode(
+        y=alt.Y("cls:N", sort=list(names), title=None),
+        yOffset=alt.YOffset("month:N", sort=order),
+        x=alt.X("value:Q", title="% of area"),
+        color=alt.Color("color:N", scale=None, legend=None),
+        opacity=alt.Opacity("month:N", sort=order, scale=alt.Scale(domain=order, range=[0.35, 1]),
+                            legend=alt.Legend(orient="top", title=None, symbolType="square")),
+        tooltip=[alt.Tooltip("cls:N", title="class"), alt.Tooltip("month:N"),
+                 alt.Tooltip("value:Q", format=".1f", title="% of area")])
+    change = pd.DataFrame({"cls": list(names), "x": np.maximum(before, after),
+                           "label": [f"{a - b:+.1f} pp" if abs(a - b) >= 0.05 else "no change"
+                                     for b, a in zip(before, after)]})
+    text = alt.Chart(change).mark_text(align="left", dx=5, fontWeight="bold").encode(
+        y=alt.Y("cls:N", sort=list(names)), x="x:Q", text="label:N")
+    return (bars + text).properties(height=44 * len(names) + 40)
+
+
+def monthly_change_chart(steps, names, colors):
+    """Change of every class from one month to the next, as grouped vertical bars (percentage points)."""
+    long = steps.reset_index(names="step").melt("step", var_name="cls", value_name="pp")
+    long = long[long["cls"].isin(names)]
+    long["month"] = long["step"].str.split(" → ").str[1]
+    return alt.Chart(long).mark_bar().encode(
+        x=alt.X("month:N", sort=[s.split(" → ")[1] for s in steps.index], title=None,
+                axis=alt.Axis(labelAngle=0)),
+        xOffset=alt.XOffset("cls:N", sort=list(names)),
+        y=alt.Y("pp:Q", title="change vs previous month (pp)"),
+        color=alt.Color("cls:N", sort=list(names),
+                        scale=alt.Scale(domain=list(names), range=[line_color(colors[list(steps.columns).index(n)])
+                                                                   for n in names]),
+                        legend=alt.Legend(orient="bottom", title=None)),
+        tooltip=[alt.Tooltip("step:N", title="months"), alt.Tooltip("cls:N", title="class"),
+                 alt.Tooltip("pp:Q", format="+.2f", title="change (pp)")],
+    ).properties(height=320)
+
+
 def year_chart(pct, names, colors):
     """Stacked bars: class shares of every month."""
     long = pct.reset_index(names="month").melt("month", var_name="class", value_name="share")
@@ -761,30 +803,30 @@ def viewer():
         view = st.segmented_control("Show", views, key="bars_view", label_visibility="collapsed") or views[0]
         share = r["pct"].iloc[k].values
         if view == views[0]:
-            values, unit = share, "%"
+            st.altair_chart(class_bars(share[present], shown_names, shown_colors, "%"), width="stretch")
+            i = int(np.argmax(share))
+            st.caption(f"Largest class: {names[i]}, {share[i]:.1f} % of the area.")
         elif k == 0:
-            values, unit = None, "pp"
-        elif view == views[1]:
-            values, unit = r["steps"].iloc[k - 1].values, "pp"
-        else:
-            values, unit = (r["pct"].iloc[k] - r["pct"].iloc[0]).values, "pp"
-        if values is None:
             st.info(f"{labels[0]} is the first month: there is no earlier month to compare with.")
         else:
-            st.altair_chart(class_bars(values[present], shown_names, shown_colors, unit), width="stretch")
-            if unit == "%":
-                i = int(np.argmax(share))
-                st.caption(f"Largest class: {names[i]}, {share[i]:.1f} % of the area.")
-            else:
-                i = int(np.abs(values).argmax())
-                st.caption(("No class changed by 0.1 pp or more." if abs(values[i]) < 0.05
-                            else f"Largest change: {names[i]} {values[i]:+.1f} percentage points.")
-                           + " Changes under about 1 pp are usually model noise, not real land change.")
+            j = k - 1 if view == views[1] else 0
+            before = r["pct"].iloc[j].values
+            st.altair_chart(compare_bars(before[present], share[present], shown_names, shown_colors, labels[j],
+                                         labels[k]), width="stretch")
+            diff = share - before
+            i = int(np.abs(diff).argmax())
+            st.caption(("No class changed by 0.1 pp or more." if abs(diff[i]) < 0.05
+                        else f"Largest change: {names[i]} {diff[i]:+.1f} percentage points.")
+                       + " Changes under about 1 pp are usually model noise, not real land change.")
+
+        # what the model sees: the Sentinel-1 radar composite of the selected month
         count = data["counts"][N_BEFORE + k] if data["counts"] is not None else None
+        st.markdown(f"#### Radar input · {labels[k]}")
         if count == 0:
             st.warning(f"No Sentinel-1 radar scene in {labels[k]}: this month's map is less reliable.")
-        elif count is not None:
-            st.caption(f"Radar input: {count} Sentinel-1 scene{'s' if count != 1 else ''} in {labels[k]}.")
+        st.image(false_colour(data["codes"][N_BEFORE + k], r["card"]), width="stretch", clamp=True,
+                 caption="Sentinel-1, the model's only input (R = VV, G = VH, B = VV−VH), same area as the box"
+                         + (f", {count} scene{'s' if count != 1 else ''} this month" if count else ""))
 
     previews = r.get("previews")
     if previews:
@@ -854,20 +896,24 @@ with tab_year:
     st.dataframe(pct.round(1), width="stretch")
 
 with tab_change:
-    c1, c2 = st.columns(2)
+    present = [n for n in names if pct[n].max() >= 0.05]
+    shown_colors = [colors[names.index(n)] for n in present]
+    c1, c2 = st.columns(2, gap="large")
     with c1:
-        st.markdown(f"**Total change, {total.name}**")
-        st.altair_chart(class_bars(total.values, names, colors, "pp"), width="stretch")
+        st.markdown(f"**Whole period: {labels[0]} vs {labels[-1]}**")
+        st.altair_chart(compare_bars(pct.iloc[0][present].values, pct.iloc[-1][present].values, present,
+                                     shown_colors, labels[0], labels[-1]), width="stretch")
     with c2:
-        st.markdown("**Flicker per month step**")
-        st.bar_chart(pd.Series(r["flicker"], index=list(r["steps"].index), name="% of pixels"), height=300)
-    st.markdown("**Month-to-month change (percentage points)**")
-    lim = max(float(r["steps"].abs().to_numpy().max()), 0.1)
-    st.dataframe(r["steps"].style.format("{:+.2f}").background_gradient(cmap="RdBu", vmin=-lim, vmax=lim),
-                 width="stretch")
-    st.caption("Read with care: the training label is annual, so a month-to-month change is often a seasonal radar "
-               "effect (snow, wet soil, harvest, flooding), not a real land-use change. Classification errors that "
-               "differ between months add up in these differences.")
+        st.markdown("**Month by month: change vs the previous month**")
+        st.altair_chart(monthly_change_chart(r["steps"], present, colors), width="stretch")
+    st.caption("pp = percentage points of the area. Read with care: the training label is annual, so a small "
+               "change is often a seasonal radar effect (wet soil, harvest, flooding) or model noise, not real "
+               f"land-use change. Noise level of this run: on average {np.mean(r['flicker']):.1f} % of pixels "
+               "change class from one month to the next.")
+    with st.expander("Exact numbers"):
+        st.dataframe(r["steps"].round(2), width="stretch")
+        st.bar_chart(pd.Series(r["flicker"], index=list(r["steps"].index), name="% of pixels changing class"),
+                     height=220)
 
 with tab_check:
     if r.get("ref_checks"):
