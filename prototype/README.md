@@ -1,6 +1,6 @@
 # Sentinel-1 LULC prototype (Streamlit)
 
-Pick a place (search by name, preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (`Weights/Iter2_Test_1_Full`, loaded by default), and shows everything on one screen:
+Pick a place (search by name, preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (files in `Weights/Iter2_Test_1_Full/` on the server), and shows everything on one screen:
 
 - a **live map** (Satellite or Streets). Satellite shows the newest photo published before the end of the analysis year (Esri World Imagery Wayback), so it follows the Year box; the caption gives the date the photo was taken. A switch under the map (off by default) shows a cloud-free Sentinel-2 photo of the selected month inside the box, so the month slider and **Play** step through the photos together with the maps; cloudy parts let the older photo show through. On the map, the segmentation of the selected month is drawn inside the bounding box of the analysed area; a layer menu switches between the model, the reference maps and none;
 - the **Sentinel-1 radar input** of the same month beside the map, with the number of scenes;
@@ -8,9 +8,9 @@ Pick a place (search by name, preset, coordinates or a click on the map) and a s
 - **one chart beside the map** with a switch: area % per class, change vs last month, or change since the first month. Change vs last month is shown as paired bars per class (faded = earlier month, solid = selected month) labelled with the change in percentage points. Change since the first month is a line per class through every month (each monthly change carried forward), with a table of the gains, losses and net change per class. The bars use the map colours, so they are also the legend; classes absent from the area are hidden. Below it, the **radar input** of the selected month;
 - **all 12 months as thumbnails below the map** (model maps, Sentinel-2 photos or radar), the shown month framed in yellow;
 - **Map options** (background Satellite/Streets, layer opacity) in a small menu; the monthly Sentinel-2 photo inside the box is a switch under the map, off by default. Zoom goes to level 20: beyond about zoom 17 the satellite photo is enlarged (Esri has no deeper rural tiles), and the 10 m map pixels are shown sharp, not blurred;
-- an **analysis section**: summary cards (largest class, largest change, flicker, scenes per month, agreement with the Esri map vs the majority baseline), the class shares of all 12 months as a line chart (one chart per class, each with its own scale), the total and month-to-month change, the reference check, downloads (PNG, GeoTIFF, CSV, run summary) and notes on how to read the results.
+- an **analysis section**: summary cards (largest class, largest change, flicker, scenes per month, agreement with the Esri map vs the majority baseline), the class shares of all 12 months as a line chart (one chart per class, each with its own scale), the reference check, downloads (PNG, GeoTIFF, CSV, run summary) and notes on how to read the results.
 
-Classes of the final model (2nd iteration): Man-made, Crop fields, Trees, Grassland, Bare ground, Water, Snow & ice. Other runs (3rd-iteration `best_model.pt`, 1st-iteration `<variant>_best.pt`) can be chosen under **Advanced** in the sidebar.
+Classes of the final model (2nd iteration): Man-made, Crop fields, Trees, Grassland, Bare ground, Water, Snow & ice.
 
 ## Setup
 
@@ -83,7 +83,7 @@ The Earth Engine project ID is never sent to the browser: the app reads `EE_PROJ
 4. **Analysis** (below the map): summary cards, then the tabs *Year overview*, *Change*, *Reference check*, *Downloads and run log*, *How to read the results*.
 
 **Advanced** (sidebar):
-- **Model:** the final model (default), another run folder in `../Weights/` with `model_card.json`, or uploaded files (weights + the `model_card.json` of the same run).
+- **Model:** always the final model (final build); the sidebar only shows that it is loaded and on which device.
   - **2nd/3rd iteration** (`"iteration": 2` in the card): the card defines the inputs, classes, encoder and smoothing; the app checks the input and class counts.
   - **1st iteration** (cards without `iteration`): the variant follows from the first layer's channel count: 3 `single_month`, 9 `three_month`, 14 `three_month_stats`, 15 `three_month_pca`, 20 `three_month_pca_stats`, 23 `three_month_pca_stats_terrain`.
 - **Data source:** Google Earth Engine (any place), or a local dataset tile (`../Dataset_2nd_iteration/s1/` or `../Dataset/s1/`, year 2021, no Earth Engine needed; its reference is the training label, so **not** an independent check).

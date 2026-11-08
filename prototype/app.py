@@ -323,13 +323,23 @@ def cumulative_chart(pct, names, colors, k):
     # a line has one opacity: the whole year faded underneath, the months up to k solid on top
     lines = (base.transform_filter("datum.shown").mark_line(point=True, strokeWidth=2.5)
              + base.mark_line(strokeWidth=2, strokeOpacity=0.2))
-    now = long[long["month"] == months[k]]
-    labels = alt.Chart(now).mark_text(align="left", dx=7, fontWeight="bold", color=text_color()).encode(
-        x=x, y="pp:Q", text=alt.Text("pp:Q", format="+.1f"))
+    # value labels at month k in the class colour, spread apart so close values do not overlap
+    now = long[long["month"] == months[k]].sort_values("pp").copy()
+    span = max(float(since.to_numpy().max() - since.to_numpy().min()), 0.1)
+    gap, ys = 0.09 * span, []
+    for v in now["pp"]:
+        ys.append(max(v, ys[-1] + gap) if ys else v)
+    shift = (now["pp"].mean() - np.mean(ys)) if ys else 0   # recentre the stack on the real values
+    now["label_y"] = np.array(ys) + shift
+    now["label"] = [f"{round(v, 1) + 0:+.1f}" if abs(v) >= 0.05 else "0.0" for v in now["pp"]]
+    labels = alt.Chart(now).mark_text(align="left", dx=9, fontWeight="bold", fontSize=12).encode(
+        x=x, y=alt.Y("label_y:Q"), text="label:N", color=color)
     zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color="#888", strokeDash=[4, 4]).encode(y="y:Q")
     mark = alt.Chart(pd.DataFrame({"month": [months[k]]})).mark_rule(color="#ffd92f", strokeWidth=2).encode(
         x=alt.X("month:N", sort=months))
-    return (zero + mark + lines + labels).properties(height=320)
+    # right padding: the labels of the last month sit right of the plot and were clipped
+    return (zero + mark + lines + labels).properties(height=320, padding={"left": 5, "top": 5, "right": 48,
+                                                                           "bottom": 5})
 
 
 def change_table(pct, steps, names, k):
@@ -340,25 +350,6 @@ def change_table(pct, steps, names, k):
     return pd.DataFrame({f"{first} %": pct[names].iloc[0], f"{now} %": pct[names].iloc[k],
                          "gained (pp)": part.clip(lower=0).sum(), "lost (pp)": part.clip(upper=0).sum(),
                          "net (pp)": pct[names].iloc[k] - pct[names].iloc[0]}).round(2)
-
-
-def monthly_change_chart(steps, names, colors):
-    """Change of every class from one month to the next, as grouped vertical bars (percentage points)."""
-    long = steps.reset_index(names="step").melt("step", var_name="cls", value_name="pp")
-    long = long[long["cls"].isin(names)]
-    long["month"] = long["step"].str.split(" → ").str[1]
-    return alt.Chart(long).mark_bar().encode(
-        x=alt.X("month:N", sort=[s.split(" → ")[1] for s in steps.index], title=None,
-                axis=alt.Axis(labelAngle=0)),
-        xOffset=alt.XOffset("cls:N", sort=list(names)),
-        y=alt.Y("pp:Q", title="change vs previous month (pp)"),
-        color=alt.Color("cls:N", sort=list(names),
-                        scale=alt.Scale(domain=list(names), range=[line_color(colors[list(steps.columns).index(n)])
-                                                                   for n in names]),
-                        legend=alt.Legend(orient="bottom", title=None)),
-        tooltip=[alt.Tooltip("step:N", title="months"), alt.Tooltip("cls:N", title="class"),
-                 alt.Tooltip("pp:Q", format="+.2f", title="change (pp)")],
-    ).properties(height=320)
 
 
 def class_lines(pct, names, colors):
@@ -586,35 +577,16 @@ def pick_place():
 # ---------------------------------------------------------------- sidebar: advanced
 with st.sidebar:
     st.header("Advanced")
-    st.caption("The final model is used by default. Change it here only to compare other runs.")
+    # final build: always the final model; its files must be in Weights/<FINAL_RUN>/ on the server
     final_dir = ROOT / "Weights" / FINAL_RUN
-    model_choice = st.radio("Model", [f"Final model ({FINAL_RUN})", "Other run folder", "Upload files"])
     weight_bytes, card_text, weight_name = None, None, None
-    if model_choice.startswith("Final"):
-        if (final_dir / "final_model.pt").exists() and (final_dir / "model_card.json").exists():
-            weight_bytes = (final_dir / "final_model.pt").read_bytes()
-            card_text = (final_dir / "model_card.json").read_text()
-            weight_name = f"{FINAL_RUN}/final_model.pt"
-        else:
-            st.error(f"`Weights/{FINAL_RUN}/final_model.pt` and `model_card.json` not found on the server. "
-                     "Copy them there or choose another option.")
-    elif model_choice == "Other run folder":
-        runs = sorted(p for p in (ROOT / "Weights").glob("*") if (p / "model_card.json").exists())
-        if not runs:
-            st.info("No run folder with model_card.json in `Weights/`.")
-        else:
-            run = st.selectbox("Run folder", runs, format_func=lambda p: p.name)
-            pts = sorted(run.glob("*.pt"), key=lambda p: (p.name not in ("final_model.pt", "best_model.pt"), p.name))
-            if pts:
-                pt = st.selectbox("Weights file", pts, format_func=lambda p: p.name)
-                weight_bytes, card_text = pt.read_bytes(), (run / "model_card.json").read_text()
-                weight_name = f"{run.name}/{pt.name}"
+    if (final_dir / "final_model.pt").exists() and (final_dir / "model_card.json").exists():
+        weight_bytes = (final_dir / "final_model.pt").read_bytes()
+        card_text = (final_dir / "model_card.json").read_text()
+        weight_name = f"{FINAL_RUN}/final_model.pt"  # recorded in the run log only
     else:
-        up_w = st.file_uploader("Weights (`final_model.pt`, `best_model.pt` or `<variant>_best.pt`)",
-                                type=["pt", "pth"])
-        up_c = st.file_uploader("`model_card.json` from the same run", type=["json"])
-        if up_w and up_c:
-            weight_bytes, card_text, weight_name = up_w.getvalue(), up_c.getvalue().decode("utf-8"), up_w.name
+        st.error(f"Model files not found on the server: copy `final_model.pt` and `model_card.json` to "
+                 f"`Weights/{FINAL_RUN}/`.")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = variant = card = None
@@ -623,8 +595,7 @@ with st.sidebar:
             card = json.loads(card_text)
             key = hashlib.sha1(weight_bytes).hexdigest() + hashlib.sha1(card_text.encode()).hexdigest()
             net, variant = get_model(key, weight_bytes, card_text, device.type)
-            st.success(f"`{weight_name}`: {variant['name']}, {variant['encoder']} encoder, "
-                       f"{3 * variant['n_months'] + variant['n_static']} input channels"
+            st.success(f"Model ready: U-Net ({variant['encoder']}), Sentinel-1 radar only"
                        f"{', 3-month smoothing' if variant['smoothing'] else ''}, on {device.type.upper()}")
             if variant["terrain"]:
                 st.warning("This variant also uses terrain (DEM, HAND): not Sentinel-1 only.")
@@ -643,14 +614,10 @@ with st.sidebar:
 # ---------------------------------------------------------------- header and controls
 st.title("Sentinel-1 Land Cover Explorer")
 st.caption("12 monthly land-cover maps from radar only (Sentinel-1), for any place on Earth. "
-           + (f"Model: {weight_name}" + (f" (rural test mIoU {card['test_rural_mIoU']:.3f})"
-                                          if card and card.get("test_rural_mIoU") else "") if card else ""))
+           + (f"Rural test accuracy (mIoU): {card['test_rural_mIoU']:.3f}."
+              if card and card.get("test_rural_mIoU") else ""))
 
 result = st.session_state.get("result")
-if result is not None and weight_name and result["weights"] != weight_name:
-    # results are kept between reruns; a model change in the sidebar does not recompute them
-    st.warning(f"The maps below were made with **{result['weights']}**, not with the selected **{weight_name}**. "
-               "Press **Run** to compute them with the selected model.")
 with st.container(border=True):
     if use_gee:
         s = st.columns([3.2, 4.3], vertical_alignment="bottom")
@@ -912,7 +879,7 @@ if r["valid"].mean() < 0.99:
     st.warning(f"{(1 - r['valid'].mean()) * 100:.1f} % of the area has no radar data and is excluded.")
 
 st.subheader("Analysis")
-st.caption(f"Model of this result: {r['weights']} ({r['model']}) · {r['place_name']}")
+st.caption(r["place_name"])
 mean_share = pct.mean()
 biggest = total.abs().idxmax()
 m = st.columns(5)
@@ -936,8 +903,8 @@ if r["check"] is not None:
 else:
     m[4].metric("Agreement with reference", "n/a")
 
-tab_year, tab_change, tab_check, tab_files, tab_help = st.tabs(
-    ["Year overview", "Change", "Reference check", "Downloads and run log", "How to read the results"])
+tab_year, tab_check, tab_files, tab_help = st.tabs(
+    ["Year overview", "Reference check", "Downloads and run log", "How to read the results"])
 
 with tab_year:
     shown = [n for n in names if pct[n].max() >= 0.05]
@@ -946,27 +913,6 @@ with tab_year:
                "changes under about 1 pp are usually model noise.")
     with st.expander("Exact numbers"):
         st.dataframe(pct.round(2), width="stretch")
-
-with tab_change:
-    present = [n for n in names if pct[n].max() >= 0.05]
-    shown_colors = [colors[names.index(n)] for n in present]
-    c1, c2 = st.columns(2, gap="large")
-    with c1:
-        st.markdown(f"**Whole period: {labels[0]} vs {labels[-1]}**")
-        st.altair_chart(compare_bars(pct.iloc[0][present].values, pct.iloc[-1][present].values, present,
-                                     shown_colors, labels[0], labels[-1]), width="stretch")
-        st.dataframe(change_table(pct, r["steps"], present, 11), width="stretch")
-    with c2:
-        st.markdown("**Month by month: change vs the previous month**")
-        st.altair_chart(monthly_change_chart(r["steps"], present, colors), width="stretch")
-    st.caption("pp = percentage points of the area. Read with care: the training label is annual, so a small "
-               "change is often a seasonal radar effect (wet soil, harvest, flooding) or model noise, not real "
-               f"land-use change. Noise level of this run: on average {np.mean(r['flicker']):.1f} % of pixels "
-               "change class from one month to the next.")
-    with st.expander("Exact numbers"):
-        st.dataframe(r["steps"].round(2), width="stretch")
-        st.bar_chart(pd.Series(r["flicker"], index=list(r["steps"].index), name="% of pixels changing class"),
-                     height=220)
 
 with tab_check:
     if r.get("ref_checks"):
