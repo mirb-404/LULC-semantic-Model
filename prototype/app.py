@@ -801,6 +801,7 @@ def viewer():
             notes.append("Background: " + background[0].lower() + background[1:])
         if notes:
             st.caption(" · ".join(notes))
+        below_map = st.container()  # filled by the right column (change table), where there is more room
 
     with right:
         # only classes present in this area; the coloured bars double as the map legend
@@ -821,9 +822,11 @@ def viewer():
         elif view == views[2]:
             # every monthly change carried forward: the line at month k is the sum of all steps up to k
             st.altair_chart(cumulative_chart(r["pct"], shown_names, shown_colors, k), width="stretch")
-            st.dataframe(change_table(r["pct"], r["steps"], shown_names, k), width="stretch")
-            st.caption("Net = gained + lost = the line at the yellow month. Gains and losses in between cancel. "
-                       "Changes under about 1 pp are usually model noise, not real land change.")
+            with below_map:
+                st.markdown(f"**Change since {labels[0]}, per class**")
+                st.dataframe(change_table(r["pct"], r["steps"], shown_names, k), width="stretch")
+                st.caption("Net = gained + lost = the line at the yellow month. Gains and losses in between "
+                           "cancel. Changes under about 1 pp are usually model noise, not real land change.")
         else:
             before = r["pct"].iloc[k - 1].values
             st.altair_chart(compare_bars(before[present], share[present], shown_names, shown_colors, labels[k - 1],
