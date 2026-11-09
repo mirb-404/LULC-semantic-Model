@@ -13,6 +13,7 @@ import io
 import json
 import os
 import time
+import zipfile
 from collections import Counter
 from pathlib import Path
 
@@ -580,22 +581,43 @@ def pick_place():
     go_to_place(*st.session_state["search_hits"][st.session_state["search_pick"]])
 
 
+def is_final_run(folder):
+    return folder.name.lower() == FINAL_RUN.lower()
+
+
+def find_runs(weights_dir):
+    """Run folders (with model_card.json) under Weights/, final model first, then newest first.
+
+    Plug and play: a `Final_Iteration.zip` dropped into Weights/ is unpacked to Weights/Final_Iteration/,
+    and folder-name case or one extra nesting level from unzipping do not matter."""
+    if not weights_dir.is_dir():
+        return []
+    for z in weights_dir.glob("*.zip"):
+        target = weights_dir / z.stem
+        if z.stem.lower() == FINAL_RUN.lower() and not any(target.rglob("model_card.json")):
+            with zipfile.ZipFile(z) as zf:
+                zf.extractall(target)
+    cards = [c for c in weights_dir.rglob("model_card.json")
+             if ".ipynb_checkpoints" not in c.parts and len(c.relative_to(weights_dir).parts) <= 3]
+    runs = {c.parent for c in cards if any(c.parent.glob("*.pt"))}
+    return sorted(runs, key=lambda p: (not is_final_run(p), -p.stat().st_mtime))
+
+
 # ---------------------------------------------------------------- sidebar: advanced
 with st.sidebar:
     st.header("Advanced")
     st.caption(f"The final model ({FINAL_RUN}) is selected by default. Pick another run folder only to compare.")
     weight_bytes, card_text, weight_name, is_final = None, None, None, False
-    # every run folder with a model card; the final model first, then the others newest first
-    runs = sorted((p for p in (ROOT / "Weights").glob("*") if (p / "model_card.json").exists()),
-                  key=lambda p: (p.name != FINAL_RUN, -p.stat().st_mtime))
+    runs = find_runs(ROOT / "Weights")
     if not runs:
-        st.error(f"No run folder with `model_card.json` in `Weights/`: copy `final_model.pt` and `model_card.json` "
-                 f"to `Weights/{FINAL_RUN}/`.")
+        st.error(f"No model found in `Weights/`. Put `{FINAL_RUN}.zip` into `Weights/` (it is unpacked on the next "
+                 f"start), or copy `final_model.pt` and `model_card.json` to `Weights/{FINAL_RUN}/`.")
     else:
-        if runs[0].name != FINAL_RUN:
+        if not is_final_run(runs[0]):
             st.warning(f"`Weights/{FINAL_RUN}/` not found; using the newest run folder instead.")
-        run = st.selectbox("Run folder", runs, format_func=lambda p: p.name + (" (final model)" if p.name == FINAL_RUN else ""))
-        is_final = run.name == FINAL_RUN
+        run = st.selectbox("Run folder", runs, format_func=lambda p: p.relative_to(ROOT / "Weights").as_posix()
+                           + (" (final model)" if is_final_run(p) else ""))
+        is_final = is_final_run(run)
         pts = sorted(run.glob("*.pt"), key=lambda p: (p.name not in ("final_model.pt", "best_model.pt"), p.name))
         if pts:
             pt = st.selectbox("Weights file", pts, format_func=lambda p: p.name)

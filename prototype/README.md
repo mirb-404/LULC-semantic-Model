@@ -31,19 +31,79 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 
 The CPU also works. A 5 x 5 km area takes about 1-2 minutes for all 12 months.
 
+### Model weights (required)
+
+The trained model is not in the repository (about 98 MB). Download **`Final_Iteration.zip`** from
+**[the model weights link](https://data.data-lab.site/public/api/resources/download?hash=U8I4kH6GcEo2opiMjQzkWg)** and put it, still zipped, into a `Weights/` folder at the top of the repository (create the folder; if the browser saves the file under another name, rename it to `Final_Iteration.zip`):
+
+```
+LULC-semantic-Model/
+├── prototype/
+└── Weights/
+    └── Final_Iteration.zip
+```
+
+That is all: the app unpacks it to `Weights/Final_Iteration/` on its first start and loads it by default. Unzipping it yourself also works, as long as `final_model.pt` and `model_card.json` end up in one folder inside `Weights/` (for example `Weights/Final_Iteration/final_model.pt`). The sidebar shows `Final_Iteration/final_model.pt ready` when the model is loaded.
+
+### Dataset (optional)
+
+The app does not need the dataset: it downloads the radar for any place from Earth Engine. The training, validation and test data (Sentinel-1 radar, labels and patch lists, about 10 GB) is available from **[the dataset link](https://data.data-lab.site/public/api/resources/download?hash=nJBGUiARgC3lV5DmQ4d4dQ)**; it is needed only to retrain the model (`Notebooks/final_iteration.ipynb`) or for the offline "local dataset tile" source under Advanced (unzip it to `Dataset_2nd_iteration/` at the top of the repository).
+
 ### Google Earth Engine (required for any location)
 
-1. A Google account with access to Earth Engine, and a Google Cloud project registered for Earth Engine (https://earthengine.google.com, then "Get started"). Non-commercial use is free.
-2. Log in once on this machine:
-   ```bash
-   earthengine authenticate
-   ```
-3. Put the project ID in a `.env` file at the repository root (git-ignored, so the ID stays private): copy `.env.example` to `.env` and fill in `Project_ID = <your-project-id>`. Alternative: the environment variable `EE_PROJECT` (wins over `.env`). The app has no project field: the ID stays on the server.
-4. Check that everything works:
-   ```bash
-   python check_auth.py                 # or: python check_auth.py --project <id>
-   ```
-   It checks the credentials file, the login and project, and read access to Sentinel-1 and the Esri map, and prints the fix for the first step that fails (exit code 0 = ready).
+The app downloads all radar and reference maps from Google Earth Engine, so every user needs their own Earth Engine access. It takes about 10 minutes once; non-commercial and academic use is free.
+
+**Step 1: a Google Cloud project registered for Earth Engine**
+
+1. Sign in with a Google account at https://earthengine.google.com and click **Get started**.
+2. Create a new Google Cloud project, or choose an existing one, and note its **project ID** (for example `my-lulc-project`, not the display name).
+3. Register the project for **non-commercial / unpaid use** (academic or research). Answer the short questionnaire.
+4. If asked, enable the **Earth Engine API** for the project in the Google Cloud console (APIs & Services → Library → "Google Earth Engine API" → Enable).
+
+**Step 2: log in on the machine that runs the app**
+
+The `earthengine` command comes with `earthengine-api` from `requirements.txt`, so activate the virtual environment first.
+
+- Laptop or desktop with a browser:
+  ```bash
+  earthengine authenticate
+  ```
+  A browser window opens. Sign in with the same Google account and allow access.
+- Remote or headless machine (Datalab, JupyterHub, SSH):
+  ```bash
+  earthengine authenticate --auth_mode=notebook
+  ```
+  Open the printed link on any computer, sign in, copy the code shown at the end and paste it back into the terminal.
+
+In both cases, **do not tick "read-only scopes"**: the app then cannot run computations. The login is stored on the machine (`~/.config/earthengine/credentials`, on Windows `%USERPROFILE%\.config\earthengine\credentials`) and only needs repeating if it expires.
+
+**Step 3: tell the app which project to use**
+
+Copy `.env.example` (repository root) to `.env` and fill in your project ID:
+
+```
+Project_ID = my-lulc-project
+```
+
+`.env` is git-ignored, so the ID stays private. Alternative: set the environment variable `EE_PROJECT` (it wins over `.env`). The app has no project field, and the ID is never sent to the browser.
+
+**Step 4: check that everything works**
+
+```bash
+cd prototype
+python check_auth.py                 # or: python check_auth.py --project <id>
+```
+
+It checks the credentials file, the login and project, and read access to Sentinel-1 and the Esri map. Each passed step prints `OK`; the first failed step prints `FAIL` with the fix (exit code 0 = ready).
+
+**Common problems**
+
+| Message from `check_auth.py` or the app | Fix |
+|---|---|
+| `FAIL  credentials: no file at ...` | You have not logged in on this machine: run Step 2. |
+| `FAIL  login` (`invalid_grant`, `expired`, `invalid_scope`) | The login expired or was made with read-only scopes: run Step 2 again and leave "read-only scopes" unticked. |
+| `FAIL  project` (not registered, API disabled) | The project ID is wrong or not registered for Earth Engine: check the ID in `.env`, register it (Step 1) and enable the Earth Engine API. |
+| `FAIL  Sentinel-1 GRD` or `FAIL  Esri Annual LULC` | The project works but cannot read the dataset: make sure the project is registered for Earth Engine, not only created in Google Cloud. |
 
 No other accounts or API keys are needed.
 
@@ -83,7 +143,7 @@ The Earth Engine project ID is never sent to the browser: the app reads `EE_PROJ
 4. **Analysis** (below the map): summary cards, then the tabs *Year overview*, *Change*, *Reference check*, *Downloads and run log*, *How to read the results*.
 
 **Advanced** (sidebar):
-- **Model:** always the final model (final build); the sidebar only shows that it is loaded and on which device.
+- **Model:** the final model (`Weights/Final_Iteration/`) is selected by default; **Run folder** and **Weights file** switch to another model in `Weights/` for comparison. The sidebar shows which file is loaded and on which device.
   - **2nd/3rd iteration** (`"iteration": 2` in the card): the card defines the inputs, classes, encoder and smoothing; the app checks the input and class counts.
   - **1st iteration** (cards without `iteration`): the variant follows from the first layer's channel count: 3 `single_month`, 9 `three_month`, 14 `three_month_stats`, 15 `three_month_pca`, 20 `three_month_pca_stats`, 23 `three_month_pca_stats_terrain`.
 - **Data source:** Google Earth Engine (any place), or a local dataset tile (`../Dataset_2nd_iteration/s1/` or `../Dataset/s1/`, year 2021, no Earth Engine needed; its reference is the training label, so **not** an independent check).
