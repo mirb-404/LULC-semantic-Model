@@ -570,6 +570,12 @@ def search_place():
     go_to_place(*hits[0])
 
 
+def typed_coordinates():
+    """Coordinates typed by hand: the place is no longer the preset or the searched place."""
+    st.session_state["preset"] = CUSTOM
+    st.session_state.pop("place_found", None)
+
+
 def pick_place():
     go_to_place(*st.session_state["search_hits"][st.session_state["search_pick"]])
 
@@ -636,8 +642,8 @@ with st.container(border=True):
         c = st.columns([3.2, 1.3, 1.3, 1, 1.1, 1.5, 1.1], vertical_alignment="bottom")
         c[0].selectbox("Place", list(PRESETS), key="preset", on_change=apply_preset)
         # text boxes instead of number inputs: no +/- buttons, coordinates are usually pasted
-        lat = parse_degrees(c[1].text_input("Latitude", key="lat_text"), -60, 72)  # Sentinel-1 IW coverage
-        lon = parse_degrees(c[2].text_input("Longitude", key="lon_text"), -180, 180)
+        lat = parse_degrees(c[1].text_input("Latitude", key="lat_text", on_change=typed_coordinates), -60, 72)  # Sentinel-1 IW coverage
+        lon = parse_degrees(c[2].text_input("Longitude", key="lon_text", on_change=typed_coordinates), -180, 180)
         year = c[3].number_input("Year", 2015, 2025, 2021, step=1)
         month = c[4].selectbox("Start month", range(1, 13), format_func=lambda m: pipeline.MONTH_NAMES[m - 1])
         size = SIZES[c[5].selectbox("Area", list(SIZES), index=1)]

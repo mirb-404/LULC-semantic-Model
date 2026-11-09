@@ -62,7 +62,7 @@ In short: Sentinel-2 true colour is shown for display only, because radar backsc
 | Narrow waterways missed (seen at Berlin) | Canals and smaller river arms are mapped as Man-made or Trees, not Water | Label limit first: WorldCover and Dynamic World often mark canals under about 20-30 m wide as built-up or as the bank class, so the model learned that. Radar adds to it: a canal 1-2 pixels wide is a mixed pixel, and quay walls, bridges and buildings give bright double-bounce returns that hide the dark water. Roads are not a class (they are part of Man-made). Water shares in cities are therefore too low; large lakes and wide rivers are found |
 | Snow & ice weak | Rural IoU about 0.35 | Only glaciers; seasonal snow is not mapped (by design, section 2.2) |
 | Weak regions | Africa 0.49, Oceania 0.44 rural mIoU (Oceania = 1 test site) | Lower trust outside Europe, Asia and the Americas |
-| Scored on agreement pixels | Rural mIoU 0.679 on pixels where WorldCover and Dynamic World agree; about 0.55 on all WorldCover pixels | Report both numbers; real-world accuracy is closer to the lower one on mixed land |
+| Scored on agreement pixels | Rural mIoU 0.679 on pixels where WorldCover and Dynamic World agree; 0.597 on all WorldCover pixels (boundaries included) | Report both numbers; real-world accuracy is closer to the lower one on mixed land |
 | Classification errors inflate change | Every pixel that flips adds to the change, true or not | Smoothing keeps flicker under 1 %; small changes (under about 1 pp) should not be read as real |
 
 ### 3.2 Data and inputs
@@ -102,4 +102,4 @@ Prototype-specific (model and training ideas: `reports/Future scope.md`):
 - Case study: Willamette (numbers in section 2.1) and the Black Forest snow example (section 2.2), with the monthly photo next to the model map.
 - Seasonal effects: the snow example shows why annual labels plus radar give stable land cover, and why optical change detection would show fake change.
 - Change inflation: flicker 0.26-0.66 % per month, largest monthly change 0.43 pp; changes below about 1 pp are within the noise.
-- Honest scores: rural mIoU 0.679 on agreement pixels, about 0.55 on all pixels; 68 % agreement with Esri vs 51 % majority baseline.
+- Honest scores: rural mIoU 0.679 on agreement pixels, 0.597 on all WorldCover pixels; 68 % agreement with Esri vs 51 % majority baseline.
