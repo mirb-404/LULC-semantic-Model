@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-09 16:12:05",
+  "place_name": "Monaco",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 43.73235,
+  "lon": 7.42768,
+  "epsg": 32632,
+  "weights": "Final_Iteration/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.7009348424676859,
+    "test_mIoU": 0.7666639824652592
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    18,
+    22,
+    20,
+    16,
+    22,
+    20,
+    20,
+    19,
+    19,
+    19,
+    20,
+    20,
+    20,
+    17
+  ],
+  "valid_share": 0.9993247985839844,
+  "reference": "Esri 10 m Annual LULC 2021 (Sentinel-2 based): independent of the training labels",
+  "reference_agreement_pct": 71.64871911347612,
+  "reference_majority_baseline_pct": 59.907545606889414,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 71.64871911347612,
+      "majority_baseline_pct": 59.907545606889414
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 82.76424129756802,
+      "majority_baseline_pct": 59.321975668691096
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 91.7535414765982,
+      "majority_baseline_pct": 59.48573675310249
+    }
+  },
+  "flicker_pct": [
+    0.1717773612706944,
+    0.23056339157222092,
+    0.2256009344688453,
+    0.19658964678757246,
+    0.2374344860230487,
+    0.2626284990094172,
+    0.20727801593330455,
+    0.21911156748750799,
+    0.22025674989597926,
+    0.2301816641027305,
+    0.1790301831910126
+  ]
+}

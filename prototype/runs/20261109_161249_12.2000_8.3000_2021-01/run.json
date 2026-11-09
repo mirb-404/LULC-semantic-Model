@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-09 16:12:48",
+  "place_name": "Kano farmland, Nigeria (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": 12.2,
+  "lon": 8.3,
+  "epsg": 32632,
+  "weights": "Final_Iteration/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.7009348424676859,
+    "test_mIoU": 0.7666639824652592
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    2,
+    3,
+    3,
+    2
+  ],
+  "valid_share": 1.0,
+  "reference": "Esri 10 m Annual LULC 2021 (Sentinel-2 based): independent of the training labels",
+  "reference_agreement_pct": 12.472152709960938,
+  "reference_majority_baseline_pct": 94.81277465820312,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 12.472152709960938,
+      "majority_baseline_pct": 94.81277465820312
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 92.10166931152344,
+      "majority_baseline_pct": 84.76600646972656
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 30.379486083984375,
+      "majority_baseline_pct": 56.63948059082031
+    }
+  },
+  "flicker_pct": [
+    0.2979278564453125,
+    0.3528594970703125,
+    0.34027099609375,
+    0.4016876220703125,
+    0.4695892333984375,
+    0.5619049072265625,
+    0.7907867431640625,
+    0.516510009765625,
+    0.414276123046875,
+    0.6366729736328125,
+    0.3955841064453125
+  ]
+}
