@@ -1,6 +1,6 @@
 # Sentinel-1 LULC prototype (Streamlit)
 
-Pick a place (search by name, preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (files in `Weights/Iter2_Test_1_Full/` on the server), and shows everything on one screen:
+Pick a place (search by name, preset, coordinates or a click on the map) and a start month. The app downloads 12 monthly Sentinel-1 composites, runs the final U-Net (files in `Weights/Final_Iteration/` on the server; the earlier `Iter2_Test_1_Full` model stays selectable under Advanced), and shows everything on one screen:
 
 - a **live map** (Satellite or Streets). Satellite shows the newest photo published before the end of the analysis year (Esri World Imagery Wayback), so it follows the Year box; the caption gives the date the photo was taken. A switch under the map (off by default) shows a cloud-free Sentinel-2 photo of the selected month inside the box, so the month slider and **Play** step through the photos together with the maps; cloudy parts let the older photo show through. On the map, the segmentation of the selected month is drawn inside the bounding box of the analysed area; a layer menu switches between the model, the reference maps and none;
 - the **Sentinel-1 radar input** of the same month beside the map, with the number of scenes;

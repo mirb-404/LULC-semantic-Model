@@ -4,7 +4,7 @@ Run from this folder:  streamlit run app.py
 
 Layout: place and time at the top; a live map with the segmentation inside the bounding box and the radar input
 of the same month beside it, both driven by one month slider (with play); analysis below (summary, year
-overview, change, Esri check, downloads). The final model (Weights/Iter2_Test_1_Full) is loaded by default;
+overview, change, Esri check, downloads). The final model (Weights/Final_Iteration) is loaded by default;
 other weights, the offline dataset tiles and the patch overlap are under "Advanced" in the sidebar.
 """
 import hashlib
@@ -34,7 +34,7 @@ import runlog
 
 ROOT = Path(__file__).resolve().parent.parent
 N_BEFORE = 2  # months fetched before the start month, for the three-month window
-FINAL_RUN = "Iter2_Test_1_Full"
+FINAL_RUN = "Final_Iteration"  # 9 Nov retrain on 2021-2024 radar; Iter2_Test_1_Full stays under "Other run folder"
 SIZES = {"2.56 km": 256, "5.12 km": 512, "10.24 km (training tile)": 1024}
 ZOOM = {256: 14, 512: 13, 1024: 12}
 MAX_ZOOM = 20
@@ -583,32 +583,26 @@ def pick_place():
 # ---------------------------------------------------------------- sidebar: advanced
 with st.sidebar:
     st.header("Advanced")
-    st.caption("The final model is used by default. Change it here only to compare other runs.")
-    final_dir = ROOT / "Weights" / FINAL_RUN
-    model_choice = st.radio("Model", [f"Final model ({FINAL_RUN})", "Other run folder"])
-    weight_bytes, card_text, weight_name = None, None, None
-    if model_choice.startswith("Final"):
-        if (final_dir / "final_model.pt").exists() and (final_dir / "model_card.json").exists():
-            weight_bytes = (final_dir / "final_model.pt").read_bytes()
-            card_text = (final_dir / "model_card.json").read_text()
-            weight_name = f"{FINAL_RUN}/final_model.pt"
-        else:
-            st.error(f"Model files not found on the server: copy `final_model.pt` and `model_card.json` to "
-                     f"`Weights/{FINAL_RUN}/`, or choose another run folder.")
+    st.caption(f"The final model ({FINAL_RUN}) is selected by default. Pick another run folder only to compare.")
+    weight_bytes, card_text, weight_name, is_final = None, None, None, False
+    # every run folder with a model card; the final model first, then the others newest first
+    runs = sorted((p for p in (ROOT / "Weights").glob("*") if (p / "model_card.json").exists()),
+                  key=lambda p: (p.name != FINAL_RUN, -p.stat().st_mtime))
+    if not runs:
+        st.error(f"No run folder with `model_card.json` in `Weights/`: copy `final_model.pt` and `model_card.json` "
+                 f"to `Weights/{FINAL_RUN}/`.")
     else:
-        runs = sorted((p for p in (ROOT / "Weights").glob("*") if (p / "model_card.json").exists()),
-                      key=lambda p: p.stat().st_mtime, reverse=True)
-        if not runs:
-            st.info("No run folder with model_card.json in `Weights/`.")
+        if runs[0].name != FINAL_RUN:
+            st.warning(f"`Weights/{FINAL_RUN}/` not found; using the newest run folder instead.")
+        run = st.selectbox("Run folder", runs, format_func=lambda p: p.name + (" (final model)" if p.name == FINAL_RUN else ""))
+        is_final = run.name == FINAL_RUN
+        pts = sorted(run.glob("*.pt"), key=lambda p: (p.name not in ("final_model.pt", "best_model.pt"), p.name))
+        if pts:
+            pt = st.selectbox("Weights file", pts, format_func=lambda p: p.name)
+            weight_bytes, card_text = pt.read_bytes(), (run / "model_card.json").read_text()
+            weight_name = f"{run.name}/{pt.name}"
         else:
-            run = st.selectbox("Run folder (newest first)", runs, format_func=lambda p: p.name)
-            pts = sorted(run.glob("*.pt"), key=lambda p: (p.name not in ("final_model.pt", "best_model.pt"), p.name))
-            if pts:
-                pt = st.selectbox("Weights file", pts, format_func=lambda p: p.name)
-                weight_bytes, card_text = pt.read_bytes(), (run / "model_card.json").read_text()
-                weight_name = f"{run.name}/{pt.name}"
-            else:
-                st.info(f"No .pt file in `Weights/{run.name}/`.")
+            st.info(f"No .pt file in `Weights/{run.name}/`.")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = variant = card = None
@@ -638,7 +632,7 @@ st.title("Sentinel-1 Land Cover Explorer")
 st.caption("12 monthly land-cover maps from radar only (Sentinel-1), for any place on Earth. "
            + (f"Rural test accuracy (mIoU): {card['test_rural_mIoU']:.3f}."
               if card and card.get("test_rural_mIoU") else "")
-           + (f" Model: {weight_name}." if weight_name and not model_choice.startswith("Final") else ""))
+           + (f" Model: {weight_name}." if weight_name and not is_final else ""))
 
 result = st.session_state.get("result")
 with st.container(border=True):
