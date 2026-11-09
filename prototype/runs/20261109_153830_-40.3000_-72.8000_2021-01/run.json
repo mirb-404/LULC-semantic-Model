@@ -1,0 +1,111 @@
+{
+  "time": "2026-11-09 15:38:29",
+  "place_name": "Chilean lakes (rural test site)",
+  "source": "Google Earth Engine",
+  "start_year": 2021,
+  "start_month": 1,
+  "area_px": 512,
+  "patch_stride": 192,
+  "device": "cuda",
+  "lat": -40.3,
+  "lon": -72.8,
+  "epsg": 32718,
+  "weights": "Final_Iteration/final_model.pt",
+  "model": "month_year (smoothed)",
+  "model_card": {
+    "iteration": 2,
+    "variant": "month_year",
+    "encoder": null,
+    "n_months": 1,
+    "in_channels": 12,
+    "temporal_smoothing": "mean softmax of months t-1, t, t+1 (wrapping) before argmax",
+    "test_rural_mIoU": 0.6551050211726092,
+    "test_mIoU": 0.7359235730316008
+  },
+  "class_names": [
+    "Man-made",
+    "Crop fields",
+    "Trees",
+    "Grassland",
+    "Bare ground",
+    "Water",
+    "Snow & ice"
+  ],
+  "months": [
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "months_fetched": [
+    "Nov 2020",
+    "Dec 2020",
+    "Jan 2021",
+    "Feb 2021",
+    "Mar 2021",
+    "Apr 2021",
+    "May 2021",
+    "Jun 2021",
+    "Jul 2021",
+    "Aug 2021",
+    "Sep 2021",
+    "Oct 2021",
+    "Nov 2021",
+    "Dec 2021"
+  ],
+  "scene_counts": [
+    9,
+    11,
+    10,
+    8,
+    12,
+    9,
+    10,
+    7,
+    7,
+    10,
+    10,
+    10,
+    9,
+    9
+  ],
+  "valid_share": 0.9996871948242188,
+  "reference": "Esri 10 m Annual LULC 2021 (Sentinel-2 based): independent of the training labels",
+  "reference_agreement_pct": 38.99364766104413,
+  "reference_majority_baseline_pct": 64.08307379197632,
+  "all_references": {
+    "Esri (independent)": {
+      "agreement_pct": 38.99364766104413,
+      "majority_baseline_pct": 64.08307379197632
+    },
+    "WorldCover 2021 (training label)": {
+      "agreement_pct": 69.33206645755584,
+      "majority_baseline_pct": 49.038013905106425
+    },
+    "Dynamic World 2021 (agreement weights in training)": {
+      "agreement_pct": 72.2993032183224,
+      "majority_baseline_pct": 51.60877960177363
+    }
+  },
+  "flicker_pct": [
+    0.3193900679991758,
+    0.352588318794789,
+    0.41249780586273477,
+    0.369378238737398,
+    0.47965748563317073,
+    0.3216796025368043,
+    0.4170768749379917,
+    0.38998404957605454,
+    0.48461814379803253,
+    0.3934183513824973,
+    0.325113904343247
+  ]
+}
