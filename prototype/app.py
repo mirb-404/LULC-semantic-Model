@@ -583,16 +583,32 @@ def pick_place():
 # ---------------------------------------------------------------- sidebar: advanced
 with st.sidebar:
     st.header("Advanced")
-    # final build: always the final model; its files must be in Weights/<FINAL_RUN>/ on the server
+    st.caption("The final model is used by default. Change it here only to compare other runs.")
     final_dir = ROOT / "Weights" / FINAL_RUN
+    model_choice = st.radio("Model", [f"Final model ({FINAL_RUN})", "Other run folder"])
     weight_bytes, card_text, weight_name = None, None, None
-    if (final_dir / "final_model.pt").exists() and (final_dir / "model_card.json").exists():
-        weight_bytes = (final_dir / "final_model.pt").read_bytes()
-        card_text = (final_dir / "model_card.json").read_text()
-        weight_name = f"{FINAL_RUN}/final_model.pt"  # recorded in the run log only
+    if model_choice.startswith("Final"):
+        if (final_dir / "final_model.pt").exists() and (final_dir / "model_card.json").exists():
+            weight_bytes = (final_dir / "final_model.pt").read_bytes()
+            card_text = (final_dir / "model_card.json").read_text()
+            weight_name = f"{FINAL_RUN}/final_model.pt"
+        else:
+            st.error(f"Model files not found on the server: copy `final_model.pt` and `model_card.json` to "
+                     f"`Weights/{FINAL_RUN}/`, or choose another run folder.")
     else:
-        st.error(f"Model files not found on the server: copy `final_model.pt` and `model_card.json` to "
-                 f"`Weights/{FINAL_RUN}/`.")
+        runs = sorted((p for p in (ROOT / "Weights").glob("*") if (p / "model_card.json").exists()),
+                      key=lambda p: p.stat().st_mtime, reverse=True)
+        if not runs:
+            st.info("No run folder with model_card.json in `Weights/`.")
+        else:
+            run = st.selectbox("Run folder (newest first)", runs, format_func=lambda p: p.name)
+            pts = sorted(run.glob("*.pt"), key=lambda p: (p.name not in ("final_model.pt", "best_model.pt"), p.name))
+            if pts:
+                pt = st.selectbox("Weights file", pts, format_func=lambda p: p.name)
+                weight_bytes, card_text = pt.read_bytes(), (run / "model_card.json").read_text()
+                weight_name = f"{run.name}/{pt.name}"
+            else:
+                st.info(f"No .pt file in `Weights/{run.name}/`.")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = variant = card = None
@@ -601,7 +617,7 @@ with st.sidebar:
             card = json.loads(card_text)
             key = hashlib.sha1(weight_bytes).hexdigest() + hashlib.sha1(card_text.encode()).hexdigest()
             net, variant = get_model(key, weight_bytes, card_text, device.type)
-            st.success(f"Model ready: U-Net ({variant['encoder']}), Sentinel-1 radar only"
+            st.success(f"`{weight_name}` ready: U-Net ({variant['encoder']}), Sentinel-1 radar only"
                        f"{', 3-month smoothing' if variant['smoothing'] else ''}, on {device.type.upper()}")
             if variant["terrain"]:
                 st.warning("This variant also uses terrain (DEM, HAND): not Sentinel-1 only.")
@@ -621,7 +637,8 @@ with st.sidebar:
 st.title("Sentinel-1 Land Cover Explorer")
 st.caption("12 monthly land-cover maps from radar only (Sentinel-1), for any place on Earth. "
            + (f"Rural test accuracy (mIoU): {card['test_rural_mIoU']:.3f}."
-              if card and card.get("test_rural_mIoU") else ""))
+              if card and card.get("test_rural_mIoU") else "")
+           + (f" Model: {weight_name}." if weight_name and not model_choice.startswith("Final") else ""))
 
 result = st.session_state.get("result")
 with st.container(border=True):
